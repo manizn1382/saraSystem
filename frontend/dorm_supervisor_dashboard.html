@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>داشبورد سرپرست خوابگاه</title>
+  <style>
+    @font-face {
+      font-family: system-ui;
+      src: local("Segoe UI");
+    }
+
+    :root {
+      --bg: #06162b;
+      --sidebar: rgba(7, 29, 55, 0.96);
+      --panel: rgba(13, 39, 73, 0.86);
+      --panel-2: rgba(16, 46, 82, 0.78);
+      --muted: #94a3b8;
+      --text: #f8fafc;
+      --soft: #cbd5e1;
+      --line: rgba(255,255,255,.10);
+      --line-2: rgba(255,255,255,.06);
+      --sky: #38bdf8;
+      --sky-2: #7dd3fc;
+      --green: #22c55e;
+      --yellow: #facc15;
+      --orange: #fb923c;
+      --red: #ef4444;
+      --purple: #a78bfa;
+      --radius: 24px;
+      --shadow: 0 24px 80px rgba(0,0,0,.28);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 88% 8%, rgba(56, 189, 248, .20), transparent 26rem),
+        radial-gradient(circle at 8% 92%, rgba(29, 78, 216, .24), transparent 28rem),
+        linear-gradient(135deg, #06162b 0%, #071b35 48%, #08254a 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at center, #000, transparent 82%);
+      z-index: 0;
+    }
+
+    button,
+    input,
+    select {
+      font-family: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 292px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 20px 16px;
+      background: var(--sidebar);
+      border-left: 1px solid var(--line);
+      box-shadow: -24px 0 80px rgba(0,0,0,.22);
+      backdrop-filter: blur(22px);
+      overflow-y: auto;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.055);
+      border: 1px solid var(--line-2);
+      margin-bottom: 22px;
+    }
+
+    .brand-logo {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 20px;
+      background: rgba(56,189,248,.16);
+      color: var(--sky-2);
+      font-size: 28px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-item {
+      width: 100%;
+      border: 0;
+      color: #dbeafe;
+      background: transparent;
+      border-radius: 18px;
+      padding: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: .22s ease;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,.08);
+      transform: translateX(-2px);
+    }
+
+    .nav-item.active {
+      background: linear-gradient(135deg, #38bdf8, #67e8f9);
+      color: #06162b;
+      box-shadow: 0 16px 38px rgba(56,189,248,.24);
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      display: inline-grid;
+      place-items: center;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .badge {
+      min-width: 26px;
+      height: 22px;
+      border-radius: 999px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 8px;
+      background: rgba(56,189,248,.16);
+      color: #bae6fd;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .active .badge {
+      background: rgba(6,22,43,.14);
+      color: #06162b;
+    }
+
+    .sidebar-card {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 20% 0%, rgba(56,189,248,.18), transparent 40%),
+        rgba(56,189,248,.08);
+      border: 1px solid rgba(125,211,252,.16);
+    }
+
+    .sidebar-card h3 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .sidebar-card p {
+      margin: 8px 0 0;
+      color: var(--soft);
+      font-size: 12px;
+      line-height: 2;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 24px;
+    }
+
+    .mobile-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      margin-bottom: 16px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--line);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(125,211,252,.20);
+      background: rgba(56,189,248,.10);
+      color: #bae6fd;
+      font-size: 12px;
+      margin-bottom: 10px;
+    }
+
+    .title h2 {
+      margin: 0;
+      font-size: clamp(24px, 3vw, 34px);
+      line-height: 1.35;
+      font-weight: 950;
+      letter-spacing: -.5px;
+    }
+
+    .title p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .search {
+      position: relative;
+      width: min(360px, 100%);
+    }
+
+    .search input {
+      width: 100%;
+      height: 50px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      outline: 0;
+      background: rgba(255,255,255,.065);
+      color: var(--text);
+      padding: 0 46px 0 14px;
+      font-size: 13px;
+      transition: .2s ease;
+    }
+
+    .search input:focus {
+      border-color: rgba(56,189,248,.5);
+      background: rgba(255,255,255,.10);
+      box-shadow: 0 0 0 4px rgba(56,189,248,.08);
+    }
+
+    .search span {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+
+    .round-btn,
+    .profile-chip {
+      height: 50px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.065);
+      color: var(--text);
+      transition: .2s ease;
+    }
+
+    .round-btn {
+      width: 50px;
+      display: grid;
+      place-items: center;
+      position: relative;
+      font-size: 20px;
+    }
+
+    .round-btn:hover,
+    .profile-chip:hover {
+      background: rgba(255,255,255,.12);
+      transform: translateY(-1px);
+    }
+
+    .dot-alert {
+      position: absolute;
+      left: 14px;
+      top: 13px;
+      width: 9px;
+      height: 9px;
+      background: var(--red);
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(239,68,68,.18);
+    }
+
+    .profile-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 10px 0 14px;
+      font-weight: 900;
+      font-size: 13px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: rgba(56,189,248,.16);
+      color: #bae6fd;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+      overflow: hidden;
+    }
+
+    .stat-card {
+      min-height: 154px;
+      padding: 18px;
+      position: relative;
+      transition: .24s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(125,211,252,.30);
+    }
+
+    .stat-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, var(--glow), transparent 48%);
+      opacity: .9;
+    }
+
+    .stat-top,
+    .stat-card p,
+    .stat-card h3 {
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .stat-icon {
+      width: 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: var(--icon-bg);
+      color: var(--icon-color);
+      font-size: 24px;
+    }
+
+    .stat-card p {
+      margin: 0;
+      color: var(--soft);
+      font-size: 13px;
+    }
+
+    .stat-card h3 {
+      margin: 8px 0 7px;
+      font-size: 25px;
+      font-weight: 950;
+    }
+
+    .stat-card small {
+      position: relative;
+      z-index: 1;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .banner {
+      position: relative;
+      padding: 24px;
+      border-radius: 32px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 10% 8%, rgba(56,189,248,.27), transparent 32%),
+        radial-gradient(circle at 72% 70%, rgba(34,197,94,.12), transparent 32%),
+        linear-gradient(135deg, rgba(13,43,81,.94), rgba(7,25,50,.86));
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .banner::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(120deg, rgba(255,255,255,.08), transparent 30%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,.035) 0 1px, transparent 1px 18px);
+      opacity: .75;
+      pointer-events: none;
+    }
+
+    .banner-content {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) 360px;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(34,197,94,.14);
+      color: #bbf7d0;
+      font-size: 13px;
+      border: 1px solid rgba(34,197,94,.18);
+      margin-bottom: 14px;
+    }
+
+    .banner h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 950;
+    }
+
+    .banner p {
+      margin: 12px 0 0;
+      color: var(--soft);
+      line-height: 2;
+      font-size: 14px;
+      max-width: 740px;
+    }
+
+    .banner-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 22px;
+    }
+
+    .btn {
+      height: 44px;
+      border: 1px solid transparent;
+      border-radius: 16px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 900;
+      color: var(--text);
+      background: rgba(255,255,255,.07);
+      transition: .2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.12);
+    }
+
+    .btn-primary {
+      color: #06162b;
+      background: linear-gradient(135deg, #38bdf8, #67e8f9);
+      box-shadow: 0 16px 34px rgba(56,189,248,.20);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #7dd3fc, #a5f3fc);
+    }
+
+    .btn-danger {
+      color: #fecaca;
+      border-color: rgba(239,68,68,.25);
+      background: rgba(239,68,68,.10);
+    }
+
+    .manager-card {
+      padding: 18px;
+      border-radius: 28px;
+      background: rgba(255,255,255,.075);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+    }
+
+    .manager-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .manager-avatar {
+      width: 66px;
+      height: 66px;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: rgba(56,189,248,.15);
+      color: #bae6fd;
+      font-size: 32px;
+      border: 1px solid rgba(125,211,252,.18);
+    }
+
+    .manager-card h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .manager-card p {
+      margin: 4px 0 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 10px;
+    }
+
+    .mini-box {
+      padding: 13px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.065);
+    }
+
+    .mini-box span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .mini-box strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 18px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.72fr) 390px;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .section-card {
+      padding: 18px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-head h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 950;
+    }
+
+    .section-head p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 18px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 780px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      padding: 0 12px 12px;
+      color: var(--muted);
+      font-weight: 800;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line-2);
+      color: var(--soft);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      transition: .18s ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(255,255,255,.045);
+    }
+
+    .student {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    .student-pic {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: rgba(56,189,248,.13);
+      color: #bae6fd;
+      font-size: 18px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      border: 1px solid;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .status.waiting { background: rgba(250,204,21,.14); color: #fef08a; border-color: rgba(250,204,21,.25); }
+    .status.done { background: rgba(34,197,94,.14); color: #bbf7d0; border-color: rgba(34,197,94,.25); }
+    .status.rejected { background: rgba(239,68,68,.14); color: #fecaca; border-color: rgba(239,68,68,.25); }
+    .status.review { background: rgba(56,189,248,.14); color: #bae6fd; border-color: rgba(56,189,248,.25); }
+
+    .action-btn {
+      border: 0;
+      border-radius: 12px;
+      padding: 8px 12px;
+      color: #bae6fd;
+      background: rgba(255,255,255,.07);
+      font-size: 12px;
+      font-weight: 900;
+      transition: .2s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(56,189,248,.16);
+      transform: translateY(-1px);
+    }
+
+    .events-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .event {
+      display: flex;
+      gap: 11px;
+      padding: 13px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.055);
+      transition: .18s ease;
+    }
+
+    .event:hover {
+      background: rgba(255,255,255,.09);
+      transform: translateX(-2px);
+    }
+
+    .event-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 8px;
+      flex: 0 0 auto;
+      box-shadow: 0 0 0 4px rgba(255,255,255,.05);
+    }
+
+    .event h4 {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .event p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) 390px;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .quick-card {
+      border: 1px solid var(--line);
+      border-radius: 23px;
+      padding: 16px;
+      background: rgba(13,39,73,.82);
+      color: var(--text);
+      text-align: right;
+      transition: .24s ease;
+      position: relative;
+      overflow: hidden;
+      min-height: 144px;
+    }
+
+    .quick-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -40px -40px auto;
+      width: 120px;
+      height: 120px;
+      border-radius: 999px;
+      background: rgba(56,189,248,.08);
+      transition: .24s ease;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(125,211,252,.30);
+      background: rgba(18,52,95,.94);
+    }
+
+    .quick-card:hover::after {
+      transform: scale(1.3);
+      background: rgba(56,189,248,.14);
+    }
+
+    .quick-top {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .quick-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      background: rgba(56,189,248,.13);
+      display: grid;
+      place-items: center;
+      color: #bae6fd;
+      font-size: 22px;
+    }
+
+    .quick-card h4,
+    .quick-card p {
+      position: relative;
+      z-index: 1;
+    }
+
+    .quick-card h4 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    .quick-card p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.9;
+    }
+
+    .progress-bar {
+      height: 15px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.075);
+      overflow: hidden;
+      margin: 18px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 87%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #22c55e, #38bdf8);
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+      animation: shimmer 2.4s linear infinite;
+    }
+
+    @keyframes shimmer {
+      from { transform: translateX(100%); }
+      to { transform: translateX(-100%); }
+    }
+
+    .capacity-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .capacity-box {
+      padding: 13px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.055);
+    }
+
+    .capacity-box span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .capacity-box strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 20px;
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .donut-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .donut {
+      width: 156px;
+      height: 156px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(#38bdf8 0 52%, #facc15 52% 72%, #22c55e 72% 90%, #ef4444 90% 100%);
+      position: relative;
+    }
+
+    .donut::after {
+      content: "";
+      position: absolute;
+      width: 108px;
+      height: 108px;
+      border-radius: 50%;
+      background: #0b2546;
+      border: 1px solid var(--line);
+    }
+
+    .donut strong {
+      position: relative;
+      z-index: 1;
+      font-size: 26px;
+      font-weight: 950;
+    }
+
+    .legend {
+      display: grid;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--soft);
+      font-size: 12px;
+    }
+
+    .legend-item span:first-child {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .legend-color {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .bar-chart {
+      display: grid;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 32px;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--soft);
+    }
+
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.075);
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #38bdf8, #67e8f9);
+    }
+
+    .financial-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .finance-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.055);
+    }
+
+    .finance-item h4 {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .finance-item p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .amount {
+      color: #fef08a;
+      font-weight: 950;
+      font-size: 13px;
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.58);
+      backdrop-filter: blur(10px);
+      z-index: 50;
+      padding: 18px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(560px, 100%);
+      border-radius: 28px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,.16), transparent 34%),
+        #071d37;
+      box-shadow: 0 30px 120px rgba(0,0,0,.45);
+      padding: 20px;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .modal h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 950;
+    }
+
+    .modal p {
+      color: var(--soft);
+      line-height: 2;
+      font-size: 13px;
+    }
+
+    .close-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-size: 20px;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .form-grid label {
+      display: grid;
+      gap: 8px;
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.065);
+      color: var(--text);
+      outline: 0;
+      padding: 12px;
+      min-height: 44px;
+    }
+
+    .form-grid textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-start;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    ::placeholder {
+      color: #64748b;
+    }
+
+    @media (max-width: 1380px) {
+      .stats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .content-grid,
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .quick-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .analytics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        padding: 16px;
+      }
+
+      .mobile-bar {
+        display: flex;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+
+      .top-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .search {
+        flex: 1 1 100%;
+        width: 100%;
+      }
+
+      .banner-content {
+        grid-template-columns: 1fr;
+      }
+
+      .manager-card {
+        max-width: 440px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .stats-grid,
+      .quick-grid,
+      .capacity-grid,
+      .mini-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .top-actions {
+        display: grid;
+        grid-template-columns: 1fr 50px 50px;
+      }
+
+      .profile-chip {
+        grid-column: 1 / -1;
+        width: 100%;
+        justify-content: center;
+      }
+
+      .banner {
+        padding: 18px;
+      }
+
+      .banner-buttons {
+        display: grid;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .section-head {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">🏢</div>
+        <div>
+          <h1>پنل خوابگاه</h1>
+          <p>Dormitory Manager</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-item active"><span class="nav-left"><span class="icon">▦</span>داشبورد</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">👥</span>دانشجویان</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">🛏️</span>اتاق‌ها و ظرفیت</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">📋</span>درخواست‌ها</span><span class="badge">۱۴</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">🛠️</span>تعمیرات</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">💳</span>پرداخت‌ها</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">🚪</span>ورود و خروج</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">📅</span>مرخصی‌ها</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">📣</span>اطلاعیه‌ها</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">📊</span>گزارش‌ها</span><span class="badge">۳</span></button>
+        <button class="nav-item"><span class="nav-left"><span class="icon">⚙️</span>تنظیمات</span></button>
+      </nav>
+
+      <div class="sidebar-card">
+        <h3>وضعیت سیستم</h3>
+        <p>همه سرویس‌های خوابگاه فعال هستند. ۳ گزارش فوری و ۱۴ درخواست در انتظار بررسی وجود دارد.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="mobile-bar">
+        <strong>پنل خوابگاه</strong>
+        <button class="round-btn" aria-label="menu">☰</button>
+      </div>
+
+      <header class="topbar">
+        <div class="title">
+          <div class="eyebrow">🕒 امروز، دوشنبه ۱۴ مهر ۱۴۰۴</div>
+          <h2>داشبورد سرپرست خوابگاه</h2>
+          <p>نمای کلی وضعیت خوابگاه، دانشجویان، درخواست‌ها و رویدادهای امروز</p>
+        </div>
+
+        <div class="top-actions">
+          <div class="search">
+            <span>🔎</span>
+            <input id="searchInput" type="text" placeholder="جستجوی دانشجو، اتاق یا درخواست..." />
+          </div>
+          <button class="round-btn" title="اعلان‌ها">🔔<i class="dot-alert"></i></button>
+          <button class="round-btn" title="تنظیمات">⚙️</button>
+          <button class="profile-chip"><span class="avatar">👤</span>سپهر نادری</button>
+        </div>
+      </header>
+
+      <section class="stats-grid">
+        <article class="card stat-card" style="--glow: rgba(56,189,248,.24); --icon-bg: rgba(56,189,248,.15); --icon-color:#bae6fd;">
+          <div class="stat-top"><span class="stat-icon">👥</span><span>›</span></div>
+          <p>کل دانشجویان</p>
+          <h3>۲۴۸ نفر</h3>
+          <small>۱۲ دانشجوی جدید در این ماه</small>
+        </article>
+
+        <article class="card stat-card" style="--glow: rgba(34,197,94,.22); --icon-bg: rgba(34,197,94,.15); --icon-color:#bbf7d0;">
+          <div class="stat-top"><span class="stat-icon">🛏️</span><span>›</span></div>
+          <p>ظرفیت اتاق‌ها</p>
+          <h3>۸۷ / ۱۰۰</h3>
+          <small>۱۳ اتاق دارای ظرفیت خالی</small>
+        </article>
+
+        <article class="card stat-card" style="--glow: rgba(250,204,21,.22); --icon-bg: rgba(250,204,21,.15); --icon-color:#fef08a;">
+          <div class="stat-top"><span class="stat-icon">📋</span><span>›</span></div>
+          <p>درخواست‌های در انتظار</p>
+          <h3>۱۴ درخواست</h3>
+          <small>۵ مورد مربوط به تعمیرات</small>
+        </article>
+
+        <article class="card stat-card" style="--glow: rgba(251,146,60,.22); --icon-bg: rgba(251,146,60,.15); --icon-color:#fed7aa;">
+          <div class="stat-top"><span class="stat-icon">💳</span><span>›</span></div>
+          <p>پرداخت‌های معوق</p>
+          <h3>۲۳ مورد</h3>
+          <small>جمع بدهی: ۱۸,۵۰۰,۰۰۰ تومان</small>
+        </article>
+
+        <article class="card stat-card" style="--glow: rgba(239,68,68,.24); --icon-bg: rgba(239,68,68,.15); --icon-color:#fecaca;">
+          <div class="stat-top"><span class="stat-icon">⚠️</span><span>›</span></div>
+          <p>گزارش‌های فوری</p>
+          <h3>۳ مورد</h3>
+          <small>نیازمند پیگیری سریع</small>
+        </article>
+      </section>
+
+      <section class="banner">
+        <div class="banner-content">
+          <div>
+            <span class="status-pill">✅ وضعیت امروز: فعال</span>
+            <h2>خوش آمدید، سرپرست خوابگاه</h2>
+            <p>خوابگاه شهید بهشتی | نیمسال اول ۱۴۰۴ | امروز ۵ اعلان مهم، ۱۴ درخواست در انتظار و ۳ گزارش فوری برای پیگیری ثبت شده است.</p>
+            <div class="banner-buttons">
+              <button class="btn btn-primary" onclick="openModal('notice')">＋ ثبت اطلاعیه جدید</button>
+              <button class="btn btn-danger" onclick="openModal('urgent')">⚠️ ثبت گزارش فوری</button>
+              <button class="btn" onclick="openModal('profile')">👁️ مشاهده پروفایل</button>
+            </div>
+          </div>
+
+          <aside class="manager-card">
+            <div class="manager-top">
+              <div class="manager-avatar">👤</div>
+              <div>
+                <h3>سپهر نادری</h3>
+                <p>سرپرست خوابگاه</p>
+              </div>
+            </div>
+            <div class="mini-grid">
+              <div class="mini-box"><span>اتاق‌های فعال</span><strong>۸۷</strong></div>
+              <div class="mini-box"><span>اعلان مهم</span><strong>۵</strong></div>
+              <div class="mini-box"><span>شیفت امروز</span><strong>۸ تا ۱۸</strong></div>
+              <div class="mini-box"><span>وضعیت</span><strong>آنلاین</strong></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="content-grid">
+        <article class="card section-card">
+          <div class="section-head">
+            <div>
+              <h3>درخواست‌های اخیر دانشجویان</h3>
+              <p>آخرین درخواست‌های ثبت‌شده برای بررسی سرپرست</p>
+            </div>
+            <button class="btn">مشاهده همه</button>
+          </div>
+
+          <div class="table-wrap">
+            <table id="requestsTable">
+              <thead>
+                <tr>
+                  <th>نام دانشجو</th>
+                  <th>شماره اتاق</th>
+                  <th>نوع درخواست</th>
+                  <th>وضعیت</th>
+                  <th>تاریخ</th>
+                  <th>عملیات</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-search="علی رضایی 214 تعمیر کولر در انتظار">
+                  <td><span class="student"><span class="student-pic">ع</span>علی رضایی</span></td>
+                  <td>۲۱۴</td>
+                  <td>تعمیر کولر</td>
+                  <td><span class="status waiting">● در انتظار</span></td>
+                  <td>امروز</td>
+                  <td><button class="action-btn" onclick="openModal('request','علی رضایی - تعمیر کولر')">بررسی</button></td>
+                </tr>
+                <tr data-search="مریم احمدی 103 تمدید اقامت تایید شده">
+                  <td><span class="student"><span class="student-pic">م</span>مریم احمدی</span></td>
+                  <td>۱۰۳</td>
+                  <td>تمدید اقامت</td>
+                  <td><span class="status done">● تایید شده</span></td>
+                  <td>دیروز</td>
+                  <td><button class="action-btn" onclick="openModal('request','مریم احمدی - تمدید اقامت')">مشاهده</button></td>
+                </tr>
+                <tr data-search="حسین کریمی 302 مشکل اینترنت در حال بررسی">
+                  <td><span class="student"><span class="student-pic">ح</span>حسین کریمی</span></td>
+                  <td>۳۰۲</td>
+                  <td>مشکل اینترنت</td>
+                  <td><span class="status review">● در حال بررسی</span></td>
+                  <td>امروز</td>
+                  <td><button class="action-btn" onclick="openModal('request','حسین کریمی - مشکل اینترنت')">پیگیری</button></td>
+                </tr>
+                <tr data-search="سارا محمدی 121 درخواست مرخصی در انتظار">
+                  <td><span class="student"><span class="student-pic">س</span>سارا محمدی</span></td>
+                  <td>۱۲۱</td>
+                  <td>درخواست مرخصی</td>
+                  <td><span class="status waiting">● در انتظار</span></td>
+                  <td>امروز</td>
+                  <td><button class="action-btn" onclick="openModal('request','سارا محمدی - درخواست مرخصی')">بررسی</button></td>
+                </tr>
+                <tr data-search="رضا کاظمی 408 تعویض اتاق رد شده">
+                  <td><span class="student"><span class="student-pic">ر</span>رضا کاظمی</span></td>
+                  <td>۴۰۸</td>
+                  <td>تعویض اتاق</td>
+                  <td><span class="status rejected">● رد شده</span></td>
+                  <td>۲ روز پیش</td>
+                  <td><button class="action-btn" onclick="openModal('request','رضا کاظمی - تعویض اتاق')">مشاهده</button></td>
+                </tr>
+                <tr data-search="نیما رستمی 305 گزارش فوری اولویت بالا">
+                  <td><span class="student"><span class="student-pic">ن</span>نیما رستمی</span></td>
+                  <td>۳۰۵</td>
+                  <td>گزارش فوری</td>
+                  <td><span class="status rejected">● اولویت بالا</span></td>
+                  <td>امروز</td>
+                  <td><button class="action-btn" onclick="openModal('request','نیما رستمی - گزارش فوری')">بررسی</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+
+        <aside class="card section-card">
+          <div class="section-head">
+            <div>
+              <h3>اعلان‌ها و رویدادهای امروز</h3>
+              <p>برنامه‌ها و هشدارهای مهم روز</p>
+            </div>
+          </div>
+
+          <div class="events-list">
+            <div class="event"><span class="event-dot" style="background:#38bdf8"></span><div><h4>جلسه با مسئول تاسیسات</h4><p>ساعت ۱۰:۳۰</p></div></div>
+            <div class="event"><span class="event-dot" style="background:#38bdf8"></span><div><h4>بازدید اتاق‌های طبقه دوم</h4><p>ساعت ۱۲:۰۰</p></div></div>
+            <div class="event"><span class="event-dot" style="background:#facc15"></span><div><h4>پایان مهلت پرداخت اجاره</h4><p>امروز ساعت ۱۸:۰۰</p></div></div>
+            <div class="event"><span class="event-dot" style="background:#fb923c"></span><div><h4>۳ درخواست تعمیر جدید ثبت شد</h4><p>نیازمند بررسی</p></div></div>
+            <div class="event"><span class="event-dot" style="background:#ef4444"></span><div><h4>گزارش فوری از اتاق ۳۰۵</h4><p>اولویت بالا</p></div></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="bottom-grid">
+        <article>
+          <div class="section-head">
+            <div>
+              <h3>دسترسی سریع</h3>
+              <p>مسیرهای پرکاربرد برای مدیریت سریع خوابگاه</p>
+            </div>
+          </div>
+
+          <div class="quick-grid">
+            <button class="quick-card" onclick="openModal('students')"><div class="quick-top"><span class="quick-icon">👥</span><span class="badge">۲۴۸</span></div><h4>مدیریت دانشجویان</h4><p>مشاهده، افزودن و ویرایش اطلاعات دانشجویان</p></button>
+            <button class="quick-card" onclick="openModal('rooms')"><div class="quick-top"><span class="quick-icon">🚪</span><span class="badge">۱۰۰</span></div><h4>مدیریت اتاق‌ها</h4><p>بررسی ظرفیت، وضعیت اتاق‌ها و تخصیص دانشجو</p></button>
+            <button class="quick-card" onclick="openModal('repairs')"><div class="quick-top"><span class="quick-icon">🛠️</span><span class="badge">۵</span></div><h4>درخواست تعمیرات</h4><p>پیگیری مشکلات ثبت‌شده توسط دانشجویان</p></button>
+            <button class="quick-card" onclick="openModal('payments')"><div class="quick-top"><span class="quick-icon">💳</span><span class="badge">۲۳</span></div><h4>پرداخت‌ها و بدهی‌ها</h4><p>مشاهده وضعیت مالی و پرداخت‌های معوق</p></button>
+            <button class="quick-card" onclick="openModal('traffic')"><div class="quick-top"><span class="quick-icon">🪪</span></div><h4>ورود و خروج</h4><p>ثبت تردد، گزارش حضور و خروج‌های غیرمجاز</p></button>
+            <button class="quick-card" onclick="openModal('leave')"><div class="quick-top"><span class="quick-icon">📅</span><span class="badge">۷</span></div><h4>مرخصی و غیبت‌ها</h4><p>مدیریت درخواست‌های مرخصی و غیبت روزانه</p></button>
+            <button class="quick-card" onclick="openModal('announcements')"><div class="quick-top"><span class="quick-icon">📣</span></div><h4>اطلاعیه‌ها</h4><p>ارسال پیام عمومی، فوری یا مخصوص طبقه‌ها</p></button>
+            <button class="quick-card" onclick="openModal('violations')"><div class="quick-top"><span class="quick-icon">⚠️</span><span class="badge">۳</span></div><h4>گزارش تخلفات</h4><p>ثبت و بررسی موارد انضباطی خوابگاه</p></button>
+          </div>
+        </article>
+
+        <aside class="card section-card">
+          <div class="section-head">
+            <div>
+              <h3>وضعیت ظرفیت خوابگاه</h3>
+              <p>خلاصه وضعیت اتاق‌ها</p>
+            </div>
+            <span style="font-size:24px">🛏️</span>
+          </div>
+
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+
+          <div class="capacity-grid">
+            <div class="capacity-box"><span>پر</span><strong>۸۷</strong></div>
+            <div class="capacity-box"><span>خالی</span><strong>۱۳</strong></div>
+            <div class="capacity-box"><span>در تعمیر</span><strong>۴</strong></div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="analytics-grid">
+        <article class="card section-card">
+          <div class="section-head">
+            <div>
+              <h3>تحلیل وضعیت درخواست‌ها</h3>
+              <p>تفکیک درخواست‌ها بر اساس وضعیت</p>
+            </div>
+          </div>
+          <div class="donut-wrap"><div class="donut"><strong>۱۴</strong></div></div>
+          <div class="legend">
+            <div class="legend-item"><span><i class="legend-color" style="background:#38bdf8"></i>در حال بررسی</span><b>۵۲٪</b></div>
+            <div class="legend-item"><span><i class="legend-color" style="background:#facc15"></i>در انتظار</span><b>۲۰٪</b></div>
+            <div class="legend-item"><span><i class="legend-color" style="background:#22c55e"></i>تایید شده</span><b>۱۸٪</b></div>
+            <div class="legend-item"><span><i class="legend-color" style="background:#ef4444"></i>رد شده / فوری</span><b>۱۰٪</b></div>
+          </div>
+        </article>
+
+        <article class="card section-card">
+          <div class="section-head">
+            <div>
+              <h3>اشغال طبقات</h3>
+              <p>مقایسه ظرفیت استفاده‌شده در هر طبقه</p>
+            </div>
+          </div>
+          <div class="bar-chart">
+            <div class="bar-row"><span>طبقه ۱</span><div class="bar"><span style="width: 76%"></span></div><b>۷۶٪</b></div>
+            <div class="bar-row"><span>طبقه ۲</span><div class="bar"><span style="width: 92%"></span></div><b>۹۲٪</b></div>
+            <div class="bar-row"><span>طبقه ۳</span><div class="bar"><span style="width: 84%"></span></div><b>۸۴٪</b></div>
+            <div class="bar-row"><span>طبقه ۴</span><div class="bar"><span style="width: 96%"></span></div><b>۹۶٪</b></div>
+            <div class="bar-row"><span>طبقه ۵</span><div class="bar"><span style="width: 68%"></span></div><b>۶۸٪</b></div>
+          </div>
+        </article>
+
+        <article class="card section-card">
+          <div class="section-head">
+            <div>
+              <h3>پرداخت‌های مهم</h3>
+              <p>لیست بدهی‌های نیازمند پیگیری</p>
+            </div>
+          </div>
+          <div class="financial-list">
+            <div class="finance-item"><div><h4>اتاق ۲۱۴ - علی رضایی</h4><p>اجاره ماهانه</p></div><span class="amount">۲,۵۰۰,۰۰۰</span></div>
+            <div class="finance-item"><div><h4>اتاق ۳۰۲ - حسین کریمی</h4><p>جریمه دیرکرد</p></div><span class="amount">۸۵۰,۰۰۰</span></div>
+            <div class="finance-item"><div><h4>اتاق ۱۲۱ - سارا محمدی</h4><p>هزینه خدمات</p></div><span class="amount">۱,۲۰۰,۰۰۰</span></div>
+            <div class="finance-item"><div><h4>اتاق ۴۰۸ - رضا کاظمی</h4><p>بدهی ترم قبل</p></div><span class="amount">۳,۰۰۰,۰۰۰</span></div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop" onclick="backdropClose(event)">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalTitle">عنوان</h3>
+          <p id="modalDesc">توضیحات</p>
+        </div>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const modalInfo = {
+      notice: {
+        title: "ثبت اطلاعیه جدید",
+        desc: "اطلاعیه را برای همه دانشجویان، یک طبقه خاص یا گروه مشخص ارسال کنید.",
+        body: `
+          <div class="form-grid">
+            <label>عنوان اطلاعیه<input placeholder="مثلاً قطعی آب در طبقه دوم" /></label>
+            <label>گیرندگان<select><option>همه دانشجویان</option><option>طبقه اول</option><option>طبقه دوم</option><option>دانشجویان دارای بدهی</option></select></label>
+            <label>متن اطلاعیه<textarea placeholder="متن اطلاعیه را وارد کنید..."></textarea></label>
+          </div>
+          <div class="modal-actions"><button class="btn btn-primary">ارسال اطلاعیه</button><button class="btn" onclick="closeModal()">انصراف</button></div>
+        `
+      },
+      urgent: {
+        title: "ثبت گزارش فوری",
+        desc: "برای موارد اضطراری، خرابی جدی، مشکل امنیتی یا تخلف فوری استفاده می‌شود.",
+        body: `
+          <div class="form-grid">
+            <label>شماره اتاق<input placeholder="مثلاً ۳۰۵" /></label>
+            <label>نوع گزارش<select><option>مشکل امنیتی</option><option>خرابی فوری</option><option>تخلف انضباطی</option><option>حادثه پزشکی</option></select></label>
+            <label>شرح گزارش<textarea placeholder="جزئیات گزارش فوری را وارد کنید..."></textarea></label>
+          </div>
+          <div class="modal-actions"><button class="btn btn-danger">ثبت گزارش فوری</button><button class="btn" onclick="closeModal()">انصراف</button></div>
+        `
+      },
+      profile: {
+        title: "پروفایل سرپرست",
+        desc: "اطلاعات نمایشی سرپرست خوابگاه.",
+        body: `
+          <div class="mini-grid">
+            <div class="mini-box"><span>نام</span><strong>سپهر نادری</strong></div>
+            <div class="mini-box"><span>نقش</span><strong>سرپرست خوابگاه</strong></div>
+            <div class="mini-box"><span>شیفت</span><strong>۸ تا ۱۸</strong></div>
+            <div class="mini-box"><span>وضعیت</span><strong>فعال</strong></div>
+          </div>
+          <div class="modal-actions"><button class="btn btn-primary">ویرایش پروفایل</button><button class="btn" onclick="closeModal()">بستن</button></div>
+        `
+      },
+      request: {
+        title: "جزئیات درخواست",
+        desc: "مشاهده و پیگیری وضعیت درخواست انتخاب‌شده.",
+        body: `
+          <div class="form-grid">
+            <label>درخواست<input id="selectedRequestInput" readonly /></label>
+            <label>تغییر وضعیت<select><option>در انتظار</option><option>در حال بررسی</option><option>تایید شده</option><option>رد شده</option></select></label>
+            <label>یادداشت سرپرست<textarea placeholder="توضیحات یا نتیجه بررسی را وارد کنید..."></textarea></label>
+          </div>
+          <div class="modal-actions"><button class="btn btn-primary">ذخیره تغییرات</button><button class="btn" onclick="closeModal()">بستن</button></div>
+        `
+      }
+    };
+
+    const simplePages = {
+      students: ["مدیریت دانشجویان", "لیست دانشجویان، افزودن دانشجو، ویرایش اطلاعات، وضعیت اتاق و سوابق اقامت."],
+      rooms: ["مدیریت اتاق‌ها", "بررسی ظرفیت، اتاق‌های خالی، اتاق‌های پر، اتاق‌های در تعمیر و تخصیص دانشجو."],
+      repairs: ["درخواست‌های تعمیرات", "پیگیری خرابی‌ها، اولویت‌بندی، ثبت نتیجه تعمیر و ارجاع به مسئول تاسیسات."],
+      payments: ["پرداخت‌ها و بدهی‌ها", "مشاهده بدهی‌ها، پرداخت‌های موفق، معوقه‌ها و خروجی گزارش مالی."],
+      traffic: ["ورود و خروج", "ثبت تردد دانشجویان، مشاهده خروج‌های دیرهنگام و گزارش حضور روزانه."],
+      leave: ["مرخصی و غیبت‌ها", "بررسی درخواست‌های مرخصی، ثبت غیبت و تایید یا رد درخواست‌ها."],
+      announcements: ["اطلاعیه‌ها", "مدیریت اطلاعیه‌های عمومی، فوری، طبقه‌ای یا مخصوص گروه‌های دانشجویی."],
+      violations: ["گزارش تخلفات", "ثبت و پیگیری گزارش‌های انضباطی، هشدارها و تصمیمات سرپرستی."]
+    };
+
+    function openModal(type, selectedText = "") {
+      const backdrop = document.getElementById("modalBackdrop");
+      const title = document.getElementById("modalTitle");
+      const desc = document.getElementById("modalDesc");
+      const body = document.getElementById("modalBody");
+
+      if (modalInfo[type]) {
+        title.textContent = modalInfo[type].title;
+        desc.textContent = modalInfo[type].desc;
+        body.innerHTML = modalInfo[type].body;
+        if (type === "request") {
+          setTimeout(() => {
+            const input = document.getElementById("selectedRequestInput");
+            if (input) input.value = selectedText || "درخواست انتخاب‌شده";
+          }, 0);
+        }
+      } else if (simplePages[type]) {
+        title.textContent = simplePages[type][0];
+        desc.textContent = simplePages[type][1];
+        body.innerHTML = `
+          <div class="mini-grid">
+            <div class="mini-box"><span>وضعیت</span><strong>آماده طراحی</strong></div>
+            <div class="mini-box"><span>نوع صفحه</span><strong>مدیریتی</strong></div>
+            <div class="mini-box"><span>نسخه</span><strong>MVP</strong></div>
+            <div class="mini-box"><span>اتصال بک‌اند</span><strong>مرحله بعد</strong></div>
+          </div>
+          <p>این بخش در نسخه فرانت بعدی می‌تواند به یک صفحه کامل با جدول، فرم، فیلتر و جزئیات تبدیل شود.</p>
+          <div class="modal-actions"><button class="btn btn-primary">طراحی صفحه کامل</button><button class="btn" onclick="closeModal()">بستن</button></div>
+        `;
+      }
+
+      backdrop.classList.add("show");
+    }
+
+    function closeModal() {
+      document.getElementById("modalBackdrop").classList.remove("show");
+    }
+
+    function backdropClose(event) {
+      if (event.target.id === "modalBackdrop") closeModal();
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeModal();
+    });
+
+    const searchInput = document.getElementById("searchInput");
+    const rows = Array.from(document.querySelectorAll("#requestsTable tbody tr"));
+
+    searchInput.addEventListener("input", () => {
+      const q = searchInput.value.trim().toLowerCase();
+      rows.forEach(row => {
+        const haystack = (row.dataset.search || row.innerText).toLowerCase();
+        row.style.display = haystack.includes(q) ? "" : "none";
+      });
+    });
+  </script>
+</body>
+</html>
