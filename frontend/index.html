@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>سراسیستم | سامانه جامع مدیریت خوابگاه</title>
+  <style>
+    :root {
+      --bg: #06162b;
+      --panel: rgba(13, 39, 73, 0.78);
+      --panel-2: rgba(255,255,255,.07);
+      --line: rgba(255,255,255,.11);
+      --line-2: rgba(255,255,255,.07);
+      --text: #f8fafc;
+      --soft: #cbd5e1;
+      --muted: #94a3b8;
+      --sky: #38bdf8;
+      --cyan: #67e8f9;
+      --teal: #14b8a6;
+      --green: #22c55e;
+      --yellow: #facc15;
+      --orange: #fb923c;
+      --red: #ef4444;
+      --purple: #a78bfa;
+      --shadow: 0 30px 90px rgba(0,0,0,.30);
+      --radius: 28px;
+      --container: 1180px;
+    }
+
+    * {
+      box-sizing: border-box;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 88% 8%, rgba(56,189,248,.22), transparent 28rem),
+        radial-gradient(circle at 7% 96%, rgba(20,184,166,.22), transparent 30rem),
+        radial-gradient(circle at 48% 28%, rgba(99,102,241,.09), transparent 26rem),
+        linear-gradient(135deg, #06162b 0%, #071b35 48%, #08254a 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at center, #000, transparent 80%);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button, input {
+      font-family: inherit;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+    }
+
+    .container {
+      width: min(var(--container), calc(100% - 36px));
+      margin: 0 auto;
+    }
+
+    .navbar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      padding: 14px 0;
+      backdrop-filter: blur(18px);
+    }
+
+    .navbar {
+      min-height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border: 1px solid var(--line);
+      background: rgba(7, 29, 55, .78);
+      border-radius: 28px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.18);
+      padding: 10px 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 220px;
+    }
+
+    .brand-logo {
+      width: 70px;
+      height: 70px;
+      display: grid;
+      place-items: center;
+      overflow: visible;
+      flex: 0 0 auto;
+    }
+
+    .brand-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transform: none;
+      filter: drop-shadow(0 10px 24px rgba(103,232,249,.28));
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 950;
+      letter-spacing: -.3px;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      color: var(--soft);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .nav-links a {
+      padding: 10px 12px;
+      border-radius: 14px;
+      transition: .2s ease;
+    }
+
+    .nav-links a:hover {
+      color: #fff;
+      background: rgba(255,255,255,.07);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      justify-content: flex-end;
+      min-width: 260px;
+    }
+
+    .btn {
+      min-height: 44px;
+      border: 1px solid transparent;
+      border-radius: 16px;
+      padding: 0 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 900;
+      color: var(--text);
+      background: rgba(255,255,255,.07);
+      transition: .22s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      background: rgba(255,255,255,.12);
+    }
+
+    .btn-primary {
+      color: #06162b;
+      background: linear-gradient(135deg, #38bdf8, #67e8f9);
+      box-shadow: 0 16px 34px rgba(56,189,248,.20);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #7dd3fc, #a5f3fc);
+    }
+
+    .btn-outline {
+      border-color: rgba(125,211,252,.22);
+      background: rgba(56,189,248,.08);
+      color: #dff7ff;
+    }
+
+    .menu-btn {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      color: #fff;
+      background: rgba(255,255,255,.07);
+      font-size: 20px;
+    }
+
+    .hero {
+      padding: 54px 0 42px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(420px, .85fr);
+      gap: 34px;
+      align-items: center;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 13px;
+      border-radius: 999px;
+      border: 1px solid rgba(125,211,252,.20);
+      background: rgba(56,189,248,.10);
+      color: #bae6fd;
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: clamp(38px, 5vw, 68px);
+      line-height: 1.25;
+      font-weight: 950;
+      letter-spacing: -1.1px;
+    }
+
+    .hero h2 span {
+      background: linear-gradient(135deg, #67e8f9, #38bdf8, #14b8a6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      margin: 18px 0 0;
+      color: var(--soft);
+      line-height: 2.15;
+      font-size: 16px;
+      max-width: 760px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 28px;
+    }
+
+    .hero-points {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .hero-point {
+      padding: 13px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.055);
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .hero-point strong {
+      display: block;
+      color: #fff;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .hero-visual {
+      position: relative;
+      min-height: 590px;
+      display: grid;
+      place-items: center;
+    }
+
+    .logo-orb {
+      position: absolute;
+      width: 330px;
+      height: 330px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 26%, rgba(255,255,255,.25), transparent 25%),
+        linear-gradient(135deg, rgba(56,189,248,.18), rgba(20,184,166,.14));
+      filter: blur(.2px);
+      box-shadow: 0 40px 110px rgba(56,189,248,.18);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .hero-logo-card {
+      position: relative;
+      width: 360px;
+      height: 360px;
+      display: grid;
+      place-items: center;
+      overflow: visible;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    .hero-logo-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 18px 38px rgba(0,0,0,.28)) drop-shadow(0 10px 22px rgba(103,232,249,.18));
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-16px); }
+    }
+
+    .float-card {
+      position: absolute;
+      width: 205px;
+      padding: 16px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: rgba(13, 39, 73, .82);
+      box-shadow: 0 24px 80px rgba(0,0,0,.24);
+      backdrop-filter: blur(18px);
+    }
+
+    .float-card h3 {
+      margin: 0;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .float-card p {
+      margin: 8px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .float-card strong {
+      display: block;
+      margin-top: 10px;
+      font-size: 22px;
+      color: #bae6fd;
+    }
+
+    .fc-1 { top: 42px; right: 0; }
+    .fc-2 { top: 220px; left: 0; }
+    .fc-3 { bottom: 60px; right: 30px; }
+    .fc-4 { bottom: 0; left: 80px; }
+
+    .section {
+      padding: 42px 0;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: clamp(26px, 3vw, 38px);
+      font-weight: 950;
+      letter-spacing: -.5px;
+    }
+
+    .section-title p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 2;
+      font-size: 14px;
+      max-width: 720px;
+    }
+
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .role-card, .feature-card, .stat-card, .flow-card, .why-card, .faq-item, .footer-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+    }
+
+    .role-card {
+      padding: 20px;
+      min-height: 290px;
+      position: relative;
+      overflow: hidden;
+      transition: .24s ease;
+    }
+
+    .role-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -58px -58px auto;
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      background: var(--glow);
+      transition: .24s ease;
+    }
+
+    .role-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(125,211,252,.34);
+    }
+
+    .role-card:hover::after {
+      transform: scale(1.25);
+    }
+
+    .role-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      background: rgba(56,189,248,.14);
+      color: #bae6fd;
+      font-size: 28px;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .role-card h3 {
+      margin: 0;
+      font-size: 19px;
+      font-weight: 950;
+      position: relative;
+      z-index: 1;
+    }
+
+    .role-card p {
+      margin: 10px 0 0;
+      color: var(--soft);
+      font-size: 13px;
+      line-height: 2;
+      min-height: 78px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .role-list {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 7px;
+      margin: 14px 0 18px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .role-list span::before {
+      content: "✓";
+      color: #67e8f9;
+      margin-left: 7px;
+    }
+
+    .role-card .btn {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 16px;
+    }
+
+    .feature-card {
+      padding: 18px;
+      min-height: 198px;
+      transition: .22s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(125,211,252,.30);
+      background: rgba(16,46,82,.88);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      border-radius: 18px;
+      background: rgba(56,189,248,.13);
+      color: #bae6fd;
+      font-size: 23px;
+      margin-bottom: 14px;
+    }
+
+    .feature-card h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 950;
+    }
+
+    .feature-card p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 2;
+      font-size: 13px;
+    }
+
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .stat-card {
+      padding: 18px;
+      text-align: center;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(56,189,248,.16), transparent 45%),
+        rgba(13,39,73,.80);
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 28px;
+      font-weight: 950;
+      color: #dff7ff;
+      margin-bottom: 8px;
+    }
+
+    .stat-card span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .flow-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .flow-card {
+      padding: 22px;
+    }
+
+    .flow-card h3 {
+      margin: 0 0 18px;
+      font-size: 20px;
+      font-weight: 950;
+    }
+
+    .steps {
+      display: grid;
+      gap: 13px;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.055);
+      transition: .18s ease;
+    }
+
+    .step:hover {
+      background: rgba(255,255,255,.09);
+    }
+
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: #06162b;
+      background: linear-gradient(135deg, #38bdf8, #67e8f9);
+      font-weight: 950;
+    }
+
+    .step h4 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 950;
+    }
+
+    .step p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.9;
+    }
+
+    .why-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .why-card {
+      padding: 20px;
+      min-height: 160px;
+    }
+
+    .why-card h3 {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 950;
+    }
+
+    .why-card p {
+      color: var(--muted);
+      line-height: 2;
+      font-size: 13px;
+      margin: 10px 0 0;
+    }
+
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 14px;
+    }
+
+    .faq-item {
+      padding: 18px;
+    }
+
+    .faq-item h3 {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 950;
+    }
+
+    .faq-item p {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 2;
+    }
+
+    .cta {
+      padding: 36px;
+      border-radius: 36px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 10% 5%, rgba(56,189,248,.28), transparent 34%),
+        radial-gradient(circle at 75% 80%, rgba(20,184,166,.20), transparent 34%),
+        linear-gradient(135deg, rgba(13,43,81,.92), rgba(7,25,50,.86));
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: minmax(0,1fr) auto;
+      gap: 22px;
+      align-items: center;
+    }
+
+    .cta h2 {
+      margin: 0;
+      font-size: clamp(25px, 3vw, 40px);
+      font-weight: 950;
+    }
+
+    .cta p {
+      margin: 12px 0 0;
+      color: var(--soft);
+      line-height: 2;
+      font-size: 14px;
+    }
+
+    footer {
+      padding: 42px 0 30px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.4fr repeat(3, minmax(0, .7fr));
+      gap: 16px;
+    }
+
+    .footer-card {
+      padding: 20px;
+    }
+
+    .footer-card h3 {
+      margin: 0 0 14px;
+      font-size: 16px;
+      font-weight: 950;
+    }
+
+    .footer-card p, .footer-card a {
+      color: var(--muted);
+      line-height: 2;
+      font-size: 13px;
+    }
+
+    .footer-links {
+      display: grid;
+      gap: 8px;
+    }
+
+    .footer-links a:hover {
+      color: #fff;
+    }
+
+    .copy {
+      margin-top: 16px;
+      color: #64748b;
+      text-align: center;
+      font-size: 12px;
+    }
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.58);
+      backdrop-filter: blur(10px);
+      z-index: 80;
+      padding: 18px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-backdrop.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(540px, 100%);
+      border-radius: 30px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,.16), transparent 34%),
+        #071d37;
+      box-shadow: 0 30px 120px rgba(0,0,0,.45);
+      padding: 22px;
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .modal h3 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 950;
+    }
+
+    .modal p {
+      color: var(--soft);
+      line-height: 2;
+      font-size: 13px;
+    }
+
+    .close-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .login-preview {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .login-preview label {
+      display: grid;
+      gap: 8px;
+      color: var(--soft);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .login-preview input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255,255,255,.065);
+      color: var(--text);
+      outline: 0;
+      padding: 12px;
+      min-height: 46px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 1180px) {
+      .navbar {
+        align-items: flex-start;
+        flex-wrap: wrap;
+      }
+
+      .nav-links {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+      }
+
+      .nav-actions {
+        min-width: unset;
+      }
+
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        min-height: 500px;
+      }
+
+      .roles-grid, .features-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stats-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .footer-grid {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+      }
+    }
+
+    @media (max-width: 760px) {
+      .container {
+        width: min(100% - 24px, var(--container));
+      }
+
+      .navbar {
+        border-radius: 22px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .nav-actions .btn-outline {
+        display: none;
+      }
+
+      .menu-btn {
+        display: block;
+      }
+
+      .brand p {
+        display: none;
+      }
+
+      .hero {
+        padding-top: 34px;
+      }
+
+      .hero-actions, .cta {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      .hero-actions .btn, .cta .btn {
+        width: 100%;
+      }
+
+      .hero-points, .roles-grid, .features-grid, .stats-strip, .flow-grid, .why-grid, .faq-grid, .footer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-visual {
+        min-height: 620px;
+      }
+
+      .hero-logo-card {
+        width: 250px;
+        height: 250px;
+      }
+
+      .logo-orb {
+        width: 250px;
+        height: 250px;
+      }
+
+      .float-card {
+        width: 190px;
+      }
+
+      .fc-1 { top: 10px; right: 0; }
+      .fc-2 { top: 230px; left: 0; }
+      .fc-3 { bottom: 120px; right: 0; }
+      .fc-4 { bottom: 0; left: 0; }
+
+      .section-head {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="navbar-wrap">
+      <div class="container">
+        <nav class="navbar">
+          <a class="brand" href="#">
+            <span class="brand-logo"><img src="./assets/logo_with_outline.png""> </span>
+            <span>
+              <h1>سراسیستم</h1>
+              <p>سامانه جامع مدیریت خوابگاه</p>
+            </span>
+          </a>
+
+          <div class="nav-links">
+            <a href="#home">خانه</a>
+            <a href="#roles">ورود نقش‌ها</a>
+            <a href="#features">امکانات</a>
+            <a href="#flow">فرآیند</a>
+            <a href="#faq">راهنما</a>
+            <a href="#contact">تماس</a>
+          </div>
+
+          <div class="nav-actions">
+            <button class="btn btn-primary" onclick="openLogin('student')">ورود دانشجو</button>
+            <button class="btn btn-outline" onclick="openLogin('supervisor')">ورود سرپرست</button>
+            <button class="menu-btn">☰</button>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <main id="home">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="eyebrow">🏢 نسخه یکپارچه مدیریت خوابگاه‌های دانشگاهی</div>
+            <h2>مدیریت هوشمند خوابگاه با <span>سراسیستم</span></h2>
+            <p>
+              سراسیستم یک وب‌اپلیکیشن جامع برای مدیریت فرآیندهای اسکان، تخصیص اتاق، ظرفیت خوابگاه، پرداخت‌ها،
+              درخواست‌های تعمیرات، اطلاعیه‌ها و ارتباط بین دانشجو، سرپرست و تاسیسات است.
+            </p>
+
+            <div class="hero-actions">
+              <button class="btn btn-primary" onclick="openLogin('student')">🎓 ورود به پنل دانشجو</button>
+              <button class="btn btn-outline" onclick="openLogin('supervisor')">🛡️ ورود به پنل سرپرست</button>
+              <a class="btn" href="#features">مشاهده امکانات</a>
+            </div>
+
+            <div class="hero-points">
+              <div class="hero-point"><strong>شفافیت</strong>پیگیری لحظه‌ای درخواست‌ها، اتاق‌ها و پرداخت‌ها</div>
+              <div class="hero-point"><strong>سرعت</strong>کاهش رفت‌وآمد حضوری و پاسخ‌گویی سریع‌تر</div>
+              <div class="hero-point"><strong>یکپارچگی</strong>اتصال دانشجو، سرپرست و تاسیسات</div>
+            </div>
+          </div>
+
+          <div class="hero-visual">
+            <div class="logo-orb"></div>
+            <div class="hero-logo-card">
+                <img src="./assets/logo_with_outline.png"">
+            </div>
+
+            <div class="float-card fc-1">
+              <h3>درخواست‌های فعال</h3>
+              <p>اسکان، تعمیرات، مرخصی و تمدید اقامت</p>
+              <strong>۱۴ مورد</strong>
+            </div>
+
+            <div class="float-card fc-2">
+              <h3>ظرفیت خوابگاه</h3>
+              <p>نمایش وضعیت اتاق‌های پر، خالی و در تعمیر</p>
+              <strong>۸۷٪</strong>
+            </div>
+
+            <div class="float-card fc-3">
+              <h3>پرداخت‌های معوق</h3>
+              <p>کنترل بدهی‌ها و سوابق مالی دانشجویان</p>
+              <strong>۲۳ مورد</strong>
+            </div>
+
+            <div class="float-card fc-4">
+              <h3>اطلاعیه‌های جدید</h3>
+              <p>پیام‌های عمومی، فوری و مالی خوابگاه</p>
+              <strong>۵ اعلان</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="roles" class="section">
+        <div class="container">
+          <div class="section-head">
+            <div class="section-title">
+              <h2>با چه نقشی وارد می‌شوید؟</h2>
+              <p>سراسیستم برای نقش‌های مختلف طراحی شده تا هر کاربر دقیقاً امکانات مورد نیاز خودش را ببیند.</p>
+            </div>
+          </div>
+
+          <div class="roles-grid">
+            <article class="role-card" style="--glow: rgba(56,189,248,.12)">
+              <div class="role-icon">🎓</div>
+              <h3>دانشجو / متقاضی خوابگاه</h3>
+              <p>برای ثبت درخواست اسکان، مشاهده وضعیت اتاق، پرداخت هزینه‌ها و دریافت اطلاعیه‌ها.</p>
+              <div class="role-list">
+                <span>درخواست اسکان و تمدید</span>
+                <span>پرداخت و مشاهده بدهی</span>
+                <span>ثبت تعمیرات و مرخصی</span>
+              </div>
+              <button class="btn btn-primary" onclick="openLogin('student')">ورود دانشجو</button>
+            </article>
+
+            <article class="role-card" style="--glow: rgba(34,197,94,.12)">
+              <div class="role-icon">🛡️</div>
+              <h3>سرپرست خوابگاه</h3>
+              <p>برای بررسی درخواست‌ها، تخصیص اتاق، مدیریت ظرفیت و پاسخ‌گویی به مشکلات دانشجویان.</p>
+              <div class="role-list">
+                <span>بررسی درخواست‌ها</span>
+                <span>تخصیص اتاق و تخت</span>
+                <span>مدیریت اطلاعیه‌ها</span>
+              </div>
+              <button class="btn btn-outline" onclick="openLogin('supervisor')">ورود سرپرست</button>
+            </article>
+
+            <article class="role-card" style="--glow: rgba(167,139,250,.12)">
+              <div class="role-icon">📊</div>
+              <h3>تاسیسات / خدمات</h3>
+              <p>برای رسیدگی به درخواست‌های تعمیرات، تغییر وضعیت و ثبت نتیجه خدمات انجام‌شده.</p>
+              <div class="role-list">
+                <span>مشاهده تیکت‌های تعمیرات</span>
+                <span>ثبت نتیجه رسیدگی</span>
+                <span>اولویت‌بندی خرابی‌ها</span>
+              </div>
+              <button class="btn" onclick="openLogin('facilities')">ورود تاسیسات</button>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section">
+        <div class="container">
+          <div class="section-head">
+            <div class="section-title">
+              <h2>امکانات اصلی سراسیستم</h2>
+              <p>همه قابلیت‌هایی که برای مدیریت مدرن خوابگاه لازم است، در یک فضای واحد و قابل توسعه جمع شده‌اند.</p>
+            </div>
+          </div>
+
+          <div class="features-grid">
+            <article class="feature-card"><div class="feature-icon">🏠</div><h3>ثبت درخواست اسکان</h3><p>دانشجو درخواست خوابگاه را ثبت می‌کند و وضعیت بررسی را پیگیری می‌کند.</p></article>
+            <article class="feature-card"><div class="feature-icon">🛏️</div><h3>تخصیص اتاق</h3><p>سرپرست پس از تایید، اتاق و تخت مناسب را به دانشجو اختصاص می‌دهد.</p></article>
+            <article class="feature-card"><div class="feature-icon">🏢</div><h3>مدیریت ظرفیت</h3><p>نمایش خوابگاه‌ها، اتاق‌ها، ظرفیت، اشغال و اتاق‌های در تعمیر.</p></article>
+            <article class="feature-card"><div class="feature-icon">🛠️</div><h3>درخواست تعمیرات</h3><p>ثبت خرابی توسط دانشجو یا سرپرست و ارجاع به واحد تاسیسات.</p></article>
+            <article class="feature-card"><div class="feature-icon">💳</div><h3>مدیریت پرداخت‌ها</h3><p>مشاهده بدهی، پرداخت هزینه‌ها و بروزرسانی وضعیت مالی.</p></article>
+            <article class="feature-card"><div class="feature-icon">📣</div><h3>اعلان‌ها و اطلاعیه‌ها</h3><p>ارسال پیام عمومی، فوری، مالی یا مخصوص یک خوابگاه و طبقه.</p></article>
+            <article class="feature-card"><div class="feature-icon">🪪</div><h3>احراز هویت و مدارک</h3><p>آپلود مدارک، بررسی اطلاعات هویتی و امکان تایید چهره با AI.</p></article>
+            <article class="feature-card"><div class="feature-icon">📈</div><h3>گزارش‌های مدیریتی</h3><p>گزارش ظرفیت، پرداخت‌ها، درخواست‌ها و عملکرد کلی سامانه.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container stats-strip">
+          <div class="stat-card"><strong>۲۴۸</strong><span>دانشجو</span></div>
+          <div class="stat-card"><strong>۱۰۰</strong><span>اتاق</span></div>
+          <div class="stat-card"><strong>۸۷٪</strong><span>ظرفیت تکمیل‌شده</span></div>
+          <div class="stat-card"><strong>۱۴</strong><span>درخواست فعال</span></div>
+          <div class="stat-card"><strong>۲۳</strong><span>پرداخت در انتظار</span></div>
+          <div class="stat-card"><strong>۵</strong><span>اطلاعیه جدید</span></div>
+        </div>
+      </section>
+
+      <section id="flow" class="section">
+        <div class="container">
+          <div class="section-head">
+            <div class="section-title">
+              <h2>فرآیند استفاده از سامانه</h2>
+              <p>مسیر کار برای دانشجو و سرپرست شفاف، مرحله‌ای و قابل پیگیری طراحی شده است.</p>
+            </div>
+          </div>
+
+          <div class="flow-grid">
+            <article class="flow-card">
+              <h3>مسیر دانشجو</h3>
+              <div class="steps">
+                <div class="step"><span class="step-num">۱</span><div><h4>ثبت اطلاعات و مدارک</h4><p>اطلاعات فردی، دانشجویی و مدارک هویتی تکمیل می‌شود.</p></div></div>
+                <div class="step"><span class="step-num">۲</span><div><h4>ثبت درخواست اسکان</h4><p>دانشجو درخواست خوابگاه و اولویت‌های خود را ارسال می‌کند.</p></div></div>
+                <div class="step"><span class="step-num">۳</span><div><h4>پیگیری وضعیت</h4><p>نتیجه بررسی، تخصیص اتاق و پیام‌های سرپرست قابل مشاهده است.</p></div></div>
+                <div class="step"><span class="step-num">۴</span><div><h4>پرداخت و استفاده از خدمات</h4><p>پرداخت هزینه، ثبت تعمیرات، مرخصی و دریافت اطلاعیه انجام می‌شود.</p></div></div>
+              </div>
+            </article>
+
+            <article class="flow-card">
+              <h3>مسیر سرپرست</h3>
+              <div class="steps">
+                <div class="step"><span class="step-num">۱</span><div><h4>مشاهده درخواست‌ها</h4><p>درخواست‌های اسکان، تمدید، تعمیرات و مرخصی بررسی می‌شوند.</p></div></div>
+                <div class="step"><span class="step-num">۲</span><div><h4>تخصیص اتاق</h4><p>بر اساس ظرفیت و شرایط، اتاق و تخت مناسب تعیین می‌شود.</p></div></div>
+                <div class="step"><span class="step-num">۳</span><div><h4>مدیریت ظرفیت و پرداخت</h4><p>وضعیت اتاق‌ها، بدهی‌ها و پرداخت‌های دانشجویان کنترل می‌شود.</p></div></div>
+                <div class="step"><span class="step-num">۴</span><div><h4>اطلاع‌رسانی و گزارش‌گیری</h4><p>اطلاعیه‌ها ارسال شده و گزارش‌های مدیریتی استخراج می‌شوند.</p></div></div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="section-head">
+            <div class="section-title">
+              <h2>چرا سراسیستم؟</h2>
+              <p>هدف اصلی، کاهش کارهای دستی و افزایش شفافیت در ارتباط بین دانشجو و مدیریت خوابگاه است.</p>
+            </div>
+          </div>
+
+          <div class="why-grid">
+            <article class="why-card"><h3>کاهش خطاهای انسانی</h3><p>ثبت دیجیتال اطلاعات باعث کاهش اشتباه در تخصیص اتاق، وضعیت پرداخت و درخواست‌ها می‌شود.</p></article>
+            <article class="why-card"><h3>پاسخ‌گویی سریع‌تر</h3><p>درخواست‌ها به صورت مرحله‌ای ثبت و پیگیری می‌شوند و وضعیت آن‌ها برای کاربر شفاف است.</p></article>
+            <article class="why-card"><h3>مدیریت یکپارچه</h3><p>اطلاعات دانشجو، اتاق، پرداخت، تعمیرات و اطلاعیه‌ها در یک سامانه واحد مدیریت می‌شود.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" class="section">
+        <div class="container">
+          <div class="section-head">
+            <div class="section-title">
+              <h2>راهنمای سریع</h2>
+              <p>چند سوال رایج کاربران برای شروع کار با سامانه.</p>
+            </div>
+          </div>
+
+          <div class="faq-grid">
+            <article class="faq-item"><h3>چگونه درخواست اسکان ثبت کنم؟</h3><p>از پنل دانشجو وارد بخش ثبت درخواست اسکان شوید، اطلاعات و مدارک را تکمیل کنید و درخواست را ارسال کنید.</p></article>
+            <article class="faq-item"><h3>چطور وضعیت اتاقم را ببینم؟</h3><p>در داشبورد دانشجو، بخش وضعیت اسکان، خوابگاه، بلوک، طبقه، اتاق و شماره تخت شما را نمایش می‌دهد.</p></article>
+            <article class="faq-item"><h3>پرداخت هزینه خوابگاه کجاست؟</h3><p>از بخش پرداخت‌ها می‌توانید بدهی، سررسید، آخرین پرداخت و وضعیت مالی خود را مشاهده کنید.</p></article>
+            <article class="faq-item"><h3>درخواست تعمیرات چطور ثبت می‌شود؟</h3><p>در پنل دانشجو یا سرپرست، بخش تعمیرات را انتخاب کنید و نوع مشکل، محل و توضیحات را ثبت کنید.</p></article>
+            <article class="faq-item"><h3>اگر مدارکم تایید نشد چه کنم؟</h3><p>در بخش پروفایل و مدارک، مورد ردشده مشخص می‌شود و می‌توانید فایل اصلاح‌شده را دوباره بارگذاری کنید.</p></article>
+            <article class="faq-item"><h3>اطلاعیه‌ها کجا نمایش داده می‌شوند؟</h3><p>اطلاعیه‌های عمومی، فوری، مالی و تعمیرات در داشبورد و صفحه اطلاعیه‌ها قابل مشاهده هستند.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="cta">
+            <div>
+              <h2>آماده شروع با سراسیستم هستید؟</h2>
+              <p>برای ادامه، نقش خود را انتخاب کنید و وارد پنل مربوط به خود شوید.</p>
+            </div>
+            <div class="hero-actions" style="margin:0">
+              <button class="btn btn-primary" onclick="openLogin('student')">ورود دانشجو</button>
+              <button class="btn btn-outline" onclick="openLogin('supervisor')">ورود سرپرست</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer id="contact">
+      <div class="container footer-grid">
+        <div class="footer-card">
+          <div class="brand">
+            <span class="brand-logo"><img src="./assets/logo_with_outline.png"></span>
+            <span>
+              <h1>سراسیستم</h1>
+              <p>سامانه جامع مدیریت خوابگاه</p>
+            </span>
+          </div>
+          <p>
+            پروژه درس مهندسی نرم‌افزار برای مکانیزه‌سازی فرآیندهای خوابگاهی، مدیریت درخواست‌ها،
+            پرداخت‌ها، اتاق‌ها و اطلاعیه‌ها.
+          </p>
+        </div>
+
+        <div class="footer-card">
+          <h3>ورود سریع</h3>
+          <div class="footer-links">
+            <a href="#" onclick="openLogin('student')">ورود دانشجو</a>
+            <a href="#" onclick="openLogin('supervisor')">ورود سرپرست</a>
+            <a href="#" onclick="openLogin('facilities')">ورود تاسیسات</a>
+            <a href="#" onclick="openLogin('facilities')">ورود تاسیسات</a>
+          </div>
+        </div>
+
+        <div class="footer-card">
+          <h3>بخش‌ها</h3>
+          <div class="footer-links">
+            <a href="#features">امکانات</a>
+            <a href="#roles">نقش‌ها</a>
+            <a href="#flow">فرآیند استفاده</a>
+            <a href="#faq">راهنما</a>
+          </div>
+        </div>
+
+        <div class="footer-card">
+          <h3>تکنولوژی‌ها</h3>
+          <p>Frontend: HTML, CSS, JavaScript, Bootstrap</p>
+          <p>Backend: Django, JWT, MySQL, Docker</p>
+        </div>
+      </div>
+      <div class="container copy">© ۱۴۰۴ سراسیستم - طراحی اولیه رابط کاربری وب‌اپلیکیشن خوابگاه</div>
+    </footer>
+  </div>
+
+  <div id="modalBackdrop" class="modal-backdrop" onclick="backdropClose(event)">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3 id="modalTitle">ورود</h3>
+          <p id="modalDesc">مسیر ورود انتخاب‌شده در نسخه واقعی به صفحه لاگین همان نقش متصل می‌شود.</p>
+        </div>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const loginData = {
+      student: {
+        title: "ورود دانشجو",
+        desc: "برای ثبت درخواست اسکان، مشاهده وضعیت اتاق، پرداخت‌ها، تعمیرات و اطلاعیه‌ها وارد پنل دانشجو شوید.",
+        code: "شماره دانشجویی"
+      },
+      supervisor: {
+        title: "ورود سرپرست خوابگاه",
+        desc: "برای بررسی درخواست‌ها، تخصیص اتاق، مدیریت ظرفیت و پاسخ‌گویی به مشکلات وارد پنل سرپرست شوید.",
+        code: "کد پرسنلی"
+      },
+      facilities: {
+        title: "ورود تاسیسات / خدمات",
+        desc: "برای رسیدگی به درخواست‌های تعمیرات و ثبت نتیجه خدمات وارد پنل تاسیسات شوید.",
+        code: "کد واحد تاسیسات"
+      }
+    };
+
+    function openLogin(role) {
+      const data = loginData[role] || loginData.student;
+      document.getElementById("modalTitle").textContent = data.title;
+      document.getElementById("modalDesc").textContent = data.desc;
+      document.getElementById("modalBody").innerHTML = `
+        <div class="login-preview">
+          <label>${data.code}<input placeholder="${data.code} را وارد کنید" /></label>
+          <label>رمز عبور<input type="password" placeholder="رمز عبور" /></label>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-primary">ورود به سامانه</button>
+          <button class="btn" onclick="closeModal()">انصراف</button>
+        </div>
+        <p style="margin-top:14px;color:#94a3b8;font-size:12px">این مودال فقط برای نمایش UI است؛ در مرحله بعد به صفحه لاگین یا مسیرهای واقعی متصل می‌شود.</p>
+      `;
+      document.getElementById("modalBackdrop").classList.add("show");
+    }
+
+    function closeModal() {
+      document.getElementById("modalBackdrop").classList.remove("show");
+    }
+
+    function backdropClose(event) {
+      if (event.target.id === "modalBackdrop") closeModal();
+    }
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeModal();
+    });
+  </script>
+</body>
+</html>
