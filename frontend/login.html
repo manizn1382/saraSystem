@@ -109,11 +109,45 @@
     background-position: left calc(4.75rem + .1875rem) center;
     }
 
+    .home-back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    min-height: 38px;
+    padding: .45rem .95rem;
+    border: 1px solid rgba(125, 211, 252, .28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    color: #dff7ff;
+    font-size: .875rem;
+    font-weight: 700;
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+    transition: transform .2s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+    }
+
+    .home-back-btn:hover {
+    color: #fff;
+    background: rgba(56, 189, 248, .16);
+    border-color: rgba(125, 211, 252, .42);
+    transform: translateY(-1px);
+    }
+
+    .home-back-btn:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(56, 189, 248, .24);
+    }
+
   </style>
 </head>
 
 <body x-data="loginPage()">
-  <main class="container min-vh-100 d-flex align-items-center justify-content-center py-4">
+  <main class="container min-vh-100 d-flex flex-column align-items-center justify-content-center gap-3 py-4">
+      <a href="./index.html" class="home-back-btn" aria-label="بازگشت به صفحه اصلی سراسیستم">
+    <span aria-hidden="true">⌂</span>
+    <span>بازگشت به صفحه اصلی</span>
+  </a>
     <section class="card auth-card" aria-labelledby="loginTitle">
       <div class="card-body p-4 p-md-5">
         <header class="text-center mb-4">
