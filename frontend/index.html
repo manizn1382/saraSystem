@@ -4,27 +4,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>سراسیستم | سامانه جامع مدیریت خوابگاه</title>
+
+  <!-- Bootstrap RTL -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css"
+    rel="stylesheet"
+  />
+
   <style>
     :root {
-      --bg: #06162b;
-      --panel: rgba(13, 39, 73, 0.78);
-      --panel-2: rgba(255,255,255,.07);
-      --line: rgba(255,255,255,.11);
-      --line-2: rgba(255,255,255,.07);
-      --text: #f8fafc;
-      --soft: #cbd5e1;
-      --muted: #94a3b8;
-      --sky: #38bdf8;
-      --cyan: #67e8f9;
-      --teal: #14b8a6;
-      --green: #22c55e;
-      --yellow: #facc15;
-      --orange: #fb923c;
-      --red: #ef4444;
-      --purple: #a78bfa;
-      --shadow: 0 30px 90px rgba(0,0,0,.30);
-      --radius: 28px;
-      --container: 1180px;
+      --ss-bg: #06162b;
+      --ss-bg-2: #071f3e;
+      --ss-panel: rgba(13, 39, 73, 0.78);
+      --ss-panel-2: rgba(255, 255, 255, 0.065);
+      --ss-line: rgba(255, 255, 255, 0.12);
+      --ss-line-2: rgba(255, 255, 255, 0.08);
+      --ss-text: #f8fafc;
+      --ss-soft: #cbd5e1;
+      --ss-muted: #94a3b8;
+      --ss-primary: #38bdf8;
+      --ss-primary-2: #67e8f9;
+      --ss-teal: #14b8a6;
+      --ss-green: #22c55e;
+      --ss-yellow: #facc15;
+      --ss-orange: #fb923c;
+      --ss-red: #ef4444;
+      --ss-radius: 1.6rem;
+      --ss-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
     }
 
     * {
@@ -33,14 +39,13 @@
     }
 
     body {
-      margin: 0;
       min-height: 100vh;
       font-family: "Segoe UI", Tahoma, Arial, sans-serif;
-      color: var(--text);
+      color: var(--ss-text);
       background:
-        radial-gradient(circle at 88% 8%, rgba(56,189,248,.22), transparent 28rem),
-        radial-gradient(circle at 7% 96%, rgba(20,184,166,.22), transparent 30rem),
-        radial-gradient(circle at 48% 28%, rgba(99,102,241,.09), transparent 26rem),
+        radial-gradient(circle at 88% 8%, rgba(56, 189, 248, 0.22), transparent 28rem),
+        radial-gradient(circle at 7% 96%, rgba(20, 184, 166, 0.22), transparent 30rem),
+        radial-gradient(circle at 48% 28%, rgba(99, 102, 241, 0.09), transparent 26rem),
         linear-gradient(135deg, #06162b 0%, #071b35 48%, #08254a 100%);
       overflow-x: hidden;
     }
@@ -49,13 +54,13 @@
       content: "";
       position: fixed;
       inset: 0;
-      pointer-events: none;
       z-index: 0;
+      pointer-events: none;
       background:
-        linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
       background-size: 44px 44px;
-      mask-image: radial-gradient(circle at center, #000, transparent 80%);
+      mask-image: radial-gradient(circle at center, #000, transparent 78%);
     }
 
     a {
@@ -63,54 +68,62 @@
       text-decoration: none;
     }
 
-    button, input {
-      font-family: inherit;
-    }
-
-    .page {
+    .site-page {
       position: relative;
       z-index: 1;
     }
 
-    .container {
-      width: min(var(--container), calc(100% - 36px));
-      margin: 0 auto;
+    .glass {
+      border: 1px solid var(--ss-line);
+      background: var(--ss-panel);
+      box-shadow: var(--ss-shadow);
+      backdrop-filter: blur(20px);
     }
 
-    .navbar-wrap {
+    .text-soft {
+      color: var(--ss-soft);
+    }
+
+    .text-muted-ss {
+      color: var(--ss-muted);
+    }
+
+    .section-padding {
+      padding: 4.25rem 0;
+    }
+
+    .section-title {
+      font-weight: 950;
+      letter-spacing: -0.03em;
+    }
+
+    .section-description {
+      max-width: 740px;
+      color: var(--ss-muted);
+      line-height: 2;
+    }
+
+    .navbar-shell {
       position: sticky;
       top: 0;
-      z-index: 20;
-      padding: 14px 0;
+      z-index: 50;
+      padding: 0.875rem 0;
       backdrop-filter: blur(18px);
     }
 
-    .navbar {
-      min-height: 74px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 18px;
-      border: 1px solid var(--line);
-      background: rgba(7, 29, 55, .78);
-      border-radius: 28px;
-      box-shadow: 0 18px 60px rgba(0,0,0,.18);
-      padding: 10px 14px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      min-width: 220px;
+    .ss-navbar {
+      min-height: 76px;
+      border-radius: 1.6rem;
+      border: 1px solid var(--ss-line);
+      background: rgba(7, 29, 55, 0.8);
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
     }
 
     .brand-logo {
-      width: 70px;
-      height: 70px;
-      display: grid;
+      width: 66px;
+      height: 66px;
+      display: inline-grid;
       place-items: center;
-      overflow: visible;
       flex: 0 0 auto;
     }
 
@@ -118,183 +131,144 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      transform: none;
-      filter: drop-shadow(0 10px 24px rgba(103,232,249,.28));
+      filter: drop-shadow(0 10px 24px rgba(103, 232, 249, 0.28));
     }
 
-    .brand h1 {
-      margin: 0;
-      font-size: 18px;
+    .brand-title {
+      font-size: 1.05rem;
       font-weight: 950;
-      letter-spacing: -.3px;
     }
 
-    .brand p {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 12px;
-      white-space: nowrap;
+    .brand-subtitle {
+      color: var(--ss-muted);
+      font-size: 0.78rem;
     }
 
-    .nav-links {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      color: var(--soft);
-      font-size: 13px;
+    .nav-link {
+      color: var(--ss-soft);
       font-weight: 800;
+      border-radius: 0.95rem;
+      padding-inline: 0.9rem !important;
     }
 
-    .nav-links a {
-      padding: 10px 12px;
-      border-radius: 14px;
-      transition: .2s ease;
-    }
-
-    .nav-links a:hover {
+    .nav-link:hover,
+    .nav-link:focus {
       color: #fff;
-      background: rgba(255,255,255,.07);
+      background: rgba(255, 255, 255, 0.075);
     }
 
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      justify-content: flex-end;
-      min-width: 260px;
-    }
-
-    .btn {
+    .btn-ss {
       min-height: 44px;
-      border: 1px solid transparent;
-      border-radius: 16px;
-      padding: 0 16px;
+      border-radius: 1rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 0.45rem;
       font-weight: 900;
-      color: var(--text);
-      background: rgba(255,255,255,.07);
-      transition: .22s ease;
-      cursor: pointer;
+      transition: 0.22s ease;
       white-space: nowrap;
     }
 
-    .btn:hover {
+    .btn-ss:hover {
       transform: translateY(-2px);
-      background: rgba(255,255,255,.12);
     }
 
-    .btn-primary {
+    .btn-ss-primary {
+      border: 0;
       color: #06162b;
-      background: linear-gradient(135deg, #38bdf8, #67e8f9);
-      box-shadow: 0 16px 34px rgba(56,189,248,.20);
+      background: linear-gradient(135deg, var(--ss-primary), var(--ss-primary-2));
+      box-shadow: 0 16px 34px rgba(56, 189, 248, 0.22);
     }
 
-    .btn-primary:hover {
+    .btn-ss-primary:hover {
+      color: #06162b;
       background: linear-gradient(135deg, #7dd3fc, #a5f3fc);
     }
 
-    .btn-outline {
-      border-color: rgba(125,211,252,.22);
-      background: rgba(56,189,248,.08);
+    .btn-ss-outline {
+      border: 1px solid rgba(125, 211, 252, 0.24);
       color: #dff7ff;
+      background: rgba(56, 189, 248, 0.08);
     }
 
-    .menu-btn {
-      display: none;
-      width: 44px;
-      height: 44px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
+    .btn-ss-outline:hover {
       color: #fff;
-      background: rgba(255,255,255,.07);
-      font-size: 20px;
+      background: rgba(56, 189, 248, 0.14);
+    }
+
+    .mobile-menu {
+      display: none;
+      border-top: 1px solid var(--ss-line-2);
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+    }
+
+    .mobile-menu.show {
+      display: block;
     }
 
     .hero {
-      padding: 54px 0 42px;
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(420px, .85fr);
-      gap: 34px;
-      align-items: center;
+      padding: 4rem 0 3rem;
     }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 13px;
+      gap: 0.5rem;
+      padding: 0.5rem 0.85rem;
       border-radius: 999px;
-      border: 1px solid rgba(125,211,252,.20);
-      background: rgba(56,189,248,.10);
+      border: 1px solid rgba(125, 211, 252, 0.2);
+      background: rgba(56, 189, 248, 0.1);
       color: #bae6fd;
-      font-size: 13px;
-      margin-bottom: 16px;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
     }
 
-    .hero h2 {
-      margin: 0;
-      font-size: clamp(38px, 5vw, 68px);
+    .hero-title {
+      font-size: clamp(2.35rem, 5vw, 4.4rem);
       line-height: 1.25;
       font-weight: 950;
-      letter-spacing: -1.1px;
+      letter-spacing: -0.05em;
     }
 
-    .hero h2 span {
-      background: linear-gradient(135deg, #67e8f9, #38bdf8, #14b8a6);
+    .hero-title span {
+      color: transparent;
+      background: linear-gradient(135deg, var(--ss-primary-2), var(--ss-primary), var(--ss-teal));
       -webkit-background-clip: text;
       background-clip: text;
-      color: transparent;
     }
 
-    .hero p {
-      margin: 18px 0 0;
-      color: var(--soft);
-      line-height: 2.15;
-      font-size: 16px;
+    .hero-text {
       max-width: 760px;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-top: 28px;
-    }
-
-    .hero-points {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 28px;
+      color: var(--ss-soft);
+      line-height: 2.15;
+      font-size: 1rem;
     }
 
     .hero-point {
-      padding: 13px;
-      border-radius: 20px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.055);
-      color: var(--soft);
-      font-size: 13px;
-      line-height: 1.8;
+      height: 100%;
+      padding: 1rem;
+      border-radius: 1.25rem;
+      border: 1px solid var(--ss-line);
+      background: rgba(255, 255, 255, 0.055);
     }
 
     .hero-point strong {
       display: block;
       color: #fff;
-      font-size: 16px;
-      margin-bottom: 4px;
+      font-size: 1rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .hero-point span {
+      color: var(--ss-muted);
+      font-size: 0.86rem;
+      line-height: 1.9;
     }
 
     .hero-visual {
       position: relative;
-      min-height: 590px;
+      min-height: 570px;
       display: grid;
       place-items: center;
     }
@@ -305,20 +279,18 @@
       height: 330px;
       border-radius: 50%;
       background:
-        radial-gradient(circle at 35% 26%, rgba(255,255,255,.25), transparent 25%),
-        linear-gradient(135deg, rgba(56,189,248,.18), rgba(20,184,166,.14));
-      filter: blur(.2px);
-      box-shadow: 0 40px 110px rgba(56,189,248,.18);
+        radial-gradient(circle at 35% 26%, rgba(255, 255, 255, 0.25), transparent 25%),
+        linear-gradient(135deg, rgba(56, 189, 248, 0.18), rgba(20, 184, 166, 0.14));
+      box-shadow: 0 40px 110px rgba(56, 189, 248, 0.18);
       animation: float 6s ease-in-out infinite;
     }
 
     .hero-logo-card {
       position: relative;
-      width: 360px;
-      height: 360px;
+      width: 350px;
+      height: 350px;
       display: grid;
       place-items: center;
-      overflow: visible;
       animation: float 6s ease-in-out infinite;
     }
 
@@ -326,646 +298,390 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      filter: drop-shadow(0 18px 38px rgba(0,0,0,.28)) drop-shadow(0 10px 22px rgba(103,232,249,.18));
+      filter:
+        drop-shadow(0 18px 38px rgba(0, 0, 0, 0.28))
+        drop-shadow(0 10px 22px rgba(103, 232, 249, 0.18));
     }
 
     @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-16px); }
+      0%, 100% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-16px);
+      }
     }
 
     .float-card {
       position: absolute;
-      width: 205px;
-      padding: 16px;
-      border-radius: 24px;
-      border: 1px solid var(--line);
-      background: rgba(13, 39, 73, .82);
-      box-shadow: 0 24px 80px rgba(0,0,0,.24);
+      width: 210px;
+      padding: 1rem;
+      border-radius: 1.35rem;
+      border: 1px solid var(--ss-line);
+      background: rgba(13, 39, 73, 0.84);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.24);
       backdrop-filter: blur(18px);
     }
 
     .float-card h3 {
       margin: 0;
-      font-size: 14px;
-      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 950;
     }
 
     .float-card p {
-      margin: 8px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-      line-height: 1.8;
+      margin: 0.45rem 0 0;
+      color: var(--ss-muted);
+      font-size: 0.78rem;
+      line-height: 1.9;
     }
 
     .float-card strong {
       display: block;
-      margin-top: 10px;
-      font-size: 22px;
+      margin-top: 0.65rem;
       color: #bae6fd;
-    }
-
-    .fc-1 { top: 42px; right: 0; }
-    .fc-2 { top: 220px; left: 0; }
-    .fc-3 { bottom: 60px; right: 30px; }
-    .fc-4 { bottom: 0; left: 80px; }
-
-    .section {
-      padding: 42px 0;
-    }
-
-    .section-head {
-      display: flex;
-      align-items: end;
-      justify-content: space-between;
-      gap: 18px;
-      margin-bottom: 22px;
-    }
-
-    .section-title h2 {
-      margin: 0;
-      font-size: clamp(26px, 3vw, 38px);
+      font-size: 1.45rem;
       font-weight: 950;
-      letter-spacing: -.5px;
     }
 
-    .section-title p {
-      margin: 10px 0 0;
-      color: var(--muted);
-      line-height: 2;
-      font-size: 14px;
-      max-width: 720px;
+    .fc-1 {
+      top: 2.25rem;
+      right: 0;
     }
 
-    .roles-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
+    .fc-2 {
+      top: 13.75rem;
+      left: 0;
     }
 
-    .role-card, .feature-card, .stat-card, .flow-card, .why-card, .faq-item, .footer-card {
-      border: 1px solid var(--line);
-      background: var(--panel);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(22px);
+    .fc-3 {
+      right: 1.9rem;
+      bottom: 4rem;
     }
 
-    .role-card {
-      padding: 20px;
-      min-height: 290px;
-      position: relative;
-      overflow: hidden;
-      transition: .24s ease;
+    .fc-4 {
+      left: 5rem;
+      bottom: 0;
     }
 
-    .role-card::after {
-      content: "";
-      position: absolute;
-      inset: auto -58px -58px auto;
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      background: var(--glow);
-      transition: .24s ease;
+    .role-card,
+    .feature-card,
+    .stat-card,
+    .process-card,
+    .why-card,
+    .faq-card,
+    .announcement-card {
+      border: 1px solid var(--ss-line);
+      border-radius: var(--ss-radius);
+      background: var(--ss-panel);
+      box-shadow: var(--ss-shadow);
+      backdrop-filter: blur(20px);
     }
 
-    .role-card:hover {
-      transform: translateY(-6px);
-      border-color: rgba(125,211,252,.34);
+    .role-card,
+    .feature-card,
+    .why-card,
+    .faq-card,
+    .announcement-card {
+      height: 100%;
+      transition: 0.22s ease;
     }
 
-    .role-card:hover::after {
-      transform: scale(1.25);
+    .role-card:hover,
+    .feature-card:hover,
+    .why-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(125, 211, 252, 0.34);
+      background: rgba(16, 46, 82, 0.88);
     }
 
-    .role-icon {
-      width: 58px;
-      height: 58px;
-      border-radius: 22px;
-      display: grid;
+    .icon-box {
+      width: 52px;
+      height: 52px;
+      display: inline-grid;
       place-items: center;
-      background: rgba(56,189,248,.14);
+      border-radius: 1.1rem;
+      background: rgba(56, 189, 248, 0.13);
       color: #bae6fd;
-      font-size: 28px;
-      margin-bottom: 16px;
-      position: relative;
-      z-index: 1;
+      font-size: 1.45rem;
     }
 
-    .role-card h3 {
-      margin: 0;
-      font-size: 19px;
+    .card-title-ss {
       font-weight: 950;
-      position: relative;
-      z-index: 1;
+      font-size: 1.05rem;
     }
 
-    .role-card p {
-      margin: 10px 0 0;
-      color: var(--soft);
-      font-size: 13px;
+    .card-text-ss {
+      color: var(--ss-muted);
       line-height: 2;
-      min-height: 78px;
-      position: relative;
-      z-index: 1;
+      font-size: 0.9rem;
     }
 
-    .role-list {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      gap: 7px;
-      margin: 14px 0 18px;
-      color: var(--muted);
-      font-size: 12px;
+    .status-badge {
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 900;
     }
 
-    .role-list span::before {
-      content: "✓";
-      color: #67e8f9;
-      margin-left: 7px;
+    .badge-active {
+      color: #dcfce7;
+      background: rgba(34, 197, 94, 0.14);
+      border: 1px solid rgba(34, 197, 94, 0.25);
     }
 
-    .role-card .btn {
-      position: relative;
-      z-index: 1;
-      width: 100%;
+    .badge-pending {
+      color: #fef9c3;
+      background: rgba(250, 204, 21, 0.12);
+      border: 1px solid rgba(250, 204, 21, 0.25);
     }
 
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0,1fr));
-      gap: 16px;
-    }
-
-    .feature-card {
-      padding: 18px;
-      min-height: 198px;
-      transition: .22s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(125,211,252,.30);
-      background: rgba(16,46,82,.88);
-    }
-
-    .feature-icon {
-      width: 48px;
-      height: 48px;
-      display: grid;
-      place-items: center;
-      border-radius: 18px;
-      background: rgba(56,189,248,.13);
-      color: #bae6fd;
-      font-size: 23px;
-      margin-bottom: 14px;
-    }
-
-    .feature-card h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 950;
-    }
-
-    .feature-card p {
-      margin: 10px 0 0;
-      color: var(--muted);
-      line-height: 2;
-      font-size: 13px;
-    }
-
-    .stats-strip {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 14px;
+    .badge-urgent {
+      color: #fee2e2;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.25);
     }
 
     .stat-card {
-      padding: 18px;
+      min-height: 126px;
+      padding: 1.25rem;
       text-align: center;
       background:
-        radial-gradient(circle at 50% 0%, rgba(56,189,248,.16), transparent 45%),
-        rgba(13,39,73,.80);
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.16), transparent 45%),
+        rgba(13, 39, 73, 0.8);
     }
 
     .stat-card strong {
       display: block;
-      font-size: 28px;
-      font-weight: 950;
       color: #dff7ff;
-      margin-bottom: 8px;
+      font-size: 1.85rem;
+      font-weight: 950;
+      margin-bottom: 0.35rem;
     }
 
     .stat-card span {
-      color: var(--muted);
-      font-size: 13px;
+      color: var(--ss-muted);
+      font-size: 0.9rem;
     }
 
-    .flow-grid {
+    .process-step {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .flow-card {
-      padding: 22px;
-    }
-
-    .flow-card h3 {
-      margin: 0 0 18px;
-      font-size: 20px;
-      font-weight: 950;
-    }
-
-    .steps {
-      display: grid;
-      gap: 13px;
-    }
-
-    .step {
-      display: grid;
-      grid-template-columns: 36px 1fr;
-      gap: 12px;
+      grid-template-columns: 42px 1fr;
+      gap: 0.85rem;
       align-items: start;
-      padding: 12px;
-      border-radius: 18px;
-      background: rgba(255,255,255,.055);
-      transition: .18s ease;
+      padding: 0.9rem;
+      border-radius: 1.1rem;
+      background: rgba(255, 255, 255, 0.055);
     }
 
-    .step:hover {
-      background: rgba(255,255,255,.09);
-    }
-
-    .step-num {
-      width: 36px;
-      height: 36px;
-      border-radius: 14px;
+    .process-num {
+      width: 42px;
+      height: 42px;
       display: grid;
       place-items: center;
+      border-radius: 0.95rem;
       color: #06162b;
-      background: linear-gradient(135deg, #38bdf8, #67e8f9);
+      background: linear-gradient(135deg, var(--ss-primary), var(--ss-primary-2));
       font-weight: 950;
     }
 
-    .step h4 {
+    .process-step h3 {
       margin: 0;
-      font-size: 14px;
+      font-size: 0.95rem;
       font-weight: 950;
     }
 
-    .step p {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 12px;
+    .process-step p {
+      margin: 0.35rem 0 0;
+      color: var(--ss-muted);
+      font-size: 0.82rem;
       line-height: 1.9;
     }
 
-    .why-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 16px;
+    .api-panel {
+      border: 1px dashed rgba(125, 211, 252, 0.3);
+      border-radius: var(--ss-radius);
+      background: rgba(56, 189, 248, 0.055);
     }
 
-    .why-card {
-      padding: 20px;
-      min-height: 160px;
+    .htmx-indicator {
+      display: none;
     }
 
-    .why-card h3 {
-      margin: 0;
-      font-size: 17px;
-      font-weight: 950;
+    .htmx-request .htmx-indicator,
+    .htmx-request.htmx-indicator {
+      display: inline-flex;
     }
 
-    .why-card p {
-      color: var(--muted);
-      line-height: 2;
-      font-size: 13px;
-      margin: 10px 0 0;
-    }
-
-    .faq-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 14px;
-    }
-
-    .faq-item {
-      padding: 18px;
-    }
-
-    .faq-item h3 {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 950;
-    }
-
-    .faq-item p {
-      margin: 10px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 2;
-    }
-
-    .cta {
-      padding: 36px;
-      border-radius: 36px;
-      border: 1px solid var(--line);
+    .cta-box {
+      border-radius: 2rem;
+      border: 1px solid var(--ss-line);
       background:
-        radial-gradient(circle at 10% 5%, rgba(56,189,248,.28), transparent 34%),
-        radial-gradient(circle at 75% 80%, rgba(20,184,166,.20), transparent 34%),
-        linear-gradient(135deg, rgba(13,43,81,.92), rgba(7,25,50,.86));
-      box-shadow: var(--shadow);
-      display: grid;
-      grid-template-columns: minmax(0,1fr) auto;
-      gap: 22px;
-      align-items: center;
+        radial-gradient(circle at 10% 5%, rgba(56, 189, 248, 0.28), transparent 34%),
+        radial-gradient(circle at 75% 80%, rgba(20, 184, 166, 0.2), transparent 34%),
+        linear-gradient(135deg, rgba(13, 43, 81, 0.92), rgba(7, 25, 50, 0.86));
+      box-shadow: var(--ss-shadow);
     }
 
-    .cta h2 {
-      margin: 0;
-      font-size: clamp(25px, 3vw, 40px);
-      font-weight: 950;
+    .accordion-button {
+      color: var(--ss-text);
+      background: rgba(255, 255, 255, 0.04);
+      box-shadow: none !important;
+      font-weight: 900;
     }
 
-    .cta p {
-      margin: 12px 0 0;
-      color: var(--soft);
+    .accordion-button:not(.collapsed) {
+      color: #dff7ff;
+      background: rgba(56, 189, 248, 0.12);
+    }
+
+    .accordion-button::after {
+      margin-right: auto;
+      margin-left: 0;
+      filter: invert(1);
+    }
+
+    .accordion-item {
+      border: 1px solid var(--ss-line);
+      background: var(--ss-panel);
+      color: var(--ss-soft);
+      border-radius: 1.2rem !important;
+      overflow: hidden;
+    }
+
+    .footer-link {
+      color: var(--ss-muted);
+      font-size: 0.9rem;
       line-height: 2;
-      font-size: 14px;
     }
 
-    footer {
-      padding: 42px 0 30px;
-    }
-
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 1.4fr repeat(3, minmax(0, .7fr));
-      gap: 16px;
-    }
-
-    .footer-card {
-      padding: 20px;
-    }
-
-    .footer-card h3 {
-      margin: 0 0 14px;
-      font-size: 16px;
-      font-weight: 950;
-    }
-
-    .footer-card p, .footer-card a {
-      color: var(--muted);
-      line-height: 2;
-      font-size: 13px;
-    }
-
-    .footer-links {
-      display: grid;
-      gap: 8px;
-    }
-
-    .footer-links a:hover {
+    .footer-link:hover {
       color: #fff;
     }
 
-    .copy {
-      margin-top: 16px;
-      color: #64748b;
-      text-align: center;
-      font-size: 12px;
-    }
-
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,.58);
-      backdrop-filter: blur(10px);
-      z-index: 80;
-      padding: 18px;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-backdrop.show {
-      display: flex;
-    }
-
-    .modal {
-      width: min(540px, 100%);
-      border-radius: 30px;
-      border: 1px solid var(--line);
-      background:
-        radial-gradient(circle at top left, rgba(56,189,248,.16), transparent 34%),
-        #071d37;
-      box-shadow: 0 30px 120px rgba(0,0,0,.45);
-      padding: 22px;
-    }
-
-    .modal-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
-
-    .modal h3 {
-      margin: 0;
-      font-size: 22px;
-      font-weight: 950;
-    }
-
-    .modal p {
-      color: var(--soft);
-      line-height: 2;
-      font-size: 13px;
-    }
-
-    .close-btn {
-      width: 42px;
-      height: 42px;
-      border: 1px solid var(--line);
-      border-radius: 15px;
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      font-size: 20px;
-      cursor: pointer;
-    }
-
-    .login-preview {
-      display: grid;
-      gap: 12px;
-      margin-top: 16px;
-    }
-
-    .login-preview label {
-      display: grid;
-      gap: 8px;
-      color: var(--soft);
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .login-preview input {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255,255,255,.065);
-      color: var(--text);
-      outline: 0;
-      padding: 12px;
-      min-height: 46px;
-    }
-
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-
-    @media (max-width: 1180px) {
-      .navbar {
-        align-items: flex-start;
-        flex-wrap: wrap;
-      }
-
-      .nav-links {
-        order: 3;
-        width: 100%;
-        justify-content: flex-start;
-        overflow-x: auto;
-      }
-
-      .nav-actions {
-        min-width: unset;
-      }
-
-      .hero-grid {
-        grid-template-columns: 1fr;
-      }
-
+    @media (max-width: 1199.98px) {
       .hero-visual {
-        min-height: 500px;
-      }
-
-      .roles-grid, .features-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .stats-strip {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .footer-grid {
-        grid-template-columns: repeat(2, minmax(0,1fr));
+        min-height: 510px;
       }
     }
 
-    @media (max-width: 760px) {
-      .container {
-        width: min(100% - 24px, var(--container));
-      }
-
-      .navbar {
-        border-radius: 22px;
-      }
-
-      .nav-links {
-        display: none;
-      }
-
-      .nav-actions .btn-outline {
-        display: none;
-      }
-
-      .menu-btn {
-        display: block;
-      }
-
-      .brand p {
-        display: none;
-      }
-
+    @media (max-width: 991.98px) {
       .hero {
-        padding-top: 34px;
-      }
-
-      .hero-actions, .cta {
-        display: grid;
-        grid-template-columns: 1fr;
-      }
-
-      .hero-actions .btn, .cta .btn {
-        width: 100%;
-      }
-
-      .hero-points, .roles-grid, .features-grid, .stats-strip, .flow-grid, .why-grid, .faq-grid, .footer-grid {
-        grid-template-columns: 1fr;
+        padding-top: 2.6rem;
       }
 
       .hero-visual {
-        min-height: 620px;
+        min-height: 590px;
       }
 
+      .brand-subtitle {
+        display: none;
+      }
+    }
+
+    @media (max-width: 767.98px) {
+      .section-padding {
+        padding: 3rem 0;
+      }
+
+      .ss-navbar {
+        border-radius: 1.25rem;
+      }
+
+      .brand-logo {
+        width: 54px;
+        height: 54px;
+      }
+
+      .hero-title {
+        font-size: clamp(2.1rem, 12vw, 3.2rem);
+      }
+
+      .hero-visual {
+        min-height: 610px;
+      }
+
+      .logo-orb,
       .hero-logo-card {
         width: 250px;
         height: 250px;
       }
 
-      .logo-orb {
-        width: 250px;
-        height: 250px;
-      }
-
       .float-card {
-        width: 190px;
+        width: 188px;
       }
 
-      .fc-1 { top: 10px; right: 0; }
-      .fc-2 { top: 230px; left: 0; }
-      .fc-3 { bottom: 120px; right: 0; }
-      .fc-4 { bottom: 0; left: 0; }
+      .fc-1 {
+        top: 0.5rem;
+        right: 0;
+      }
 
-      .section-head {
-        display: block;
+      .fc-2 {
+        top: 14.5rem;
+        left: 0;
+      }
+
+      .fc-3 {
+        right: 0;
+        bottom: 7.5rem;
+      }
+
+      .fc-4 {
+        left: 0;
+        bottom: 0;
       }
     }
   </style>
 </head>
-<body>
-  <div class="page">
-    <header class="navbar-wrap">
-      <div class="container">
-        <nav class="navbar">
-          <a class="brand" href="#">
-            <span class="brand-logo"><img src="../assets/logo_with_outline.png""> </span>
-            <span>
-              <h1>سراسیستم</h1>
-              <p>سامانه جامع مدیریت خوابگاه</p>
-            </span>
-          </a>
 
-          <div class="nav-links">
-            <a href="#home">خانه</a>
-            <a href="#features">امکانات</a>
-            <a href="#faq">راهنما</a>
-            <!-- tbd -->
+<body>
+  <div class="site-page" x-data="{ mobileMenuOpen: false }">
+    <header class="navbar-shell">
+      <div class="container">
+        <nav class="ss-navbar px-3 py-2" aria-label="ناوبری اصلی">
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <a href="#home" class="d-flex align-items-center gap-3" aria-label="سراسیستم، صفحه اصلی">
+              <span class="brand-logo">
+                <img src="../assets/logo_with_outline.png" alt="لوگوی سراسیستم" />
+              </span>
+              <span>
+                <span class="d-block brand-title">سراسیستم</span>
+                <span class="d-block brand-subtitle">سامانه جامع مدیریت خوابگاه</span>
+              </span>
+            </a>
+
+            <div class="d-none d-lg-flex align-items-center justify-content-center gap-1">
+              <a class="nav-link" href="#home">خانه</a>
+              <a class="nav-link" href="#features">امکانات</a>
+              <a class="nav-link" href="#roles">نقش‌ها</a>
+              <a class="nav-link" href="#process">فرآیند</a>
+              <a class="nav-link" href="#faq">راهنما</a>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <a href="./login.html" class="btn btn-ss btn-ss-primary px-4">ورود به سامانه</a>
+
+              <button
+                class="btn btn-ss btn-ss-outline d-lg-none px-3"
+                type="button"
+                aria-label="باز و بسته کردن منوی موبایل"
+                :aria-expanded="mobileMenuOpen.toString()"
+                @click="mobileMenuOpen = !mobileMenuOpen"
+              >
+                ☰
+              </button>
+            </div>
           </div>
 
-          <div class="nav-actions">
-            <a href="./login.html" class="btn btn-primary">ورود</a>
-            <!-- <button class="btn btn-primary" onclick="openLogin('student')" >ورود</button> -->
-            <!-- <button class="btn btn-outline" onclick="openLogin('supervisor')">ورود سرپرست</button> -->
-            <button class="menu-btn">☰</button>
+          <div class="mobile-menu" :class="{ 'show': mobileMenuOpen }" x-cloak>
+            <div class="d-grid gap-2">
+              <a class="nav-link" href="#home" @click="mobileMenuOpen = false">خانه</a>
+              <a class="nav-link" href="#features" @click="mobileMenuOpen = false">امکانات</a>
+              <a class="nav-link" href="#roles" @click="mobileMenuOpen = false">نقش‌ها</a>
+              <a class="nav-link" href="#process" @click="mobileMenuOpen = false">فرآیند</a>
+              <a class="nav-link" href="#faq" @click="mobileMenuOpen = false">راهنما</a>
+            </div>
           </div>
         </nav>
       </div>
@@ -973,219 +689,678 @@
 
     <main id="home">
       <section class="hero">
-        <div class="container hero-grid">
-          <div>
-            <div class="eyebrow">🏢 نسخه یکپارچه مدیریت خوابگاه‌های دانشگاهی</div>
-            <h2>مدیریت هوشمند خوابگاه با <span>سراسیستم</span></h2>
-            <p>
-              سراسیستم یک وب‌اپلیکیشن جامع برای مدیریت فرآیندهای اسکان، تخصیص اتاق، ظرفیت خوابگاه، پرداخت‌ها،
-              درخواست‌های تعمیرات، اطلاعیه‌ها و ارتباط بین دانشجو، سرپرست و تاسیسات است.
+        <div class="container">
+          <div class="row align-items-center g-5">
+            <div class="col-lg-7">
+              <div class="eyebrow">🏢 وب‌اپلیکیشن مدیریت خوابگاه‌های دانشگاهی</div>
+
+              <h1 class="hero-title mb-3">
+                مدیریت شفاف و سریع خوابگاه با <span>سراسیستم</span>
+              </h1>
+
+              <p class="hero-text mb-0">
+                سراسیستم یک رابط کاربری تحت وب برای مدیریت درخواست اسکان، ظرفیت خوابگاه،
+                تخصیص اتاق و تخت، پیگیری پرداخت‌ها، درخواست‌های تعمیرات و اطلاعیه‌های دانشگاهی است.
+                این صفحه برای معرفی سامانه و هدایت کاربران به پنل ورود طراحی شده است.
+              </p>
+
+              <div class="d-flex flex-wrap gap-3 mt-4">
+                <a href="./login.html" class="btn btn-ss btn-ss-primary px-4">شروع و ورود به پنل</a>
+                <a href="#features" class="btn btn-ss btn-ss-outline px-4">مشاهده امکانات</a>
+              </div>
+
+              <div class="row g-3 mt-4">
+                <div class="col-md-4">
+                  <div class="hero-point">
+                    <strong>شفافیت</strong>
+                    <span>پیگیری وضعیت درخواست‌ها، تخصیص‌ها و پرداخت‌ها</span>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="hero-point">
+                    <strong>سرعت</strong>
+                    <span>کاهش کارهای دستی و رفت‌وآمدهای غیرضروری</span>
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="hero-point">
+                    <strong>یکپارچگی</strong>
+                    <span>اتصال نقش‌های دانشجو، خوابگاه، مدیریت و پشتیبانی</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-lg-5">
+              <div class="hero-visual" aria-label="نمای تصویری خلاصه وضعیت سامانه">
+                <div class="logo-orb"></div>
+
+                <div class="hero-logo-card">
+                  <img src="../assets/logo_with_outline.png" alt="لوگوی بزرگ سراسیستم" />
+                </div>
+
+                <div class="float-card fc-1">
+                  <h3>درخواست‌های اسکان</h3>
+                  <p>ثبت، بررسی، تایید یا رد درخواست‌ها</p>
+                  <strong>۱۴ مورد</strong>
+                </div>
+
+                <div class="float-card fc-2">
+                  <h3>ظرفیت خوابگاه</h3>
+                  <p>نمایش اتاق‌های آزاد، پر و در تعمیر</p>
+                  <strong>۸۷٪</strong>
+                </div>
+
+                <div class="float-card fc-3">
+                  <h3>پرداخت‌ها</h3>
+                  <p>پیگیری بدهی، سررسید و وضعیت پرداخت</p>
+                  <strong>۲۳ مورد</strong>
+                </div>
+
+                <div class="float-card fc-4">
+                  <h3>اطلاعیه‌ها</h3>
+                  <p>اعلان‌های عمومی و هدفمند برای کاربران</p>
+                  <strong>۵ اعلان</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-padding pt-3" aria-labelledby="stats-title">
+        <div class="container">
+          <div class="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+            <div>
+              <h2 id="stats-title" class="section-title h3 mb-2">نمای کلی سامانه</h2>
+              <p class="section-description mb-0">
+                این بخش می‌تواند با HTMX از API عمومی آمار دریافت کند؛ در حالت عدم دسترسی API، داده‌های نمایشی باقی می‌مانند.
+              </p>
+            </div>
+
+            <span class="htmx-indicator align-items-center gap-2 text-soft">
+              <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              در حال دریافت آمار...
+            </span>
+          </div>
+
+          <div
+            class="row g-3"
+            hx-get="/api/public/stats/"
+            hx-trigger="load"
+            hx-swap="innerHTML"
+            hx-indicator=".htmx-indicator"
+          >
+            <div class="col-6 col-lg-2">
+              <div class="stat-card">
+                <strong>۲۴۸</strong>
+                <span>دانشجو</span>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-2">
+              <div class="stat-card">
+                <strong>۱۰۰</strong>
+                <span>اتاق</span>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-2">
+              <div class="stat-card">
+                <strong>۳۲۰</strong>
+                <span>تخت</span>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-2">
+              <div class="stat-card">
+                <strong>۱۴</strong>
+                <span>درخواست فعال</span>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-2">
+              <div class="stat-card">
+                <strong>۲۳</strong>
+                <span>پرداخت در انتظار</span>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-2">
+              <div class="stat-card">
+                <strong>۵</strong>
+                <span>اطلاعیه جدید</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" class="section-padding" aria-labelledby="features-title">
+        <div class="container">
+          <div class="mb-4">
+            <h2 id="features-title" class="section-title h2 mb-3">امکانات اصلی سراسیستم</h2>
+            <p class="section-description mb-0">
+              ماژول‌های اصلی سامانه برای مدیریت عملیات خوابگاه، از درخواست اسکان تا پشتیبانی و اطلاع‌رسانی.
             </p>
-
-            <div class="hero-actions">
-              <!-- <button class="btn btn-primary" onclick="openLogin('student')">🎓 ورود به پنل دانشجو</button>
-              <button class="btn btn-outline" onclick="openLogin('supervisor')">🛡️ ورود به پنل سرپرست</button> -->
-              <!-- <a class="btn" href="#features">مشاهده امکانات</a> -->
-            </div>
-
-            <div class="hero-points">
-              <div class="hero-point"><strong>شفافیت</strong>پیگیری لحظه‌ای درخواست‌ها، اتاق‌ها و پرداخت‌ها</div>
-              <div class="hero-point"><strong>سرعت</strong>کاهش رفت‌وآمد حضوری و پاسخ‌گویی سریع‌تر</div>
-              <div class="hero-point"><strong>یکپارچگی</strong>اتصال دانشجو، سرپرست و تاسیسات</div>
-            </div>
           </div>
 
-          <div class="hero-visual">
-            <div class="logo-orb"></div>
-            <div class="hero-logo-card">
-                <img src="../assets/logo_with_outline.png" alt="Company Logo">
+          <div class="row g-3">
+            <div class="col-md-6 col-xl-3">
+              <article class="feature-card p-4">
+                <div class="icon-box mb-3">🏠</div>
+                <h3 class="card-title-ss mb-2">درخواست اسکان</h3>
+                <p class="card-text-ss mb-0">
+                  دانشجو درخواست خوابگاه را ثبت می‌کند و وضعیت pending، approved یا rejected را پیگیری می‌کند.
+                </p>
+              </article>
             </div>
 
-            <div class="float-card fc-1">
-              <h3>درخواست‌های فعال</h3>
-              <p>اسکان، تعمیرات، مرخصی و تمدید اقامت</p>
-              <strong>۱۴ مورد</strong>
+            <div class="col-md-6 col-xl-3">
+              <article class="feature-card p-4">
+                <div class="icon-box mb-3">🛏️</div>
+                <h3 class="card-title-ss mb-2">تخصیص اتاق و تخت</h3>
+                <p class="card-text-ss mb-0">
+                  مسئول خوابگاه بعد از تایید درخواست، تخت مناسب را بر اساس ظرفیت موجود اختصاص می‌دهد.
+                </p>
+              </article>
             </div>
 
-            <div class="float-card fc-2">
-              <h3>ظرفیت خوابگاه</h3>
-              <p>نمایش وضعیت اتاق‌های پر، خالی و در تعمیر</p>
-              <strong>۸۷٪</strong>
+            <div class="col-md-6 col-xl-3">
+              <article class="feature-card p-4">
+                <div class="icon-box mb-3">🏢</div>
+                <h3 class="card-title-ss mb-2">مدیریت ظرفیت</h3>
+                <p class="card-text-ss mb-0">
+                  مشاهده خوابگاه‌ها، اتاق‌ها، تخت‌ها، ظرفیت کل، ظرفیت اشغال‌شده و وضعیت تعمیرات.
+                </p>
+              </article>
             </div>
 
-            <div class="float-card fc-3">
-              <h3>پرداخت‌های معوق</h3>
-              <p>کنترل بدهی‌ها و سوابق مالی دانشجویان</p>
-              <strong>۲۳ مورد</strong>
+            <div class="col-md-6 col-xl-3">
+              <article class="feature-card p-4">
+                <div class="icon-box mb-3">🛠️</div>
+                <h3 class="card-title-ss mb-2">درخواست تعمیرات</h3>
+                <p class="card-text-ss mb-0">
+                  ثبت خرابی، اولویت‌بندی، ارجاع به پشتیبانی و بروزرسانی وضعیت رسیدگی.
+                </p>
+              </article>
             </div>
 
-            <div class="float-card fc-4">
-              <h3>اطلاعیه‌های جدید</h3>
-              <p>پیام‌های عمومی، فوری و مالی خوابگاه</p>
-              <strong>۵ اعلان</strong>
+            <div class="col-md-6 col-xl-3">
+              <article class="feature-card p-4">
+                <div class="icon-box mb-3">💳</div>
+                <h3 class="card-title-ss mb-2">پیگیری پرداخت‌ها</h3>
+                <p class="card-text-ss mb-0">
+                  نمایش بدهی، سررسید، وضعیت paid یا unpaid و سوابق مالی مرتبط با اسکان.
+                </p>
+              </article>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+              <article class="feature-card p-4">
+                <div class="icon-box mb-3">📣</div>
+                <h3 class="card-title-ss mb-2">اطلاعیه‌ها</h3>
+                <p class="card-text-ss mb-0">
+                  انتشار اعلان عمومی یا هدفمند بر اساس نقش کاربر یا خوابگاه، همراه با وضعیت read و unread.
+                </p>
+              </article>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+              <article class="feature-card p-4">
+                <div class="icon-box mb-3">👥</div>
+                <h3 class="card-title-ss mb-2">کاربران و نقش‌ها</h3>
+                <p class="card-text-ss mb-0">
+                  نمایش کاربران، نقش‌ها و مجوزها در پنل مدیریت، با فرض کنترل نهایی دسترسی توسط API.
+                </p>
+              </article>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+              <article class="feature-card p-4">
+                <div class="icon-box mb-3">📈</div>
+                <h3 class="card-title-ss mb-2">گزارش‌های مدیریتی</h3>
+                <p class="card-text-ss mb-0">
+                  کارت‌ها و نمودارهای داشبورد برای وضعیت ظرفیت، پرداخت‌ها، درخواست‌ها و عملکرد کلی.
+                </p>
+              </article>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- <section id="roles" class="section">
+      <section id="roles" class="section-padding" aria-labelledby="roles-title">
         <div class="container">
-          <div class="section-head">
-            <div class="section-title">
-              <h2>با چه نقشی وارد می‌شوید؟</h2>
-              <p>سراسیستم برای نقش‌های مختلف طراحی شده تا هر کاربر دقیقاً امکانات مورد نیاز خودش را ببیند.</p>
+          <div class="mb-4">
+            <h2 id="roles-title" class="section-title h2 mb-3">نقش‌های اصلی در سامانه</h2>
+            <p class="section-description mb-0">
+              هر کاربر بعد از ورود، بر اساس نقش دریافت‌شده از API، منوها و عملیات مرتبط با خود را مشاهده می‌کند.
+            </p>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6 col-xl-3">
+              <article class="role-card p-4">
+                <div class="icon-box mb-3">🎓</div>
+                <h3 class="card-title-ss mb-2">دانشجو</h3>
+                <p class="card-text-ss">
+                  ثبت درخواست اسکان، مشاهده وضعیت، مشاهده اتاق و تخت، پرداخت‌ها، تعمیرات و اطلاعیه‌ها.
+                </p>
+                <span class="status-badge badge-active">دسترسی کاربری</span>
+              </article>
             </div>
-          </div>
 
-          <div class="roles-grid">
-            <article class="role-card" style="--glow: rgba(56,189,248,.12)">
-              <div class="role-icon">🎓</div>
-              <h3>دانشجو / متقاضی خوابگاه</h3>
-              <p>برای ثبت درخواست اسکان، مشاهده وضعیت اتاق، پرداخت هزینه‌ها و دریافت اطلاعیه‌ها.</p>
-              <div class="role-list">
-                <span>درخواست اسکان و تمدید</span>
-                <span>پرداخت و مشاهده بدهی</span>
-                <span>ثبت تعمیرات و مرخصی</span>
-              </div>
-              <button class="btn btn-primary" onclick="openLogin('student')">ورود دانشجو</button>
-            </article>
-
-            <article class="role-card" style="--glow: rgba(34,197,94,.12)">
-              <div class="role-icon">🛡️</div>
-              <h3>سرپرست خوابگاه</h3>
-              <p>برای بررسی درخواست‌ها، تخصیص اتاق، مدیریت ظرفیت و پاسخ‌گویی به مشکلات دانشجویان.</p>
-              <div class="role-list">
-                <span>بررسی درخواست‌ها</span>
-                <span>تخصیص اتاق و تخت</span>
-                <span>مدیریت اطلاعیه‌ها</span>
-              </div>
-              <button class="btn btn-outline" onclick="openLogin('supervisor')">ورود سرپرست</button>
-            </article>
-
-            <article class="role-card" style="--glow: rgba(167,139,250,.12)">
-              <div class="role-icon">📊</div>
-              <h3>تاسیسات / خدمات</h3>
-              <p>برای رسیدگی به درخواست‌های تعمیرات، تغییر وضعیت و ثبت نتیجه خدمات انجام‌شده.</p>
-              <div class="role-list">
-                <span>مشاهده تیکت‌های تعمیرات</span>
-                <span>ثبت نتیجه رسیدگی</span>
-                <span>اولویت‌بندی خرابی‌ها</span>
-              </div>
-              <button class="btn" onclick="openLogin('facilities')">ورود تاسیسات</button>
-            </article>
-          </div>
-        </div>
-      </section> -->
-
-      <section id="features" class="section">
-        <div class="container">
-          <div class="section-head">
-            <div class="section-title">
-              <h2>امکانات اصلی سراسیستم</h2>
-              <p>همه قابلیت‌هایی که برای مدیریت مدرن خوابگاه لازم است، در یک فضای واحد و قابل توسعه جمع شده‌اند.</p>
+            <div class="col-md-6 col-xl-3">
+              <article class="role-card p-4">
+                <div class="icon-box mb-3">🛡️</div>
+                <h3 class="card-title-ss mb-2">مسئول خوابگاه</h3>
+                <p class="card-text-ss">
+                  بررسی درخواست‌ها، تایید یا رد اسکان، تخصیص تخت، مدیریت ظرفیت و انتشار اطلاعیه.
+                </p>
+                <span class="status-badge badge-pending">دسترسی عملیاتی</span>
+              </article>
             </div>
-          </div>
 
-          <div class="features-grid">
-            <article class="feature-card"><div class="feature-icon">🏠</div><h3>ثبت درخواست اسکان</h3><p>دانشجو درخواست خوابگاه را ثبت می‌کند و وضعیت بررسی را پیگیری می‌کند.</p></article>
-            <article class="feature-card"><div class="feature-icon">🛏️</div><h3>تخصیص اتاق</h3><p>سرپرست پس از تایید، اتاق و تخت مناسب را به دانشجو اختصاص می‌دهد.</p></article>
-            <article class="feature-card"><div class="feature-icon">🏢</div><h3>مدیریت ظرفیت</h3><p>نمایش خوابگاه‌ها، اتاق‌ها، ظرفیت، اشغال و اتاق‌های در تعمیر.</p></article>
-            <article class="feature-card"><div class="feature-icon">🛠️</div><h3>درخواست تعمیرات</h3><p>ثبت خرابی توسط دانشجو یا سرپرست و ارجاع به واحد تاسیسات.</p></article>
-            <article class="feature-card"><div class="feature-icon">💳</div><h3>مدیریت پرداخت‌ها</h3><p>مشاهده بدهی، پرداخت هزینه‌ها و بروزرسانی وضعیت مالی.</p></article>
-            <article class="feature-card"><div class="feature-icon">📣</div><h3>اعلان‌ها و اطلاعیه‌ها</h3><p>ارسال پیام عمومی، فوری، مالی یا مخصوص یک خوابگاه و طبقه.</p></article>
-            <article class="feature-card"><div class="feature-icon">🪪</div><h3>احراز هویت و مدارک</h3><p>آپلود مدارک، بررسی اطلاعات هویتی و امکان تایید چهره با AI.</p></article>
-            <article class="feature-card"><div class="feature-icon">📈</div><h3>گزارش‌های مدیریتی</h3><p>گزارش ظرفیت، پرداخت‌ها، درخواست‌ها و عملکرد کلی سامانه.</p></article>
+            <div class="col-md-6 col-xl-3">
+              <article class="role-card p-4">
+                <div class="icon-box mb-3">📊</div>
+                <h3 class="card-title-ss mb-2">مدیر سیستم</h3>
+                <p class="card-text-ss">
+                  مدیریت کاربران، نقش‌ها، مجوزها، خوابگاه‌ها، گزارش‌ها و نظارت کلی بر فعالیت سامانه.
+                </p>
+                <span class="status-badge badge-active">دسترسی مدیریتی</span>
+              </article>
+            </div>
+
+            <div class="col-md-6 col-xl-3">
+              <article class="role-card p-4">
+                <div class="icon-box mb-3">🧰</div>
+                <h3 class="card-title-ss mb-2">واحد پشتیبانی</h3>
+                <p class="card-text-ss">
+                  مشاهده درخواست‌های تعمیرات، رسیدگی به مشکلات و بروزرسانی وضعیت درخواست‌ها.
+                </p>
+                <span class="status-badge badge-urgent">دسترسی پشتیبانی</span>
+              </article>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="section">
-        <div class="container stats-strip">
-          <div class="stat-card"><strong>۲۴۸</strong><span>دانشجو</span></div>
-          <div class="stat-card"><strong>۱۰۰</strong><span>اتاق</span></div>
-          <div class="stat-card"><strong>۸۷٪</strong><span>ظرفیت تکمیل‌شده</span></div>
-          <div class="stat-card"><strong>۱۴</strong><span>درخواست فعال</span></div>
-          <div class="stat-card"><strong>۲۳</strong><span>پرداخت در انتظار</span></div>
-          <div class="stat-card"><strong>۵</strong><span>اطلاعیه جدید</span></div>
+      <section id="process" class="section-padding" aria-labelledby="process-title">
+        <div class="container">
+          <div class="mb-4">
+            <h2 id="process-title" class="section-title h2 mb-3">فرآیند اصلی اسکان</h2>
+            <p class="section-description mb-0">
+              مسیر پیشنهادی رابط کاربری برای ثبت درخواست، بررسی، تخصیص و پیگیری بعد از اسکان.
+            </p>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-lg-6">
+              <article class="process-card p-4 h-100">
+                <h3 class="card-title-ss mb-3">مسیر دانشجو</h3>
+
+                <div class="d-grid gap-3">
+                  <div class="process-step">
+                    <span class="process-num">۱</span>
+                    <div>
+                      <h3>ورود یا ثبت‌نام</h3>
+                      <p>کاربر وارد سامانه می‌شود و اطلاعات پایه خود را تکمیل می‌کند.</p>
+                    </div>
+                  </div>
+
+                  <div class="process-step">
+                    <span class="process-num">۲</span>
+                    <div>
+                      <h3>ثبت درخواست اسکان</h3>
+                      <p>ترم، خوابگاه ترجیحی و توضیحات درخواست ثبت می‌شود.</p>
+                    </div>
+                  </div>
+
+                  <div class="process-step">
+                    <span class="process-num">۳</span>
+                    <div>
+                      <h3>پیگیری وضعیت</h3>
+                      <p>وضعیت درخواست، پیام بررسی و نتیجه تخصیص نمایش داده می‌شود.</p>
+                    </div>
+                  </div>
+
+                  <div class="process-step">
+                    <span class="process-num">۴</span>
+                    <div>
+                      <h3>استفاده از خدمات</h3>
+                      <p>دانشجو پرداخت‌ها، تعمیرات و اطلاعیه‌های مرتبط با خوابگاه را دنبال می‌کند.</p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="col-lg-6">
+              <article class="process-card p-4 h-100">
+                <h3 class="card-title-ss mb-3">مسیر مسئول خوابگاه</h3>
+
+                <div class="d-grid gap-3">
+                  <div class="process-step">
+                    <span class="process-num">۱</span>
+                    <div>
+                      <h3>مشاهده درخواست‌ها</h3>
+                      <p>فهرست درخواست‌ها با فیلتر وضعیت، خوابگاه، ترم و تاریخ بررسی می‌شود.</p>
+                    </div>
+                  </div>
+
+                  <div class="process-step">
+                    <span class="process-num">۲</span>
+                    <div>
+                      <h3>تایید یا رد</h3>
+                      <p>درخواست با توضیح مدیریتی تایید یا رد می‌شود.</p>
+                    </div>
+                  </div>
+
+                  <div class="process-step">
+                    <span class="process-num">۳</span>
+                    <div>
+                      <h3>تخصیص تخت</h3>
+                      <p>اتاق و تخت آزاد انتخاب شده و تخصیص برای دانشجو ثبت می‌شود.</p>
+                    </div>
+                  </div>
+
+                  <div class="process-step">
+                    <span class="process-num">۴</span>
+                    <div>
+                      <h3>نظارت و گزارش</h3>
+                      <p>ظرفیت، پرداخت‌ها، تعمیرات و اطلاعیه‌ها از داشبورد پیگیری می‌شوند.</p>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- <section id="flow" class="section">
+      <section class="section-padding" aria-labelledby="announcements-title">
         <div class="container">
-          <div class="section-head">
-            <div class="section-title">
-              <h2>فرآیند استفاده از سامانه</h2>
-              <p>مسیر کار برای دانشجو و سرپرست شفاف، مرحله‌ای و قابل پیگیری طراحی شده است.</p>
-            </div>
-          </div>
-
-          <div class="flow-grid">
-            <article class="flow-card">
-              <h3>مسیر دانشجو</h3>
-              <div class="steps">
-                <div class="step"><span class="step-num">۱</span><div><h4>ثبت اطلاعات و مدارک</h4><p>اطلاعات فردی، دانشجویی و مدارک هویتی تکمیل می‌شود.</p></div></div>
-                <div class="step"><span class="step-num">۲</span><div><h4>ثبت درخواست اسکان</h4><p>دانشجو درخواست خوابگاه و اولویت‌های خود را ارسال می‌کند.</p></div></div>
-                <div class="step"><span class="step-num">۳</span><div><h4>پیگیری وضعیت</h4><p>نتیجه بررسی، تخصیص اتاق و پیام‌های سرپرست قابل مشاهده است.</p></div></div>
-                <div class="step"><span class="step-num">۴</span><div><h4>پرداخت و استفاده از خدمات</h4><p>پرداخت هزینه، ثبت تعمیرات، مرخصی و دریافت اطلاعیه انجام می‌شود.</p></div></div>
+          <div class="api-panel p-4 p-lg-5">
+            <div class="row align-items-center g-4">
+              <div class="col-lg-5">
+                <h2 id="announcements-title" class="section-title h3 mb-3">نمونه اطلاعیه‌های عمومی</h2>
+                <p class="section-description mb-0">
+                  این بخش برای اتصال HTMX به endpoint اطلاعیه‌ها آماده است. پاسخ API می‌تواند کارت‌های جدید را جایگزین کند.
+                </p>
               </div>
-            </article>
 
-            <article class="flow-card">
-              <h3>مسیر سرپرست</h3>
-              <div class="steps">
-                <div class="step"><span class="step-num">۱</span><div><h4>مشاهده درخواست‌ها</h4><p>درخواست‌های اسکان، تمدید، تعمیرات و مرخصی بررسی می‌شوند.</p></div></div>
-                <div class="step"><span class="step-num">۲</span><div><h4>تخصیص اتاق</h4><p>بر اساس ظرفیت و شرایط، اتاق و تخت مناسب تعیین می‌شود.</p></div></div>
-                <div class="step"><span class="step-num">۳</span><div><h4>مدیریت ظرفیت و پرداخت</h4><p>وضعیت اتاق‌ها، بدهی‌ها و پرداخت‌های دانشجویان کنترل می‌شود.</p></div></div>
-                <div class="step"><span class="step-num">۴</span><div><h4>اطلاع‌رسانی و گزارش‌گیری</h4><p>اطلاعیه‌ها ارسال شده و گزارش‌های مدیریتی استخراج می‌شوند.</p></div></div>
+              <div class="col-lg-7">
+                <div
+                  class="row g-3"
+                  hx-get="/api/announcements/public/"
+                  hx-trigger="load"
+                  hx-swap="innerHTML"
+                >
+                  <div class="col-md-6">
+                    <article class="announcement-card p-3">
+                      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <h3 class="card-title-ss mb-0">زمان‌بندی ثبت درخواست</h3>
+                        <span class="status-badge badge-active">فعال</span>
+                      </div>
+                      <p class="card-text-ss mb-0">
+                        ثبت درخواست اسکان نیم‌سال جدید از طریق پنل دانشجو انجام می‌شود.
+                      </p>
+                    </article>
+                  </div>
+
+                  <div class="col-md-6">
+                    <article class="announcement-card p-3">
+                      <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <h3 class="card-title-ss mb-0">تعمیرات دوره‌ای</h3>
+                        <span class="status-badge badge-pending">اطلاع‌رسانی</span>
+                      </div>
+                      <p class="card-text-ss mb-0">
+                        وضعیت اتاق‌های در تعمیر از طریق بخش ظرفیت خوابگاه قابل مشاهده است.
+                      </p>
+                    </article>
+                  </div>
+                </div>
               </div>
-            </article>
-          </div>
-        </div>
-      </section> -->
-
-      <section class="section">
-        <div class="container">
-          <div class="section-head">
-            <div class="section-title">
-              <h2>چرا سراسیستم؟</h2>
-              <p>هدف اصلی، کاهش کارهای دستی و افزایش شفافیت در ارتباط بین دانشجو و مدیریت خوابگاه است.</p>
             </div>
-          </div>
-
-          <div class="why-grid">
-            <article class="why-card"><h3>کاهش خطاهای انسانی</h3><p>ثبت دیجیتال اطلاعات باعث کاهش اشتباه در تخصیص اتاق، وضعیت پرداخت و درخواست‌ها می‌شود.</p></article>
-            <article class="why-card"><h3>پاسخ‌گویی سریع‌تر</h3><p>درخواست‌ها به صورت مرحله‌ای ثبت و پیگیری می‌شوند و وضعیت آن‌ها برای کاربر شفاف است.</p></article>
-            <article class="why-card"><h3>مدیریت یکپارچه</h3><p>اطلاعات دانشجو، اتاق، پرداخت، تعمیرات و اطلاعیه‌ها در یک سامانه واحد مدیریت می‌شود.</p></article>
           </div>
         </div>
       </section>
 
-      <section id="faq" class="section">
+      <section class="section-padding" aria-labelledby="why-title">
         <div class="container">
-          <div class="section-head">
-            <div class="section-title">
-              <h2>راهنمای سریع</h2>
-              <p>چند سوال رایج کاربران برای شروع کار با سامانه.</p>
-            </div>
+          <div class="mb-4">
+            <h2 id="why-title" class="section-title h2 mb-3">چرا سراسیستم؟</h2>
+            <p class="section-description mb-0">
+              هدف اصلی، کاهش خطاهای انسانی و ایجاد مسیر شفاف برای ارتباط بین دانشجو و مدیریت خوابگاه است.
+            </p>
           </div>
 
-          <div class="faq-grid">
-            <article class="faq-item"><h3>چگونه درخواست اسکان ثبت کنم؟</h3><p>از پنل دانشجو وارد بخش ثبت درخواست اسکان شوید، اطلاعات و مدارک را تکمیل کنید و درخواست را ارسال کنید.</p></article>
-            <article class="faq-item"><h3>چطور وضعیت اتاقم را ببینم؟</h3><p>در داشبورد دانشجو، بخش وضعیت اسکان، خوابگاه، بلوک، طبقه، اتاق و شماره تخت شما را نمایش می‌دهد.</p></article>
-            <article class="faq-item"><h3>پرداخت هزینه خوابگاه کجاست؟</h3><p>از بخش پرداخت‌ها می‌توانید بدهی، سررسید، آخرین پرداخت و وضعیت مالی خود را مشاهده کنید.</p></article>
-            <article class="faq-item"><h3>درخواست تعمیرات چطور ثبت می‌شود؟</h3><p>در پنل دانشجو یا سرپرست، بخش تعمیرات را انتخاب کنید و نوع مشکل، محل و توضیحات را ثبت کنید.</p></article>
-            <article class="faq-item"><h3>اگر مدارکم تایید نشد چه کنم؟</h3><p>در بخش پروفایل و مدارک، مورد ردشده مشخص می‌شود و می‌توانید فایل اصلاح‌شده را دوباره بارگذاری کنید.</p></article>
-            <article class="faq-item"><h3>اطلاعیه‌ها کجا نمایش داده می‌شوند؟</h3><p>اطلاعیه‌های عمومی، فوری، مالی و تعمیرات در داشبورد و صفحه اطلاعیه‌ها قابل مشاهده هستند.</p></article>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <article class="why-card p-4">
+                <h3 class="card-title-ss mb-2">کاهش خطاهای انسانی</h3>
+                <p class="card-text-ss mb-0">
+                  اطلاعات درخواست، تخصیص، اتاق، تخت و پرداخت در فرم‌ها و نماهای منظم ثبت و نمایش داده می‌شود.
+                </p>
+              </article>
+            </div>
+
+            <div class="col-md-4">
+              <article class="why-card p-4">
+                <h3 class="card-title-ss mb-2">پاسخ‌گویی سریع‌تر</h3>
+                <p class="card-text-ss mb-0">
+                  درخواست‌ها با وضعیت مشخص، فیلترپذیر و قابل پیگیری هستند تا زمان تصمیم‌گیری کمتر شود.
+                </p>
+              </article>
+            </div>
+
+            <div class="col-md-4">
+              <article class="why-card p-4">
+                <h3 class="card-title-ss mb-2">مدیریت یکپارچه</h3>
+                <p class="card-text-ss mb-0">
+                  ماژول‌های اسکان، ظرفیت، پرداخت، تعمیرات، اطلاعیه و مدیریت کاربران در یک تجربه واحد قرار می‌گیرند.
+                </p>
+              </article>
+            </div>
           </div>
         </div>
       </section>
 
+      <section id="faq" class="section-padding" aria-labelledby="faq-title">
+        <div class="container">
+          <div class="mb-4">
+            <h2 id="faq-title" class="section-title h2 mb-3">راهنمای سریع</h2>
+            <p class="section-description mb-0">
+              چند سوال رایج برای شروع کار با سامانه.
+            </p>
+          </div>
+
+          <div class="accordion d-grid gap-3" id="faqAccordion">
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button
+                  class="accordion-button"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#faqOne"
+                  aria-expanded="true"
+                  aria-controls="faqOne"
+                >
+                  چگونه درخواست اسکان ثبت کنم؟
+                </button>
+              </h3>
+              <div id="faqOne" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  بعد از ورود به پنل دانشجو، از بخش درخواست اسکان، فرم مربوط به ترم، خوابگاه ترجیحی و توضیحات را تکمیل و ارسال کنید.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#faqTwo"
+                  aria-expanded="false"
+                  aria-controls="faqTwo"
+                >
+                  چطور وضعیت اتاق و تخت را ببینم؟
+                </button>
+              </h3>
+              <div id="faqTwo" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  در داشبورد دانشجو، بخش وضعیت اسکان می‌تواند خوابگاه، اتاق، تخت و تاریخ شروع تخصیص را نمایش دهد.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#faqThree"
+                  aria-expanded="false"
+                  aria-controls="faqThree"
+                >
+                  پرداخت‌ها چگونه نمایش داده می‌شوند؟
+                </button>
+              </h3>
+              <div id="faqThree" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  بخش پرداخت‌ها برای نمایش مبلغ، سررسید، وضعیت پرداخت و توضیحات مالی طراحی می‌شود. پردازش بانکی واقعی در این رابط پیاده‌سازی نمی‌شود.
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item">
+              <h3 class="accordion-header">
+                <button
+                  class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#faqFour"
+                  aria-expanded="false"
+                  aria-controls="faqFour"
+                >
+                  درخواست تعمیرات چطور ثبت می‌شود؟
+                </button>
+              </h3>
+              <div id="faqFour" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  کاربر از بخش تعمیرات، عنوان مشکل، اتاق، تخت اختیاری، اولویت و توضیحات را ثبت می‌کند و واحد پشتیبانی وضعیت را بروزرسانی می‌کند.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-padding pt-3">
+        <div class="container">
+          <div class="cta-box p-4 p-lg-5">
+            <div class="row align-items-center g-4">
+              <div class="col-lg">
+                <h2 class="section-title h2 mb-3">آماده ورود به سراسیستم هستید؟</h2>
+                <p class="text-soft mb-0" style="line-height: 2;">
+                  برای ثبت درخواست، بررسی ظرفیت، مدیریت تعمیرات یا مشاهده اطلاعیه‌ها وارد پنل کاربری شوید.
+                </p>
+              </div>
+
+              <div class="col-lg-auto">
+                <a href="./login.html" class="btn btn-ss btn-ss-primary px-5 w-100">ورود به سامانه</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
 
-    <footer id="contact">
-        <div class="container copy">پروژه درس مهندسی نرم‌افزار برای مکانیزه‌سازی فرآیندهای خوابگاهی، مدیریت درخواست‌ها، پرداخت‌ها، اتاق‌ها و اطلاعیه‌ها.</div>
-        <div class="container copy">© ۱۴۰۴ سراسیستم - طراحی اولیه رابط کاربری وب‌اپلیکیشن خوابگاه</div>
-    </footer>
+    <footer id="contact" class="section-padding pt-4">
+      <div class="container">
+        <div class="glass rounded-5 p-4">
+          <div class="row g-4">
+            <div class="col-lg-5">
+              <div class="d-flex align-items-center gap-3 mb-3">
+                <span class="brand-logo">
+                  <img src="../assets/logo_with_outline.png" alt="لوگوی سراسیستم در فوتر" />
+                </span>
+                <div>
+                  <strong class="d-block brand-title">سراسیستم</strong>
+                  <span class="brand-subtitle">سامانه جامع مدیریت خوابگاه</span>
+                </div>
+              </div>
 
+              <p class="text-muted-ss mb-0" style="line-height: 2;">
+                پروژه وب‌اپلیکیشن برای مکانیزه‌سازی فرآیندهای خوابگاهی،
+                مدیریت درخواست‌ها، ظرفیت، پرداخت‌ها، تعمیرات و اطلاعیه‌ها.
+              </p>
+            </div>
+
+            <div class="col-6 col-lg">
+              <h3 class="card-title-ss mb-3">دسترسی سریع</h3>
+              <div class="d-grid gap-1">
+                <a class="footer-link" href="#features">امکانات</a>
+                <a class="footer-link" href="#roles">نقش‌ها</a>
+                <a class="footer-link" href="#process">فرآیند</a>
+                <a class="footer-link" href="#faq">راهنما</a>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg">
+              <h3 class="card-title-ss mb-3">ماژول‌ها</h3>
+              <div class="d-grid gap-1">
+                <span class="footer-link">AccommodationRequest</span>
+                <span class="footer-link">BedAssignment</span>
+                <span class="footer-link">Payment</span>
+                <span class="footer-link">MaintenanceRequest</span>
+              </div>
+            </div>
+
+            <div class="col-lg">
+              <h3 class="card-title-ss mb-3">اتصال API</h3>
+              <div class="d-grid gap-1">
+                <span class="footer-link">/api/auth/login/</span>
+                <span class="footer-link">/api/accommodation-requests/</span>
+                <span class="footer-link">/api/maintenance-requests/</span>
+                <span class="footer-link">/api/announcements/</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="border-light border-opacity-10 my-4" />
+
+          <div class="text-center text-muted-ss small">
+            © ۱۴۰۴ سراسیستم - وب‌اپلیکیشن مدیریت خوابگاه
+          </div>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    document.body.addEventListener("htmx:responseError", function (event) {
+      console.warn("HTMX request failed:", event.detail.xhr.status, event.detail.pathInfo.requestPath);
+    });
+
+    document.body.addEventListener("htmx:sendError", function (event) {
+      console.warn("HTMX request could not be sent:", event.detail.pathInfo.requestPath);
+    });
+  </script>
 </body>
 </html>
