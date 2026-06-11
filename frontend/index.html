@@ -956,16 +956,15 @@
 
           <div class="nav-links">
             <a href="#home">خانه</a>
-            <a href="#roles">ورود نقش‌ها</a>
             <a href="#features">امکانات</a>
-            <a href="#flow">فرآیند</a>
             <a href="#faq">راهنما</a>
-            <a href="#contact">تماس</a>
+            <!-- tbd -->
           </div>
 
           <div class="nav-actions">
-            <button class="btn btn-primary" onclick="openLogin('student')">ورود دانشجو</button>
-            <button class="btn btn-outline" onclick="openLogin('supervisor')">ورود سرپرست</button>
+            <a href="./login.html" class="btn btn-primary">ورود</a>
+            <!-- <button class="btn btn-primary" onclick="openLogin('student')" >ورود</button> -->
+            <!-- <button class="btn btn-outline" onclick="openLogin('supervisor')">ورود سرپرست</button> -->
             <button class="menu-btn">☰</button>
           </div>
         </nav>
@@ -984,9 +983,9 @@
             </p>
 
             <div class="hero-actions">
-              <button class="btn btn-primary" onclick="openLogin('student')">🎓 ورود به پنل دانشجو</button>
-              <button class="btn btn-outline" onclick="openLogin('supervisor')">🛡️ ورود به پنل سرپرست</button>
-              <a class="btn" href="#features">مشاهده امکانات</a>
+              <!-- <button class="btn btn-primary" onclick="openLogin('student')">🎓 ورود به پنل دانشجو</button>
+              <button class="btn btn-outline" onclick="openLogin('supervisor')">🛡️ ورود به پنل سرپرست</button> -->
+              <!-- <a class="btn" href="#features">مشاهده امکانات</a> -->
             </div>
 
             <div class="hero-points">
@@ -1029,7 +1028,7 @@
         </div>
       </section>
 
-      <section id="roles" class="section">
+      <!-- <section id="roles" class="section">
         <div class="container">
           <div class="section-head">
             <div class="section-title">
@@ -1076,7 +1075,7 @@
             </article>
           </div>
         </div>
-      </section>
+      </section> -->
 
       <section id="features" class="section">
         <div class="container">
@@ -1111,7 +1110,7 @@
         </div>
       </section>
 
-      <section id="flow" class="section">
+      <!-- <section id="flow" class="section">
         <div class="container">
           <div class="section-head">
             <div class="section-title">
@@ -1142,7 +1141,7 @@
             </article>
           </div>
         </div>
-      </section>
+      </section> -->
 
       <section class="section">
         <div class="container">
@@ -1181,129 +1180,12 @@
         </div>
       </section>
 
-      <section class="section">
-        <div class="container">
-          <div class="cta">
-            <div>
-              <h2>آماده شروع با سراسیستم هستید؟</h2>
-              <p>برای ادامه، نقش خود را انتخاب کنید و وارد پنل مربوط به خود شوید.</p>
-            </div>
-            <div class="hero-actions" style="margin:0">
-              <button class="btn btn-primary" onclick="openLogin('student')">ورود دانشجو</button>
-              <button class="btn btn-outline" onclick="openLogin('supervisor')">ورود سرپرست</button>
-            </div>
-          </div>
-        </div>
-      </section>
     </main>
 
     <footer id="contact">
-      <div class="container footer-grid">
-        <div class="footer-card">
-          <div class="brand">
-            <span class="brand-logo"><img src="../assets/logo_with_outline.png"></span>
-            <span>
-              <h1>سراسیستم</h1>
-              <p>سامانه جامع مدیریت خوابگاه</p>
-            </span>
-          </div>
-          <p>
-            پروژه درس مهندسی نرم‌افزار برای مکانیزه‌سازی فرآیندهای خوابگاهی، مدیریت درخواست‌ها،
-            پرداخت‌ها، اتاق‌ها و اطلاعیه‌ها.
-          </p>
-        </div>
-
-        <div class="footer-card">
-          <h3>ورود سریع</h3>
-          <div class="footer-links">
-            <a href="#" onclick="openLogin('student')">ورود دانشجو</a>
-            <a href="#" onclick="openLogin('supervisor')">ورود سرپرست</a>
-            <a href="#" onclick="openLogin('facilities')">ورود تاسیسات</a>
-            <a href="#" onclick="openLogin('facilities')">ورود تاسیسات</a>
-          </div>
-        </div>
-
-        <div class="footer-card">
-          <h3>بخش‌ها</h3>
-          <div class="footer-links">
-            <a href="#features">امکانات</a>
-            <a href="#roles">نقش‌ها</a>
-            <a href="#flow">فرآیند استفاده</a>
-            <a href="#faq">راهنما</a>
-          </div>
-        </div>
-
-        <div class="footer-card">
-          <h3>تکنولوژی‌ها</h3>
-          <p>Frontend: HTML, CSS, JavaScript, Bootstrap</p>
-          <p>Backend: Django, JWT, MySQL, Docker</p>
-        </div>
-      </div>
-      <div class="container copy">© ۱۴۰۴ سراسیستم - طراحی اولیه رابط کاربری وب‌اپلیکیشن خوابگاه</div>
+        <div class="container copy">پروژه درس مهندسی نرم‌افزار برای مکانیزه‌سازی فرآیندهای خوابگاهی، مدیریت درخواست‌ها، پرداخت‌ها، اتاق‌ها و اطلاعیه‌ها.</div>
+        <div class="container copy">© ۱۴۰۴ سراسیستم - طراحی اولیه رابط کاربری وب‌اپلیکیشن خوابگاه</div>
     </footer>
-  </div>
 
-  <div id="modalBackdrop" class="modal-backdrop" onclick="backdropClose(event)">
-    <div class="modal">
-      <div class="modal-head">
-        <div>
-          <h3 id="modalTitle">ورود</h3>
-          <p id="modalDesc">مسیر ورود انتخاب‌شده در نسخه واقعی به صفحه لاگین همان نقش متصل می‌شود.</p>
-        </div>
-        <button class="close-btn" onclick="closeModal()">×</button>
-      </div>
-      <div id="modalBody"></div>
-    </div>
-  </div>
-
-  <script>
-    const loginData = {
-      student: {
-        title: "ورود دانشجو",
-        desc: "برای ثبت درخواست اسکان، مشاهده وضعیت اتاق، پرداخت‌ها، تعمیرات و اطلاعیه‌ها وارد پنل دانشجو شوید.",
-        code: "شماره دانشجویی"
-      },
-      supervisor: {
-        title: "ورود سرپرست خوابگاه",
-        desc: "برای بررسی درخواست‌ها، تخصیص اتاق، مدیریت ظرفیت و پاسخ‌گویی به مشکلات وارد پنل سرپرست شوید.",
-        code: "کد پرسنلی"
-      },
-      facilities: {
-        title: "ورود تاسیسات / خدمات",
-        desc: "برای رسیدگی به درخواست‌های تعمیرات و ثبت نتیجه خدمات وارد پنل تاسیسات شوید.",
-        code: "کد واحد تاسیسات"
-      }
-    };
-
-    function openLogin(role) {
-      const data = loginData[role] || loginData.student;
-      document.getElementById("modalTitle").textContent = data.title;
-      document.getElementById("modalDesc").textContent = data.desc;
-      document.getElementById("modalBody").innerHTML = `
-        <div class="login-preview">
-          <label>${data.code}<input placeholder="${data.code} را وارد کنید" /></label>
-          <label>رمز عبور<input type="password" placeholder="رمز عبور" /></label>
-        </div>
-        <div class="modal-actions">
-          <button class="btn btn-primary">ورود به سامانه</button>
-          <button class="btn" onclick="closeModal()">انصراف</button>
-        </div>
-        <p style="margin-top:14px;color:#94a3b8;font-size:12px">این مودال فقط برای نمایش UI است؛ در مرحله بعد به صفحه لاگین یا مسیرهای واقعی متصل می‌شود.</p>
-      `;
-      document.getElementById("modalBackdrop").classList.add("show");
-    }
-
-    function closeModal() {
-      document.getElementById("modalBackdrop").classList.remove("show");
-    }
-
-    function backdropClose(event) {
-      if (event.target.id === "modalBackdrop") closeModal();
-    }
-
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeModal();
-    });
-  </script>
 </body>
 </html>
