@@ -1,6 +1,6 @@
 <div dir="rtl" align="center">
 
-<img src=".assets/logo_with_outline" alt="SaraSystem Logo" width="180"/>
+<img src="./assets/logo_with_outline" alt="SaraSystem Logo" width="180"/>
 
 # سراسیستم | SaraSystem
 
@@ -48,7 +48,7 @@
 - دوباره‌کاری در ثبت و بررسی اطلاعات
 - نبود گزارش‌های دقیق مدیریتی
 
-**SaraSystem** با ایجاد یک بستر متمرکز، این فرایندها را ساختاریافته، قابل کنترل و قابل توسعه می‌کند.
+سراسیستم با ایجاد یک بستر متمرکز، این فرایندها را ساختاریافته، قابل کنترل و قابل توسعه می‌کند.
 
 ---
 
