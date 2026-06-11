@@ -1,6 +1,6 @@
 <div dir="rtl" align="center">
 
-<img src="./assets/logo_with_outline" alt="SaraSystem Logo" width="180"/>
+<img src="./assets/logo_with_outline.png" alt="SaraSystem Logo" width="180"/>
 
 # سراسیستم | SaraSystem
 
