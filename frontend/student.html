@@ -1633,7 +1633,7 @@
         },
 
         assignment: {
-          dormitory: "خوابگاه کوثر",
+          dormitory: "خوابگاه یک",
           room: "۲۱۲",
           bed: "۳",
           start_date: "۱۴۰۴/۰۷/۰۱",
@@ -1645,7 +1645,7 @@
           {
             id: "۱",
             semester: "۱۴۰۴-۱۴۰۵ نیم‌سال اول",
-            dormitory: "خوابگاه کوثر",
+            dormitory: "خوابگاه یک",
             preferred_room_type: "چندنفره",
             status: "pending",
             description: "درخواست در صف بررسی مسئول خوابگاه قرار دارد."
@@ -1653,7 +1653,7 @@
           {
             id: "۲",
             semester: "۱۴۰۳-۱۴۰۴ نیم‌سال دوم",
-            dormitory: "خوابگاه دانش",
+            dormitory: "خوابگاه یک",
             preferred_room_type: "دونفره",
             status: "assigned",
             description: "درخواست تایید شده و تخصیص تخت انجام شده است."
@@ -2195,9 +2195,9 @@
 
         selectedDormitoryName(value) {
           const names = {
-            "1": "خوابگاه کوثر",
-            "2": "خوابگاه دانش",
-            "3": "خوابگاه شهید بهشتی"
+            "1": "خوابگاه یک",
+            "2": "خوابگاه دو",
+            "3": "خوابگاه سه"
           };
           return names[value] || "بدون ترجیح";
         },
