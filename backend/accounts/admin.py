@@ -11,7 +11,7 @@ class UserAdmin(BaseUserAdmin):
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'national_id', 'student_id', 'phone', 'gender', 'profile_image', 'face_image')}),
-        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_verified', 'groups', 'user_permissions', 'roles')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'is_verified', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'created_at', 'updated_at')}),
     )
     
@@ -23,6 +23,7 @@ class UserAdmin(BaseUserAdmin):
     )
     
     readonly_fields = ['created_at', 'updated_at']
+    ordering = ['email']
 
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
