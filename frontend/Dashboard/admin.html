@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>پنل مدیر سیستم | سراسیستم</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script src="https://unpkg.com/htmx-ext-json-enc@2.0.1/json-enc.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="../assets/js/auth-guard.js" data-login-url="../login.html" data-unauthorized-url="../403.html" data-allowed-roles="system_admin admin university_manager" defer></script>
+  <style>
+    [x-cloak]{display:none!important}:root{--line:rgba(255,255,255,.12);--panel:rgba(13,39,73,.78);--soft:#cbd5e1;--muted:#94a3b8;--primary:#38bdf8;--primary2:#67e8f9}body{min-height:100vh;font-family:"Segoe UI",Tahoma,Arial,sans-serif;color:#f8fafc;background:radial-gradient(circle at 88% 8%,rgba(56,189,248,.22),transparent 28rem),radial-gradient(circle at 7% 96%,rgba(20,184,166,.22),transparent 30rem),linear-gradient(135deg,#06162b 0%,#071b35 48%,#08254a 100%)}.layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:1rem;padding:1rem}.glass{border:1px solid var(--line);background:var(--panel);box-shadow:0 28px 80px rgba(0,0,0,.28);backdrop-filter:blur(18px)}.sidebar,.topbar,.card-ss{border-radius:1.5rem}.sidebar{position:sticky;top:1rem;height:calc(100vh - 2rem);padding:1rem}.nav-link-ss{display:flex;gap:.7rem;align-items:center;padding:.8rem .9rem;border-radius:1rem;color:var(--soft);font-weight:850;text-decoration:none}.nav-link-ss:hover,.nav-link-ss.active{color:#fff;background:rgba(56,189,248,.1)}.btn-ss{min-height:42px;border-radius:1rem;font-weight:900}.btn-ss-primary{border:0;color:#06162b;background:linear-gradient(135deg,var(--primary),var(--primary2))}.btn-ss-outline{border:1px solid rgba(125,211,252,.28);color:#dff7ff;background:rgba(56,189,248,.08)}.stat{min-height:138px;border:1px solid var(--line);border-radius:1.35rem;background:var(--panel);padding:1rem}.stat strong{display:block;font-size:1.5rem;color:#dff7ff}.text-muted-ss{color:var(--muted)}.table-ss{--bs-table-color:var(--soft);--bs-table-bg:transparent;--bs-table-border-color:rgba(255,255,255,.08)}.badge-soft{border:1px solid rgba(56,189,248,.25);background:rgba(56,189,248,.12);color:#dff7ff;border-radius:999px;padding:.35rem .7rem;font-weight:900;font-size:.75rem}.empty{border:1px dashed rgba(125,211,252,.22);border-radius:1.25rem;background:rgba(56,189,248,.055);padding:1rem;color:var(--muted);line-height:1.9}@media(max-width:991.98px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.hide-mobile{display:none!important}}
+  </style>
+</head>
+<body x-data="adminPanel()">
+  <div class="layout">
+    <aside class="sidebar glass" aria-label="منوی مدیر سیستم">
+      <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+        <div><h1 class="h5 fw-bold mb-1">سراسیستم</h1><span class="text-muted-ss small">پنل مدیر سیستم</span></div>
+        <a class="btn btn-ss btn-ss-outline btn-sm" href="../index.html">خانه</a>
+      </div>
+      <nav class="d-grid gap-1">
+        <a class="nav-link-ss active" href="#overview">📊 نمای کلی</a>
+        <a class="nav-link-ss" href="#users">👥 کاربران</a>
+        <a class="nav-link-ss" href="#roles">🔐 نقش‌ها و مجوزها</a>
+        <a class="nav-link-ss" href="#dormitories">🏢 خوابگاه‌ها</a>
+        <a class="nav-link-ss" href="#reports">📈 گزارش‌ها</a>
+      </nav>
+      <button class="btn btn-ss btn-ss-outline w-100 mt-3" type="button" @click="logout()">خروج</button>
+    </aside>
+
+    <main class="min-w-0">
+      <header class="topbar glass p-3 p-md-4 mb-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div><div class="text-muted-ss small mb-1">سراسیستم / مدیر سیستم</div><h2 class="h3 fw-bold mb-0">داشبورد مدیریتی</h2></div>
+          <button id="refreshDashboard" class="btn btn-ss btn-ss-primary px-4" type="button">بروزرسانی</button>
+        </div>
+      </header>
+
+      <section id="overview" class="mb-3">
+        <div class="alert alert-info rounded-4 border-0" role="note">این صفحه فقط shell اولیه برای مسیر مدیریتی است. مدیریت کامل کاربران، نقش‌ها، مجوزها و گزارش‌ها در بخش‌های بعدی چک‌لیست تکمیل می‌شود.</div>
+        <div class="row g-3">
+          <template x-for="stat in stats" :key="stat.label"><div class="col-md-6 col-xl-3"><article class="stat"><span class="badge-soft" x-text="stat.icon"></span><strong class="mt-3" x-text="stat.value"></strong><span class="text-muted-ss" x-text="stat.label"></span></article></div></template>
+        </div>
+      </section>
+
+      <section id="users" class="card-ss glass p-3 p-md-4 mb-3">
+        <div class="d-flex flex-wrap justify-content-between gap-2 mb-3"><div><h3 class="h5 fw-bold mb-1">کاربران</h3><p class="text-muted-ss mb-0 small">لیست اولیه کاربران از API</p></div><a class="btn btn-ss btn-ss-outline" href="#users">افزودن کاربر در مرحله بعد</a></div>
+        <div class="table-responsive"><table class="table table-ss align-middle"><thead><tr><th>نام</th><th>ایمیل</th><th>نقش</th><th>وضعیت</th></tr></thead><tbody><template x-for="u in users" :key="u.id || u.email"><tr><td x-text="fullName(u)"></td><td dir="ltr" x-text="u.email || '—'"></td><td x-text="roleText(u)"></td><td><span class="badge-soft" x-text="u.is_active === false ? 'غیرفعال' : 'فعال'"></span></td></tr></template><tr x-show="users.length === 0"><td colspan="4"><div class="empty m-2">هنوز داده‌ای از API دریافت نشده است یا API در دسترس نیست.</div></td></tr></tbody></table></div>
+      </section>
+
+      <section id="roles" class="card-ss glass p-3 p-md-4 mb-3"><h3 class="h5 fw-bold mb-2">نقش‌ها و مجوزها</h3><div class="empty">UI کامل تعریف نقش، اتصال مجوزها و تخصیص نقش به کاربر در مرحله سیستم ادمین اضافه خواهد شد.</div></section>
+      <section id="dormitories" class="card-ss glass p-3 p-md-4 mb-3"><h3 class="h5 fw-bold mb-2">مدیریت خوابگاه‌ها</h3><div class="empty">فرم ایجاد/ویرایش خوابگاه و مشاهده اتاق‌ها و تخت‌ها در مرحله بعد اضافه می‌شود.</div></section>
+      <section id="reports" class="card-ss glass p-3 p-md-4 mb-4"><h3 class="h5 fw-bold mb-2">گزارش‌ها</h3><div class="empty">کارت‌ها و نمودارهای گزارش ظرفیت، پرداخت‌ها و تعمیرات در مرحله گزارش‌ها تکمیل می‌شود.</div></section>
+    </main>
+  </div>
+
+  <div class="d-none"><div data-resource="users" hx-get="/api/users/" hx-trigger="load, click from:#refreshDashboard" hx-swap="none" hx-timeout="15000" hx-headers='{"Accept":"application/json"}'></div></div>
+
+  <script>
+    function adminPanel(){return{users:[],stats:[{icon:'👥',value:'—',label:'کاربران'},{icon:'🏢',value:'—',label:'خوابگاه‌ها'},{icon:'🛏️',value:'—',label:'تخت‌ها'},{icon:'📌',value:'—',label:'درخواست‌های فعال'}],init(){document.body.addEventListener('htmx:afterRequest',e=>{if(e.detail?.elt?.dataset?.resource!=='users')return;const d=this.parseJson(e.detail.xhr.responseText);this.users=this.asList(d);this.stats[0].value=this.users.length?this.toPersianNumber(this.users.length):'—';});},asList(d){return Array.isArray(d)?d:Array.isArray(d?.results)?d.results:Array.isArray(d?.data)?d.data:[]},parseJson(v){try{return v?JSON.parse(v):{}}catch{return{}}},fullName(u){return `${u.first_name||''} ${u.last_name||''}`.trim()||u.username||'—'},roleText(u){const roles=window.SaraAuth?.getUserRoles(u)||[];return roles.length?roles.join('، '):'—'},toPersianNumber(v){return String(v).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])},logout(){window.SaraAuth?.clearSession();window.location.assign('../login.html')}}}
+  </script>
+</body>
+</html>
