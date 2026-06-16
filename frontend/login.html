@@ -139,6 +139,33 @@
     box-shadow: 0 0 0 .2rem rgba(56, 189, 248, .24);
     }
 
+
+    .demo-login-box {
+      border: 1px dashed rgba(13, 110, 253, .25);
+      border-radius: 1rem;
+      background: rgba(13, 110, 253, .06);
+    }
+
+    .demo-login-box .demo-title {
+      color: #08254a;
+      font-weight: 800;
+    }
+
+    .demo-login-box .demo-account-btn {
+      border-radius: .85rem;
+      font-weight: 700;
+    }
+
+    .demo-login-box code {
+      color: #0f172a;
+      background: rgba(255, 255, 255, .7);
+      border: 1px solid rgba(15, 23, 42, .08);
+      border-radius: .45rem;
+      padding: .08rem .35rem;
+      direction: ltr;
+      display: inline-block;
+    }
+
   </style>
 </head>
 
@@ -257,7 +284,7 @@
               </label>
             </div>
 
-            <a href="/forgot-password.html" class="link-primary text-decoration-none small">
+            <a href="./forgot-password.html" class="link-primary text-decoration-none small">
               فراموشی رمز ورود
             </a>
           </div>
@@ -278,6 +305,36 @@
             <span x-text="loading ? 'در حال ورود...' : 'ورود'"></span>
           </button>
         </form>
+
+
+        <section class="demo-login-box p-3 mt-4" aria-labelledby="demoLoginTitle">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div>
+              <h2 id="demoLoginTitle" class="demo-title h6 mb-1">ورود سریع برای مشاهده پنل‌ها</h2>
+              <p class="text-secondary small mb-0">این حساب‌ها فقط برای پیش‌نمایش فرانت‌اند هستند و به API واقعی وصل نیستند.</p>
+            </div>
+            <span class="badge text-bg-light border">Demo</span>
+          </div>
+
+          <div class="row g-2">
+            <template x-for="account in demoAccounts" :key="account.key">
+              <div class="col-12 col-sm-6">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary w-100 demo-account-btn"
+                  @click="loginAsDemo(account.key)"
+                >
+                  <span x-text="account.label"></span>
+                </button>
+              </div>
+            </template>
+          </div>
+
+          <div class="small text-secondary mt-3" dir="rtl">
+            رمز همه حساب‌های نمایشی: <code>demo1234</code> — می‌توانید از نام‌های
+            <code>student</code>، <code>supervisor</code>، <code>admin</code>، <code>support</code> هم در فرم ورود استفاده کنید.
+          </div>
+        </section>
 
         <div class="border-top pt-3 mt-4 text-center">
           <span class="text-secondary small">حساب دانشجویی ندارید؟</span>
@@ -310,6 +367,95 @@
         loading: false,
         remember: false,
         showPassword: false,
+
+        demoAccounts: [
+          {
+            key: "student",
+            label: "ورود دانشجو",
+            username: "student",
+            email: "student@sarasystem.test",
+            password: "demo1234",
+            token: "demo-access-token-student",
+            refresh: "demo-refresh-token-student",
+            user: {
+              id: 9001,
+              first_name: "سارا",
+              last_name: "دانشجو",
+              student_id: "400123456",
+              national_id: "0012345678",
+              phone: "09120000001",
+              email: "student@sarasystem.test",
+              role: "student",
+              roles: ["student"],
+              is_active: true,
+              is_verified: true
+            }
+          },
+          {
+            key: "supervisor",
+            label: "ورود مسئول خوابگاه",
+            username: "supervisor",
+            email: "supervisor@sarasystem.test",
+            password: "demo1234",
+            token: "demo-access-token-dormitory-admin",
+            refresh: "demo-refresh-token-dormitory-admin",
+            user: {
+              id: 9002,
+              first_name: "مینا",
+              last_name: "مسئول خوابگاه",
+              staff_id: "DA-102",
+              phone: "09120000002",
+              email: "supervisor@sarasystem.test",
+              assigned_dormitory: "خوابگاه یک",
+              role: "dormitory_admin",
+              roles: ["dormitory_admin"],
+              is_active: true,
+              is_verified: true
+            }
+          },
+          {
+            key: "admin",
+            label: "ورود مدیر سیستم",
+            username: "admin",
+            email: "admin@sarasystem.test",
+            password: "demo1234",
+            token: "demo-access-token-system-admin",
+            refresh: "demo-refresh-token-system-admin",
+            user: {
+              id: 9003,
+              first_name: "علی",
+              last_name: "مدیر سیستم",
+              staff_id: "SA-001",
+              phone: "09120000003",
+              email: "admin@sarasystem.test",
+              role: "system_admin",
+              roles: ["system_admin"],
+              is_active: true,
+              is_verified: true
+            }
+          },
+          {
+            key: "support",
+            label: "ورود پشتیبانی",
+            username: "support",
+            email: "support@sarasystem.test",
+            password: "demo1234",
+            token: "demo-access-token-support-staff",
+            refresh: "demo-refresh-token-support-staff",
+            user: {
+              id: 9004,
+              first_name: "رضا",
+              last_name: "پشتیبان",
+              staff_id: "SP-204",
+              phone: "09120000004",
+              email: "support@sarasystem.test",
+              role: "support_staff",
+              roles: ["support_staff"],
+              is_active: true,
+              is_verified: true
+            }
+          }
+        ],
 
         init() {
           document.body.addEventListener("htmx:beforeRequest", (event) => {
@@ -372,7 +518,53 @@
           if (this.errors.username || this.errors.password) {
             event.preventDefault();
             event.stopImmediatePropagation();
+            return;
           }
+
+          const demoAccount = this.findDemoAccount(this.form.username, this.form.password);
+
+          if (demoAccount) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            this.loginAsDemo(demoAccount.key);
+          }
+        },
+
+        findDemoAccount(username, password) {
+          const normalizedUsername = String(username || "").toLowerCase().trim();
+          const normalizedPassword = String(password || "");
+
+          return this.demoAccounts.find((account) => {
+            return normalizedPassword === account.password &&
+              [account.key, account.username, account.email].includes(normalizedUsername);
+          });
+        },
+
+        loginAsDemo(key) {
+          const account = this.demoAccounts.find((item) => item.key === key);
+
+          if (!account) {
+            this.showAlert("danger", "حساب نمایشی انتخاب‌شده پیدا نشد.");
+            return;
+          }
+
+          this.loading = true;
+          this.clearErrors();
+          this.clearAlert();
+
+          const storage = this.remember ? localStorage : sessionStorage;
+
+          this.clearStoredSession();
+          storage.setItem("sarasystem.accessToken", `${account.token}-${Date.now()}`);
+          storage.setItem("sarasystem.refreshToken", `${account.refresh}-${Date.now()}`);
+          storage.setItem("sarasystem.user", JSON.stringify(account.user));
+          storage.setItem("sarasystem.demoMode", "true");
+
+          this.showAlert("success", `ورود نمایشی ${account.label} انجام شد. در حال انتقال به پنل...`);
+
+          window.setTimeout(() => {
+            window.location.assign(this.getDashboardPath(account.user));
+          }, 350);
         },
 
         handleLoginSuccess(data) {
@@ -397,7 +589,9 @@
 
           const storage = this.remember ? localStorage : sessionStorage;
 
+          this.clearStoredSession();
           storage.setItem("sarasystem.accessToken", accessToken);
+          storage.setItem("sarasystem.demoMode", "false");
 
           if (refreshToken) {
             storage.setItem("sarasystem.refreshToken", refreshToken);
@@ -472,17 +666,21 @@
             const value =
               typeof role === "string"
                 ? role
-                : role?.code || role?.name || "";
+                : role?.code || role?.name || role?.slug || "";
 
-            return value.toLowerCase().trim().replace(/\s+/g, "_");
+            return value.toLowerCase().trim().replace(/[\s-]+/g, "_");
           });
 
           if (normalizedRoles.includes("student") || normalizedRoles.includes("resident")) {
-            return "/dashboard/student.html";
+            return "./dashboard/student.html";
           }
 
-          if (normalizedRoles.includes("dormitory_admin")) {
-            return "/dashboard/dormitory-admin.html";
+          if (
+            normalizedRoles.includes("dormitory_admin") ||
+            normalizedRoles.includes("dormitory_supervisor") ||
+            normalizedRoles.includes("supervisor")
+          ) {
+            return "./dashboard/dormitory-admin.html";
           }
 
           if (
@@ -490,14 +688,14 @@
             normalizedRoles.includes("admin") ||
             normalizedRoles.includes("university_manager")
           ) {
-            return "/dashboard/admin.html";
+            return "./dashboard/admin.html";
           }
 
-          if (normalizedRoles.includes("support_staff")) {
-            return "/dashboard/support.html";
+          if (normalizedRoles.includes("support_staff") || normalizedRoles.includes("support")) {
+            return "./dashboard/support.html";
           }
 
-          return "/dashboard/index.html";
+          return "./dashboard/index.html";
         },
 
         isLoginRequest(event) {
@@ -514,6 +712,18 @@
 
         normalizeError(error) {
           return Array.isArray(error) ? error.join("، ") : String(error);
+        },
+
+        clearStoredSession() {
+          [
+            "sarasystem.accessToken",
+            "sarasystem.refreshToken",
+            "sarasystem.user",
+            "sarasystem.demoMode"
+          ].forEach((key) => {
+            localStorage.removeItem(key);
+            sessionStorage.removeItem(key);
+          });
         },
 
         clearErrors() {
