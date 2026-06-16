@@ -57,11 +57,13 @@ class Room(models.Model):
     description = models.TextField(blank=True, default='')
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
+    currentOccupancy = models.IntegerField(default=0)
 
     class Meta:
         app_label = "dormitories"
         db_table = "room"
         ordering = ['roomNumber']
+        unique_together = [['id', 'roomNumber']]
 
     def __str__(self):
         return f"Room {self.roomNumber} - Floor {self.floorNumber}"
@@ -82,15 +84,11 @@ class Bed(models.Model):
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
 
-    # اطلاعات ساکن (از سرویس accounts)
-    occupant_id = models.IntegerField(null=True, blank=True)
-    occupant_name = models.CharField(max_length=200, blank=True, default='')
-
     class Meta:
         app_label = 'dormitories'
         db_table = 'bed'
         ordering = ['createdAt']
-        unique_together = [['room', 'bedNumber']]
+        unique_together = [['id', 'bedNumber']]
 
     def __str__(self):
         return f"{self.room} - {self.bedNumber}"
