@@ -1,5 +1,5 @@
 from django.urls import path
-from dormitories.view.RoomViews import RoomListView, RoomCreateView, RoomDeleteView
+from dormitories.view.RoomViews import RoomListView, RoomCreateView, RoomDeleteView, RoomUpdateView
 from dormitories.view.BedViews import RoomBedsListView
 
 urlpatterns = [
@@ -9,5 +9,6 @@ urlpatterns = [
     path('listAllRoomBeds/<int:room_id>', RoomBedsListView.as_view(), name='Room-list'),
     path('createRoom/', RoomCreateView.as_view(), name='Room-Add'),
     path('deleteRoom/<int:id>', RoomDeleteView.as_view(), name='Room-Delete'),
+    path('updateRoom/<int:id>', RoomUpdateView.as_view(), name="update-room"),
 
 ]

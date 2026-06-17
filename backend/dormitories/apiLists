@@ -3,8 +3,18 @@ GET api/rooms/listAllRoomBeds/4 -> query rooms with beds
 GET api/rooms/listAllRoom/ -> allRooms(you can query with status or not)
 DELETE api/rooms/deleteRoom/4 -> delete room by id
 POST api/rooms/createRoom/ -> create room
+[PUT/PATCH] api/rooms/updateRoom/<int:id> -> PUT FOR ALL FIELD,PATCH FOR ONE FIELD
 
 
 dorm api:
 GET api/dormitory/listAll/ -> list all dormitory
 GET api/dormitory/withRooms/ -> list all dormitory with rooms
+POST api/dormitory/createDorm/ -> create Dorm
+[PUT/PATCH] api/dormitory/updateDorm/<int:id> -> PUT FOR ALL FIELD,PATCH FOR ONE FIELD
+
+
+bed api:
+GET api/beds/listAll/ -> list all dormitory[you can filter the status]
+GET api/beds/getBedById/<int:id> -> get bed by specific id
+POST api/beds/createBed/ -> create Dorm
+[PUT/PATCH] api/beds/updateBed/<int:id> -> PUT FOR ALL FIELD,PATCH FOR ONE FIELD
