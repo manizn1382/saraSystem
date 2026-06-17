@@ -9,14 +9,10 @@ from rest_framework.views import APIView
 
 
 class RoomListView(APIView):
-    """
-    GET /api/Room/
-    """
-    # queryset = Room.objects.filter()
-    #serializer_class = RoomsInfoSerializer
     permission_classes = [permissions.AllowAny]
 
     def get(self, request, status=None):
+
         queryset = Room.objects.all()
 
         if status:
@@ -32,10 +28,6 @@ class RoomListView(APIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RoomCreateView(generics.CreateAPIView):
-    """
-    POST /api/Room/
-    """
-    # queryset = Room.objects.all()
     serializer_class = RoomsInfoSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -49,4 +41,23 @@ class RoomCreateView(generics.CreateAPIView):
             'message': 'room created successfully',
             'data': serializer.data
         }, status=status.HTTP_201_CREATED)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RoomDeleteView(generics.DestroyAPIView):
+    permission_classes = [permissions.AllowAny]
+    queryset = Room.objects.all()
+    serializer_class = RoomsInfoSerializer
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        room_number = instance.roomNumber
+        dorm_name = instance.dormitory.name
+
+        self.perform_destroy(instance)
+
+        return Response({
+            "message": f"Room {room_number} in {dorm_name} deleted successfully"
+        }, status=status.HTTP_200_OK)
 

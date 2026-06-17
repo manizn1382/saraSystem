@@ -5,9 +5,6 @@ from dormitories.serializer.DormSerializers import DormitoriesInfoSerializer, Do
 
 
 class DormitoryListView(generics.ListAPIView):
-    """
-    GET /api/dormitories/
-    """
     queryset = Dormitory.objects.all()
     serializer_class = DormitoriesInfoSerializer
     # permission_classes = [permissions.IsAuthenticated]
@@ -15,9 +12,6 @@ class DormitoryListView(generics.ListAPIView):
 
 
 class DormitoryBedsListView(generics.ListAPIView):
-    """
-    GET /api/dormitories/
-    """
     queryset = Dormitory.objects.all()
 
     serializer_class = DormitoriesInfoSerializer
@@ -26,9 +20,6 @@ class DormitoryBedsListView(generics.ListAPIView):
 
 
 class DormitoryWithRoomsView(generics.ListAPIView):
-    """
-    GET /api/dormitories/with-rooms/
-    """
     queryset = Dormitory.objects.prefetch_related('rooms').all()
     serializer_class = DormitoryWithRoomsSerializer
     permission_classes = [permissions.AllowAny]
