@@ -1,0 +1,10 @@
+rooms api:
+GET api/rooms/listAllRoomBeds/4 -> query rooms with beds
+GET api/rooms/listAllRoom/ -> allRooms(you can query with status or not)
+DELETE api/rooms/deleteRoom/4 -> delete room by id
+POST api/rooms/createRoom/ -> create room
+
+
+dorm api:
+GET api/dormitory/listAll/ -> list all dormitory
+GET api/dormitory/withRooms/ -> list all dormitory with rooms
