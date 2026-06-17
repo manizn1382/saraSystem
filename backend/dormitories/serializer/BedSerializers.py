@@ -7,4 +7,4 @@ class BedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bed
-        fields = ['id', 'bedNumber', 'status']
+        fields = ['id', 'bedNumber', 'status', 'room']

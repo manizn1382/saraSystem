@@ -61,3 +61,12 @@ class RoomDeleteView(generics.DestroyAPIView):
             "message": f"Room {room_number} in {dorm_name} deleted successfully"
         }, status=status.HTTP_200_OK)
 
+
+class RoomUpdateView(generics.UpdateAPIView):
+    """
+    GET /api/beds/{id}/
+    """
+    permission_classes = [permissions.AllowAny]
+    queryset = Room.objects.all()
+    serializer_class = RoomsInfoSerializer
+    lookup_field = 'id'
