@@ -7,19 +7,23 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User, Role
 from .serializers import UserSerializer, RoleSerializer
 
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+
     def validate(self, attrs):
         data = super().validate(attrs)
         data['user'] = UserSerializer(self.user).data
         return data
 
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    
+
     def get_permissions(self):
         if self.action in ['update', 'partial_update', 'destroy']:
             self.permission_classes = [permissions.IsAuthenticated]
@@ -28,14 +32,14 @@ class UserViewSet(viewsets.ModelViewSet):
         else:
             self.permission_classes = [permissions.AllowAny]
         return super().get_permissions()
-    
+
     @action(detail=False, methods=['get'])
     def me(self, request):
         if not request.user.is_authenticated:
             return Response({'error': 'Not authenticated'}, status=status.HTTP_401_UNAUTHORIZED)
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
-    
+
     @action(detail=False, methods=['put', 'patch'])
     def update_profile(self, request):
         user = request.user
@@ -44,20 +48,20 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     @action(detail=False, methods=['post'])
     def change_password(self, request):
         user = request.user
         old_password = request.data.get('old_password')
         new_password = request.data.get('new_password')
-        
+
         if not user.check_password(old_password):
             return Response({'error': 'Wrong password'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         user.set_password(new_password)
         user.save()
         return Response({'message': 'Password changed successfully'})
-    
+
     @action(detail=False, methods=['post'])
     def register(self, request):
         data = request.data.copy()
@@ -72,6 +76,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 pass
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RoleViewSet(viewsets.ModelViewSet):
     queryset = Role.objects.all()

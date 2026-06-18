@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-jj)ty95_$)+_r2$3i()td5x_y*ffq@*w=i)ykpk)^=$b9s3$oy
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1']
 
 # Application definition
 INSTALLED_APPS = [
@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'payments',
     'maintenance',
     'announcements',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
