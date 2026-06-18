@@ -319,7 +319,17 @@
               <h2 id="demoLoginTitle" class="demo-title h6 mb-1">ورود سریع برای مشاهده پنل‌ها</h2>
               <p class="text-secondary small mb-0">این حساب‌ها فقط برای پیش‌نمایش فرانت‌اند هستند و به API واقعی وصل نیستند.</p>
             </div>
-            <span class="badge text-bg-light border">Demo</span>
+            <div class="form-check form-switch m-0">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="demoModeSwitch"
+                x-model="demoModeEnabled"
+                @change="setDemoMode($event.target.checked)"
+              />
+              <label class="form-check-label small fw-bold" for="demoModeSwitch">حالت نمایشی</label>
+            </div>
           </div>
 
           <div class="row g-2">
@@ -328,7 +338,7 @@
                 <button
                   type="button"
                   class="btn btn-outline-primary w-100 demo-account-btn"
-                  :disabled="!demoEnabled()"
+                  :disabled="!demoModeEnabled"
                   @click="loginAsDemo(account.key)"
                 >
                   <span x-text="account.label"></span>
@@ -341,8 +351,8 @@
             رمز همه حساب‌های نمایشی: <code>demo1234</code> — می‌توانید از نام‌های
             <code>student</code>، <code>supervisor</code>، <code>admin</code>، <code>support</code> هم در فرم ورود استفاده کنید.
           </div>
-          <div class="alert alert-warning py-2 px-3 mt-3 mb-0 small" x-show="!demoEnabled()" x-cloak>
-            حالت نمایشی غیرفعال است. برای فعال‌سازی محلی مقدار <code>sarasystem.demoMode</code> را در storage برابر <code>true</code> قرار دهید.
+          <div class="alert alert-warning py-2 px-3 mt-3 mb-0 small" x-show="!demoModeEnabled" x-cloak>
+            برای استفاده از حساب‌های نمایشی، کلید حالت نمایشی را فعال کنید.
           </div>
         </section>
 
@@ -377,6 +387,7 @@
         loading: false,
         remember: false,
         showPassword: false,
+        demoModeEnabled: false,
 
         demoAccounts: [
           {
@@ -468,6 +479,8 @@
         ],
 
         init() {
+          this.demoModeEnabled = window.SaraAuth?.isDemoMode?.() === true;
+
           document.body.addEventListener("htmx:beforeRequest", (event) => {
             if (!this.isLoginRequest(event)) return;
 
@@ -541,7 +554,7 @@
         },
 
         findDemoAccount(username, password) {
-          if (!this.demoEnabled()) return null;
+          if (!this.demoModeEnabled) return null;
 
           const normalizedUsername = String(username || "").toLowerCase().trim();
           const normalizedPassword = String(password || "");
@@ -574,7 +587,7 @@
           this.showAlert("success", `ورود نمایشی ${account.label} انجام شد. در حال انتقال به پنل...`);
 
           window.setTimeout(() => {
-            window.location.assign(this.getDashboardPath(demoSession.user));
+            window.location.assign(this.withDemoParam(this.getDashboardPath(demoSession.user), account.key));
           }, 350);
         },
 
@@ -690,6 +703,11 @@
           return "./dashboard/index.html";
         },
 
+        withDemoParam(path, key) {
+          const separator = path.includes("?") ? "&" : "?";
+          return `${path}${separator}demo=${encodeURIComponent(key)}`;
+        },
+
         isLoginRequest(event) {
           return event?.detail?.elt?.id === "loginForm";
         },
@@ -710,8 +728,18 @@
           window.SaraAuth?.clearSession?.();
         },
 
-        demoEnabled() {
-          return window.SaraDemoAuth?.isEnabled?.() === true;
+        setDemoMode(enabled) {
+          this.demoModeEnabled = Boolean(enabled);
+          localStorage.removeItem("sarasystem.demoMode");
+          sessionStorage.removeItem("sarasystem.demoMode");
+
+          if (this.demoModeEnabled) {
+            localStorage.setItem("sarasystem.demoMode", "true");
+            this.showAlert("info", "حالت نمایشی فعال شد. اکنون می‌توانید با حساب‌های نمایشی وارد شوید.");
+            return;
+          }
+
+          this.clearAlert();
         },
 
         clearErrors() {

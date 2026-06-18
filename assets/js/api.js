@@ -58,7 +58,7 @@
 
     const data = await parseResponse(response);
 
-    if (response.status === 401) {
+    if (response.status === 401 && !window.SaraAuth?.isDemoMode?.()) {
       window.SaraAuth?.clearSession?.();
     }
 

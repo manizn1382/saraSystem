@@ -37,16 +37,17 @@
     return window.SaraAuth?.isDemoMode?.() === true;
   }
 
-  function login(username, password, remember = true) {
+  function login(username, password) {
     if (!isEnabled()) return null;
     const account = users[String(username || '').trim().toLowerCase()];
     if (!account || account.password !== password) return null;
 
+    /* Demo sessions must survive navigation between standalone HTML pages. */
     window.SaraAuth?.setSession?.({
       accessToken: account.token,
       user: account.user,
       demoMode: true
-    }, { remember });
+    }, { remember: true });
 
     return account;
   }

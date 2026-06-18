@@ -10,9 +10,36 @@
     .filter(Boolean);
 
   const TOKEN_KEYS = ['sarasystem.accessToken', 'sarasystem.refreshToken', 'sarasystem.user', 'sarasystem.demoMode'];
+  const DEMO_ACCOUNTS = {
+    student: {
+      accessToken: 'demo-token-student',
+      user: { username: 'student', first_name: 'Demo', last_name: 'Student', roles: ['student'] }
+    },
+    supervisor: {
+      accessToken: 'demo-token-dormitory-admin',
+      user: { username: 'supervisor', first_name: 'Demo', last_name: 'Dormitory Admin', roles: ['dormitory_admin'] }
+    },
+    dormadmin: {
+      accessToken: 'demo-token-dormitory-admin',
+      user: { username: 'dormadmin', first_name: 'Demo', last_name: 'Dormitory Admin', roles: ['dormitory_admin'] }
+    },
+    admin: {
+      accessToken: 'demo-token-admin',
+      user: { username: 'admin', first_name: 'Demo', last_name: 'System Admin', roles: ['system_admin'] }
+    },
+    support: {
+      accessToken: 'demo-token-support',
+      user: { username: 'support', first_name: 'Demo', last_name: 'Support', roles: ['support_staff'] }
+    }
+  };
+
+  let bootstrappedDemoSession = null;
 
   function getAccessToken() {
-    return localStorage.getItem('sarasystem.accessToken') || sessionStorage.getItem('sarasystem.accessToken');
+    return localStorage.getItem('sarasystem.accessToken')
+      || sessionStorage.getItem('sarasystem.accessToken')
+      || bootstrappedDemoSession?.accessToken
+      || '';
   }
 
   function getRefreshToken() {
@@ -20,21 +47,24 @@
   }
 
   function isDemoMode() {
-    return (localStorage.getItem('sarasystem.demoMode') || sessionStorage.getItem('sarasystem.demoMode')) === 'true';
+    return (localStorage.getItem('sarasystem.demoMode') || sessionStorage.getItem('sarasystem.demoMode')) === 'true'
+      || bootstrappedDemoSession?.demoMode === true;
   }
 
   function getStoredUser() {
     const raw = localStorage.getItem('sarasystem.user') || sessionStorage.getItem('sarasystem.user');
-    if (!raw) return null;
+    if (!raw) return bootstrappedDemoSession?.user || null;
 
     try {
       return JSON.parse(raw);
     } catch {
-      return null;
+      return bootstrappedDemoSession?.user || null;
     }
   }
 
   function clearSession() {
+    bootstrappedDemoSession = null;
+
     if (window.SaraAuth?.clearSession && window.SaraAuth.clearSession !== clearSession) {
       window.SaraAuth.clearSession();
       return;
@@ -76,6 +106,56 @@
     return roles.some((role) => allowedRoles.includes(role));
   }
 
+  function storeDemoSession(account) {
+    bootstrappedDemoSession = {
+      accessToken: account.accessToken,
+      user: account.user,
+      demoMode: true
+    };
+
+    localStorage.setItem('sarasystem.accessToken', account.accessToken);
+    localStorage.setItem('sarasystem.user', JSON.stringify(account.user));
+    localStorage.setItem('sarasystem.demoMode', 'true');
+    localStorage.removeItem('sarasystem.refreshToken');
+    sessionStorage.removeItem('sarasystem.accessToken');
+    sessionStorage.removeItem('sarasystem.refreshToken');
+    sessionStorage.removeItem('sarasystem.user');
+    sessionStorage.removeItem('sarasystem.demoMode');
+
+    return bootstrappedDemoSession;
+  }
+
+  function restoreDemoSessionFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const demoKey = String(params.get('demo') || '').toLowerCase().trim();
+    const account = DEMO_ACCOUNTS[demoKey];
+    if (!account) return null;
+
+    const session = storeDemoSession(account);
+    params.delete('demo');
+
+    const cleanSearch = params.toString();
+    const cleanUrl = `${window.location.pathname}${cleanSearch ? `?${cleanSearch}` : ''}${window.location.hash}`;
+    window.history.replaceState(window.history.state, document.title, cleanUrl);
+
+    return session;
+  }
+
+  function restoreDemoAccessToken() {
+    const user = getStoredUser();
+    if (!isDemoMode() || !user) return '';
+
+    const role = getUserRoles(user)[0] || user.username || 'user';
+    const token = `demo-token-${role}`;
+    bootstrappedDemoSession = {
+      accessToken: token,
+      user,
+      demoMode: true
+    };
+    localStorage.setItem('sarasystem.accessToken', token);
+    return token;
+  }
+
   function addReturnParam(url) {
     try {
       const target = new URL(url, window.location.href);
@@ -87,7 +167,10 @@
   }
 
   function requireAuth() {
-    if (!getAccessToken()) {
+    restoreDemoSessionFromUrl();
+    const accessToken = getAccessToken() || restoreDemoAccessToken();
+
+    if (!accessToken) {
       clearSession();
       window.location.replace(addReturnParam(loginUrl));
       return false;
@@ -102,6 +185,13 @@
   }
 
   function attachHtmxAuthHeader() {
+    document.body.addEventListener('htmx:beforeRequest', function (event) {
+      const path = event.detail?.pathInfo?.requestPath || event.detail?.requestConfig?.path || '';
+      if (isDemoMode() && /^\/api(\/|$)/i.test(path)) {
+        event.preventDefault();
+      }
+    });
+
     document.body.addEventListener('htmx:configRequest', function (event) {
       const token = getAccessToken();
       if (token) {
@@ -113,11 +203,13 @@
     document.body.addEventListener('htmx:afterRequest', function (event) {
       const status = event.detail?.xhr?.status;
       if (status === 401) {
+        if (isDemoMode()) return;
         clearSession();
         window.location.replace(addReturnParam(loginUrl));
       }
 
       if (status === 403) {
+        if (isDemoMode()) return;
         window.location.replace(addReturnParam(unauthorizedUrl));
       }
     });
