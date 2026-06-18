@@ -65,7 +65,12 @@
         return request(path, { ...options, retryOnUnauthorized: false });
       }
 
-      window.SaraAuth?.handleExpiredSession?.('../login.html') || window.SaraAuth?.clearSession?.();
+      if (window.SaraAuth?.handleExpiredSession) {
+        window.SaraAuth.handleExpiredSession();
+        return null;
+      }
+
+      window.SaraAuth?.clearSession?.();
     }
 
     if (!response.ok) {

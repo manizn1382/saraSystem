@@ -904,7 +904,7 @@
                       <span class="status-badge" :class="accountStatus().className" x-text="accountStatus().label"></span>
                     </div>
                   </div>
-                  <a class="btn btn-ss btn-ss-outline w-100 mb-2" href="../account.html" @click="profileOpen = false">
+                  <a class="btn btn-ss btn-ss-outline w-100 mb-2" :href="accountPath()" @click="profileOpen = false">
                     مشاهده پروفایل
                   </a>
                   <button class="btn btn-ss btn-ss-danger w-100" type="button" @click="logout()">
@@ -1925,6 +1925,10 @@
 
         accountStatus() {
           return window.SaraAuth?.getAccountStatus?.(this.user) || { label: "نامشخص", className: "badge-neutral", message: "" };
+        },
+
+        accountPath() {
+          return window.SaraAuth?.isDemoMode?.() ? "../account.html?demo=student" : "../account.html";
         },
 
         watchCurrentSection() {

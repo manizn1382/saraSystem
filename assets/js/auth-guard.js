@@ -166,23 +166,50 @@
     }
   }
 
+  function redirectToLogin() {
+    clearSession();
+    window.SaraAuth?.setSessionMessage?.('warning', 'برای دسترسی به این بخش ابتدا وارد سامانه شوید.');
+    window.location.replace(addReturnParam(loginUrl));
+  }
+
+  function redirectToUnauthorized() {
+    window.location.replace(addReturnParam(unauthorizedUrl));
+  }
+
   function requireAuth() {
     restoreDemoSessionFromUrl();
     const accessToken = getAccessToken() || restoreDemoAccessToken();
 
     if (!accessToken) {
-      clearSession();
-      window.SaraAuth?.setSessionMessage?.('warning', 'برای دسترسی به این بخش ابتدا وارد سامانه شوید.');
-      window.location.replace(addReturnParam(loginUrl));
-      return false;
+      return getRefreshToken() && window.SaraAuth?.refreshAccessToken ? null : false;
     }
 
     if (!hasAllowedRole(getStoredUser())) {
-      window.location.replace(addReturnParam(unauthorizedUrl));
+      redirectToUnauthorized();
       return false;
     }
 
     return true;
+  }
+
+  async function refreshThenRequireAuth() {
+    try {
+      const refreshedToken = await window.SaraAuth?.refreshAccessToken?.();
+      if (!refreshedToken) {
+        redirectToLogin();
+        return false;
+      }
+
+      if (!hasAllowedRole(getStoredUser())) {
+        redirectToUnauthorized();
+        return false;
+      }
+
+      return true;
+    } catch {
+      redirectToLogin();
+      return false;
+    }
   }
 
   function attachHtmxAuthHeader() {
@@ -205,7 +232,11 @@
       const status = event.detail?.xhr?.status;
       if (status === 401) {
         if (isDemoMode()) return;
-        window.SaraAuth?.handleExpiredSession?.(addReturnParam(loginUrl)) || clearSession();
+        if (window.SaraAuth?.handleExpiredSession) {
+          window.SaraAuth.handleExpiredSession(addReturnParam(loginUrl));
+          return;
+        }
+        clearSession();
       }
 
       if (status === 403) {
@@ -227,11 +258,27 @@
     normalizeRole
   };
 
-  if (!requireAuth()) return;
-
-  if (document.body) {
-    attachHtmxAuthHeader();
-  } else {
-    document.addEventListener('DOMContentLoaded', attachHtmxAuthHeader, { once: true });
+  function attachWhenReady() {
+    if (document.body) {
+      attachHtmxAuthHeader();
+    } else {
+      document.addEventListener('DOMContentLoaded', attachHtmxAuthHeader, { once: true });
+    }
   }
+
+  const authState = requireAuth();
+
+  if (authState === true) {
+    attachWhenReady();
+    return;
+  }
+
+  if (authState === null) {
+    refreshThenRequireAuth().then((allowed) => {
+      if (allowed) attachWhenReady();
+    });
+    return;
+  }
+
+  redirectToLogin();
 })();

@@ -205,7 +205,11 @@
     return updateStoredUser(user);
   }
 
-  function handleExpiredSession(redirectUrl = '../login.html') {
+  function defaultLoginUrl() {
+    return window.location.pathname.includes('/dashboard/') ? '../login.html' : './login.html';
+  }
+
+  function handleExpiredSession(redirectUrl = defaultLoginUrl()) {
     clearSession();
     setSessionMessage('warning', 'نشست شما پایان یافته است. لطفا دوباره وارد شوید.');
     window.location.replace(redirectUrl);
@@ -241,6 +245,7 @@
     setSessionMessage,
     refreshAccessToken,
     loadCurrentUser,
+    defaultLoginUrl,
     handleExpiredSession,
     setSession,
     clearSession,
