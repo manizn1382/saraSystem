@@ -1021,8 +1021,11 @@
                   </div>
 
                   <div class="panel-body">
+                    <div class="empty-state" x-show="isResourceLoading('accommodationRequests')">
+                      در حال دریافت درخواست‌های اسکان...
+                    </div>
                     <template x-if="accommodationRequests.length === 0">
-                      <div class="empty-state">
+                      <div class="empty-state" x-show="!isResourceLoading('accommodationRequests')">
                         هنوز درخواست اسکانی ثبت نشده است. برای شروع، گزینه «درخواست جدید» را انتخاب کنید.
                       </div>
                     </template>
@@ -1073,8 +1076,11 @@
                   </div>
 
                   <div class="panel-body">
+                    <div class="empty-state" x-show="isResourceLoading('assignment')">
+                      در حال دریافت وضعیت اسکان...
+                    </div>
                     <template x-if="!assignment.room">
-                      <div class="empty-state">
+                      <div class="empty-state" x-show="!isResourceLoading('assignment')">
                         هنوز تختی برای شما تخصیص داده نشده است. پس از تایید درخواست، اطلاعات اسکان اینجا نمایش داده می‌شود.
                       </div>
                     </template>
@@ -1147,7 +1153,7 @@
 
                     <tr x-show="payments.length === 0">
                       <td colspan="7">
-                        <div class="empty-state m-3">پرداختی برای نمایش وجود ندارد.</div>
+                        <div class="empty-state m-3" x-text="isResourceLoading('payments') ? 'در حال دریافت پرداخت‌ها...' : 'پرداختی برای نمایش وجود ندارد.'"></div>
                       </td>
                     </tr>
                   </tbody>
@@ -1201,7 +1207,7 @@
 
                     <tr x-show="maintenanceRequests.length === 0">
                       <td colspan="6">
-                        <div class="empty-state m-3">درخواست تعمیراتی ثبت نشده است.</div>
+                        <div class="empty-state m-3" x-text="isResourceLoading('maintenanceRequests') ? 'در حال دریافت درخواست‌های تعمیرات...' : 'درخواست تعمیراتی ثبت نشده است.'"></div>
                       </td>
                     </tr>
                   </tbody>
@@ -1244,7 +1250,7 @@
                   </template>
 
                   <div class="col-12" x-show="announcements.length === 0">
-                    <div class="empty-state">اطلاعیه‌ای برای نمایش وجود ندارد.</div>
+                    <div class="empty-state" x-text="isResourceLoading('announcements') ? 'در حال دریافت اطلاعیه‌ها...' : 'اطلاعیه‌ای برای نمایش وجود ندارد.'"></div>
                   </div>
                 </div>
               </div>
@@ -1727,6 +1733,14 @@
           item: {}
         },
 
+        resourceLoading: {
+          accommodationRequests: true,
+          assignment: true,
+          payments: true,
+          maintenanceRequests: true,
+          announcements: true
+        },
+
         accommodationRequests: [
           {
             id: "۱",
@@ -1858,6 +1872,7 @@
         },
 
         init() {
+          this.clearDemoDataUnlessEnabled();
           this.loadStoredUser();
           this.updateUnreadBadge();
           this.watchCurrentSection();
@@ -1901,6 +1916,36 @@
 
         getAccessToken() {
           return window.SaraAuth?.getAccessToken?.() || "";
+        },
+
+        isDemoMode() {
+          return window.SaraAuth?.isDemoMode?.() === true;
+        },
+
+        clearDemoDataUnlessEnabled() {
+          if (this.isDemoMode()) {
+            Object.keys(this.resourceLoading).forEach((key) => {
+              this.resourceLoading[key] = false;
+            });
+            return;
+          }
+
+          this.summary = {
+            request_status: "unknown",
+            request_title: "در حال دریافت",
+            unpaid_count: "۰ مورد",
+            unpaid_total: "۰ تومان",
+            unread_announcements: "۰"
+          };
+          this.assignment = { dormitory: "", room: "", bed: "", start_date: "", end_date: "", status: "pending", notes: "" };
+          this.accommodationRequests = [];
+          this.payments = [];
+          this.maintenanceRequests = [];
+          this.announcements = [];
+        },
+
+        isResourceLoading(resource) {
+          return Boolean(this.resourceLoading?.[resource]);
         },
 
         fullName() {
@@ -1948,6 +1993,9 @@
         },
 
         handleBeforeRequest(event) {
+          const resource = event?.detail?.elt?.dataset?.resource;
+          if (resource) this.resourceLoading[resource] = true;
+
           const formId = event?.detail?.elt?.id;
 
           if (formId === "accommodationForm") {
@@ -1965,6 +2013,7 @@
           const xhr = event.detail.xhr;
           const elt = event.detail.elt;
           const data = this.parseJson(xhr.responseText);
+          if (elt?.dataset?.resource) this.resourceLoading[elt.dataset.resource] = false;
 
           if (xhr.status >= 200 && xhr.status < 300) {
             if (elt?.dataset?.resource) {
@@ -1988,6 +2037,7 @@
 
         handleRequestFailure(event, message) {
           const elt = event?.detail?.elt;
+          if (elt?.dataset?.resource) this.resourceLoading[elt.dataset.resource] = false;
 
           if (elt?.id === "accommodationForm") {
             this.forms.accommodation.loading = false;
