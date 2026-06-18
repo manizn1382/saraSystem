@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>حساب کاربری | سراسیستم</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="../assets/css/sarasystem.css" rel="stylesheet" />
+  <script src="../assets/js/auth.js" defer></script>
+  <script src="../assets/js/api.js" defer></script>
+  <script src="../assets/js/ui-helpers.js" defer></script>
+  <script src="../assets/js/status-badges.js" defer></script>
+  <script src="../assets/js/auth-guard.js" data-login-url="./login.html" data-unauthorized-url="./403.html" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <style>
+    [x-cloak]{display:none!important}
+    body{min-height:100vh;font-family:"Segoe UI",Tahoma,Arial,sans-serif;color:#f8fafc;background:radial-gradient(circle at 88% 8%,rgba(56,189,248,.22),transparent 28rem),radial-gradient(circle at 7% 96%,rgba(20,184,166,.22),transparent 30rem),linear-gradient(135deg,#06162b 0%,#071b35 48%,#08254a 100%)}
+    .account-shell{max-width:1120px;margin-inline:auto;padding:1rem}
+    .glass{border:1px solid rgba(255,255,255,.12);background:rgba(13,39,73,.78);box-shadow:0 28px 80px rgba(0,0,0,.28);backdrop-filter:blur(18px)}
+    .panel{border-radius:1.5rem}
+    .btn-ss{min-height:42px;border-radius:1rem;font-weight:900}
+    .btn-ss-primary{border:0;color:#06162b;background:linear-gradient(135deg,#38bdf8,#67e8f9)}
+    .btn-ss-outline{border:1px solid rgba(125,211,252,.28);color:#dff7ff;background:rgba(56,189,248,.08)}
+    .btn-ss-danger{border:0;color:#fff;background:linear-gradient(135deg,#ef4444,#fb7185)}
+    .text-muted-ss{color:#94a3b8}
+    .form-control,.form-select{border-color:rgba(255,255,255,.16);color:#f8fafc;background:rgba(255,255,255,.08)}
+    .form-control:focus,.form-select:focus{border-color:#67e8f9;box-shadow:0 0 0 .25rem rgba(56,189,248,.18);color:#fff;background:rgba(255,255,255,.11)}
+    .form-control::placeholder{color:#94a3b8}
+    .info-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:.85rem 1rem;background:rgba(255,255,255,.055)}
+    .status-badge{display:inline-flex;align-items:center;border-radius:999px;padding:.35rem .7rem;font-weight:900;font-size:.78rem}
+    .badge-active{border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.14);color:#dcfce7}
+    .badge-inactive{border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.14);color:#fee2e2}
+    .badge-pending,.badge-neutral{border:1px solid rgba(250,204,21,.25);background:rgba(250,204,21,.12);color:#fef9c3}
+    .avatar-lg{width:72px;height:72px;display:grid;place-items:center;border-radius:1.35rem;color:#06162b;background:linear-gradient(135deg,#38bdf8,#67e8f9);font-size:1.45rem;font-weight:950}
+  </style>
+</head>
+<body x-data="accountPage()" x-init="init()">
+  <main class="account-shell">
+    <header class="panel glass p-3 p-md-4 mb-3">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="avatar-lg" x-text="initials()"></div>
+          <div>
+            <p class="text-muted-ss mb-1">حساب کاربری سراسیستم</p>
+            <h1 class="h3 fw-bold mb-1" x-text="fullName()"></h1>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="status-badge" :class="accountStatus.className" x-text="accountStatus.label"></span>
+              <span class="text-muted-ss small" dir="ltr" x-text="profile.email || '—'"></span>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-ss btn-ss-outline" :href="dashboardPath()">بازگشت به پنل</a>
+          <button class="btn btn-ss btn-ss-danger" type="button" @click="logout()">خروج</button>
+        </div>
+      </div>
+    </header>
+
+    <div x-cloak x-show="alert.message" class="alert mb-3" :class="alert.type === 'success' ? 'alert-success' : alert.type === 'warning' ? 'alert-warning' : 'alert-danger'" role="alert" aria-live="polite">
+      <div class="d-flex align-items-start justify-content-between gap-3">
+        <span x-text="alert.message"></span>
+        <button class="btn-close" type="button" aria-label="بستن پیام" @click="alert.message = ''"></button>
+      </div>
+    </div>
+
+    <section x-cloak x-show="accountStatus.message" class="alert alert-warning" role="status">
+      <span x-text="accountStatus.message"></span>
+    </section>
+
+    <div class="row g-3">
+      <section class="col-lg-7">
+        <article class="panel glass p-3 p-md-4 h-100">
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+            <div>
+              <h2 class="h5 fw-bold mb-1">ویرایش پروفایل</h2>
+              <p class="text-muted-ss small mb-0">این فرم فقط فیلدهای حساب کاربری را به API ارسال می‌کند.</p>
+            </div>
+            <span class="status-badge badge-neutral" x-text="isDemo ? 'حالت نمایشی' : 'API'"></span>
+          </div>
+
+          <form @submit.prevent="saveProfile()" novalidate>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="firstName">نام</label>
+                <input class="form-control form-control-lg" id="firstName" x-model.trim="profile.first_name" autocomplete="given-name" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="lastName">نام خانوادگی</label>
+                <input class="form-control form-control-lg" id="lastName" x-model.trim="profile.last_name" autocomplete="family-name" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="email">ایمیل</label>
+                <input class="form-control form-control-lg" id="email" x-model.trim="profile.email" type="email" dir="ltr" autocomplete="email" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="phone">شماره تماس</label>
+                <input class="form-control form-control-lg" id="phone" x-model.trim="profile.phone" dir="ltr" autocomplete="tel" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="studentId">شماره دانشجویی</label>
+                <input class="form-control form-control-lg" id="studentId" x-model.trim="profile.student_id" dir="ltr" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nationalId">کد ملی</label>
+                <input class="form-control form-control-lg" id="nationalId" x-model.trim="profile.national_id" dir="ltr" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="gender">جنسیت</label>
+                <select class="form-select form-select-lg" id="gender" x-model="profile.gender">
+                  <option value="">ثبت نشده</option>
+                  <option value="female">زن</option>
+                  <option value="male">مرد</option>
+                  <option value="other">سایر</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="profileImage">تصویر پروفایل، اختیاری</label>
+                <input class="form-control form-control-lg" id="profileImage" type="file" accept="image/*" @change="profileImage = $event.target.files[0] || null" />
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              <button class="btn btn-ss btn-ss-primary px-4" type="submit" :disabled="profileLoading">
+                <span x-cloak x-show="profileLoading" class="spinner-border spinner-border-sm"></span>
+                <span x-text="profileLoading ? 'در حال ذخیره...' : 'ذخیره پروفایل'"></span>
+              </button>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <aside class="col-lg-5">
+        <article class="panel glass p-3 p-md-4 mb-3">
+          <h2 class="h5 fw-bold mb-3">وضعیت و دسترسی</h2>
+          <div class="d-grid gap-2">
+            <div class="info-row"><span>فعال بودن حساب</span><span x-text="profile.is_active === false ? 'غیرفعال' : 'فعال'"></span></div>
+            <div class="info-row"><span>تایید حساب</span><span x-text="profile.is_verified === false ? 'تاییدنشده' : 'تاییدشده'"></span></div>
+            <div class="info-row"><span>نقش‌ها</span><span x-text="rolesText()"></span></div>
+            <div class="info-row"><span>مجوزها</span><span x-text="permissionsText()"></span></div>
+          </div>
+        </article>
+
+        <article class="panel glass p-3 p-md-4">
+          <h2 class="h5 fw-bold mb-1">تغییر رمز ورود</h2>
+          <p class="text-muted-ss small">رمز جدید فقط به API ارسال می‌شود و در فرانت‌اند ذخیره نمی‌شود.</p>
+          <form @submit.prevent="changePassword()" novalidate>
+            <div class="mb-3">
+              <label class="form-label" for="currentPassword">رمز فعلی</label>
+              <input class="form-control form-control-lg" id="currentPassword" type="password" x-model="password.current_password" autocomplete="current-password" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="newPassword">رمز جدید</label>
+              <input class="form-control form-control-lg" id="newPassword" type="password" x-model="password.new_password" autocomplete="new-password" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="confirmPassword">تکرار رمز جدید</label>
+              <input class="form-control form-control-lg" id="confirmPassword" type="password" x-model="password.confirm_password" autocomplete="new-password" />
+            </div>
+            <button class="btn btn-ss btn-ss-outline w-100" type="submit" :disabled="passwordLoading">
+              <span x-cloak x-show="passwordLoading" class="spinner-border spinner-border-sm"></span>
+              <span x-text="passwordLoading ? 'در حال ثبت...' : 'تغییر رمز ورود'"></span>
+            </button>
+          </form>
+        </article>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    function accountPage() {
+      return {
+        profile: {},
+        profileImage: null,
+        profileLoading: false,
+        passwordLoading: false,
+        isDemo: false,
+        accountStatus: { label: 'نامشخص', className: 'badge-neutral', message: '' },
+        alert: { type: 'info', message: '' },
+        password: { current_password: '', new_password: '', confirm_password: '' },
+
+        async init() {
+          this.isDemo = window.SaraAuth?.isDemoMode?.() === true;
+          this.profile = { ...(window.SaraAuth?.getStoredUser?.() || {}) };
+          this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
+
+          const sessionMessage = window.SaraAuth?.consumeSessionMessage?.();
+          if (sessionMessage?.message) this.showAlert(sessionMessage.type || 'info', sessionMessage.message);
+
+          const user = await window.SaraAuth?.loadCurrentUser?.();
+          if (user) {
+            this.profile = { ...this.profile, ...user };
+            this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
+          }
+        },
+
+        async saveProfile() {
+          this.profileLoading = true;
+          try {
+            if (this.isDemo) {
+              this.profile = window.SaraAuth?.updateStoredUser?.(this.profile) || this.profile;
+              this.showAlert('success', 'پروفایل نمایشی به‌صورت محلی به‌روزرسانی شد.');
+              return;
+            }
+
+            const payload = this.profileImage ? this.toFormData() : this.profilePayload();
+            const updated = await window.SaraAPI.patch('/api/users/me/', payload);
+            this.profile = window.SaraAuth?.updateStoredUser?.(updated || this.profile) || this.profile;
+            this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
+            this.showAlert('success', 'پروفایل با موفقیت ذخیره شد.');
+          } catch (error) {
+            this.showAlert('danger', error.message || 'ذخیره پروفایل ناموفق بود.');
+          } finally {
+            this.profileLoading = false;
+          }
+        },
+
+        async changePassword() {
+          if (!this.password.current_password || !this.password.new_password) {
+            this.showAlert('warning', 'رمز فعلی و رمز جدید را وارد کنید.');
+            return;
+          }
+
+          if (this.password.new_password !== this.password.confirm_password) {
+            this.showAlert('warning', 'رمز جدید و تکرار آن برابر نیستند.');
+            return;
+          }
+
+          if (this.password.new_password.length < 8) {
+            this.showAlert('warning', 'رمز جدید باید حداقل ۸ کاراکتر باشد.');
+            return;
+          }
+
+          this.passwordLoading = true;
+          try {
+            if (this.isDemo) {
+              this.password = { current_password: '', new_password: '', confirm_password: '' };
+              this.showAlert('success', 'در حالت نمایشی، تغییر رمز فقط شبیه‌سازی شد.');
+              return;
+            }
+
+            await window.SaraAPI.post('/api/auth/change-password/', this.password);
+            this.password = { current_password: '', new_password: '', confirm_password: '' };
+            this.showAlert('success', 'رمز ورود با موفقیت تغییر کرد.');
+          } catch (error) {
+            this.showAlert('danger', error.message || 'تغییر رمز ورود ناموفق بود.');
+          } finally {
+            this.passwordLoading = false;
+          }
+        },
+
+        profilePayload() {
+          const fields = ['first_name', 'last_name', 'email', 'phone', 'student_id', 'national_id', 'gender'];
+          return Object.fromEntries(fields.map((field) => [field, this.profile[field] || '']));
+        },
+
+        toFormData() {
+          const formData = new FormData();
+          Object.entries(this.profilePayload()).forEach(([key, value]) => formData.append(key, value));
+          if (this.profileImage) formData.append('profile_image', this.profileImage);
+          return formData;
+        },
+
+        dashboardPath() {
+          const roles = window.SaraAuth?.getUserRoles?.(this.profile) || [];
+          if (roles.includes('student') || roles.includes('resident')) return './dashboard/student.html';
+          if (roles.includes('dormitory_admin') || roles.includes('dormitory_supervisor') || roles.includes('supervisor')) return './dashboard/dormitory-admin.html';
+          if (roles.includes('system_admin') || roles.includes('admin') || roles.includes('university_manager')) return './dashboard/admin.html';
+          if (roles.includes('support_staff') || roles.includes('support')) return './dashboard/support.html';
+          return './dashboard/index.html';
+        },
+
+        fullName() {
+          return `${this.profile.first_name || ''} ${this.profile.last_name || ''}`.trim() || this.profile.username || 'کاربر سراسیستم';
+        },
+
+        initials() {
+          const first = this.profile.first_name || this.profile.username || 'س';
+          const last = this.profile.last_name || 'س';
+          return `${first.charAt(0)}${last.charAt(0)}`;
+        },
+
+        rolesText() {
+          const roles = window.SaraAuth?.getUserRoles?.(this.profile) || [];
+          return roles.length ? roles.join('، ') : '—';
+        },
+
+        permissionsText() {
+          const permissions = window.SaraAuth?.getPermissions?.(this.profile) || [];
+          return permissions.length ? permissions.join('، ') : '—';
+        },
+
+        showAlert(type, message) {
+          this.alert = { type, message };
+        },
+
+        logout() {
+          window.SaraAuth?.logout?.('./login.html');
+        }
+      };
+    }
+  </script>
+</body>
+</html>
