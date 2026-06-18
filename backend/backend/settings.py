@@ -105,12 +105,6 @@ REST_FRAMEWORK = {
 
 from datetime import timedelta
 
-# Add after REST_FRAMEWORK settings
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
-}
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
