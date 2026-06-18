@@ -1030,7 +1030,7 @@
                     <div class="timeline" x-show="accommodationRequests.length > 0">
                       <template x-for="request in accommodationRequests" :key="request.id">
                         <article class="timeline-item">
-                          <span class="timeline-dot" x-text="request.id"></span>
+                          <span class="timeline-dot" x-text="request.display_id || request.id"></span>
                           <div class="timeline-content">
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
                               <h3 x-text="request.semester"></h3>
@@ -1043,6 +1043,17 @@
                               <strong class="text-soft" x-text="request.preferred_room_type || 'ثبت نشده'"></strong>
                             </p>
                             <p x-show="request.description" x-text="request.description"></p>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                              <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="openAccommodationDetail(request)">
+                                مشاهده جزئیات
+                              </button>
+                              <button x-show="canModifyRequest(request)" class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="editAccommodationRequest(request)">
+                                ویرایش
+                              </button>
+                              <button x-show="canModifyRequest(request)" class="btn btn-ss btn-ss-danger btn-sm" type="button" @click="cancelAccommodationRequest(request)">
+                                لغو درخواست
+                              </button>
+                            </div>
                           </div>
                         </article>
                       </template>
@@ -1116,6 +1127,7 @@
                       <th scope="col">سررسید</th>
                       <th scope="col">وضعیت</th>
                       <th scope="col">توضیحات</th>
+                      <th scope="col">جزئیات</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1129,11 +1141,12 @@
                           <span class="status-badge" :class="paymentBadgeClass(payment.status)" x-text="paymentStatusText(payment.status)"></span>
                         </td>
                         <td x-text="payment.description || '—'"></td>
+                        <td><button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="openPaymentDetail(payment)">مشاهده</button></td>
                       </tr>
                     </template>
 
                     <tr x-show="payments.length === 0">
-                      <td colspan="6">
+                      <td colspan="7">
                         <div class="empty-state m-3">پرداختی برای نمایش وجود ندارد.</div>
                       </td>
                     </tr>
@@ -1164,6 +1177,7 @@
                       <th scope="col">اولویت</th>
                       <th scope="col">وضعیت</th>
                       <th scope="col">تاریخ ثبت</th>
+                      <th scope="col">جزئیات</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1181,11 +1195,12 @@
                           <span class="status-badge" :class="statusBadgeClass(ticket.status)" x-text="statusText(ticket.status)"></span>
                         </td>
                         <td x-text="ticket.created_at"></td>
+                        <td><button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="openMaintenanceDetail(ticket)">مشاهده</button></td>
                       </tr>
                     </template>
 
                     <tr x-show="maintenanceRequests.length === 0">
-                      <td colspan="5">
+                      <td colspan="6">
                         <div class="empty-state m-3">درخواست تعمیراتی ثبت نشده است.</div>
                       </td>
                     </tr>
@@ -1217,9 +1232,12 @@
                         <p x-text="announcement.content"></p>
                         <div class="d-flex align-items-center justify-content-between gap-2 mt-3">
                           <span class="text-muted-ss small" x-text="announcement.created_at"></span>
-                          <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="markAnnouncementRead(announcement)">
-                            علامت‌گذاری خوانده‌شده
-                          </button>
+                          <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="openAnnouncementDetail(announcement)">جزئیات</button>
+                            <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="markAnnouncementRead(announcement)">
+                              علامت‌گذاری خوانده‌شده
+                            </button>
+                          </div>
                         </div>
                       </article>
                     </div>
@@ -1311,6 +1329,15 @@
     ></div>
 
     <div
+      data-resource="dormitories"
+      hx-get="/api/dormitories/"
+      hx-trigger="load, click from:#refreshDashboard"
+      hx-swap="none"
+      hx-timeout="15000"
+      hx-headers='{"Accept": "application/json"}'
+    ></div>
+
+    <div
       data-resource="assignment"
       hx-get="/api/bed-assignments/"
       hx-trigger="load, click from:#refreshDashboard"
@@ -1363,7 +1390,7 @@
           @submit.capture="validateAccommodation($event)"
         >
           <div class="modal-header">
-            <h2 class="modal-title h5 fw-bold" id="accommodationModalTitle">ثبت درخواست اسکان</h2>
+            <h2 class="modal-title h5 fw-bold" id="accommodationModalTitle" x-text="forms.accommodation.editingId ? 'ویرایش درخواست اسکان' : 'ثبت درخواست اسکان'"></h2>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
           </div>
 
@@ -1390,9 +1417,9 @@
                   aria-describedby="requestedDormitoryError"
                 >
                   <option value="">بدون ترجیح</option>
-                  <option value="1">خوابگاه یک</option>
-                  <option value="2">خوابگاه دو</option>
-                  <option value="3">خوابگاه سه</option>
+                  <template x-for="dormitory in dormitories" :key="dormitory.id">
+                    <option :value="dormitory.id" x-text="dormitory.name"></option>
+                  </template>
                 </select>
                 <div id="requestedDormitoryError" class="invalid-feedback" x-text="forms.accommodation.errors.requested_dormitory_id"></div>
               </div>
@@ -1462,7 +1489,7 @@
             <button type="button" class="btn btn-ss btn-ss-outline" data-bs-dismiss="modal">انصراف</button>
             <button type="submit" class="btn btn-ss btn-ss-primary" :disabled="forms.accommodation.loading">
               <span x-cloak x-show="forms.accommodation.loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-              <span x-text="forms.accommodation.loading ? 'در حال ارسال...' : 'ارسال درخواست'"></span>
+              <span x-text="forms.accommodation.loading ? 'در حال ارسال...' : (forms.accommodation.editingId ? 'ذخیره ویرایش' : 'ارسال درخواست')"></span>
             </button>
           </div>
         </form>
@@ -1596,6 +1623,45 @@
     </div>
   </div>
 
+  <div class="modal fade" id="studentDetailModal" tabindex="-1" aria-labelledby="studentDetailModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 fw-bold" id="studentDetailModalTitle" x-text="detail.title"></h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+        </div>
+        <div class="modal-body">
+          <template x-if="detail.type === 'announcement'">
+            <article>
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                <span class="text-muted-ss small" x-text="detail.item.created_at || '—'"></span>
+                <span class="status-badge" :class="detail.item.read ? 'badge-read' : 'badge-unread'" x-text="detail.item.read ? 'خوانده شده' : 'جدید'"></span>
+              </div>
+              <p class="mb-0" style="line-height:2" x-text="detail.item.content || '—'"></p>
+            </article>
+          </template>
+
+          <template x-if="detail.type !== 'announcement'">
+            <div class="info-list">
+              <template x-for="row in detailRows()" :key="row.label">
+                <div class="info-row">
+                  <span x-text="row.label"></span>
+                  <span :dir="row.ltr ? 'ltr' : 'rtl'" x-text="row.value || '—'"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ss btn-ss-outline" data-bs-dismiss="modal">بستن</button>
+          <button x-show="detail.type === 'announcement' && detail.item && !detail.item.read" class="btn btn-ss btn-ss-primary" type="button" @click="markAnnouncementRead(detail.item)">
+            علامت‌گذاری خوانده‌شده
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Bootstrap Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -1644,8 +1710,21 @@
           room: "۲۱۲",
           bed: "۳",
           start_date: "۱۴۰۴/۰۷/۰۱",
+          end_date: "۱۴۰۵/۰۴/۳۰",
           status: "active",
           notes: "تخصیص فعال برای نیم‌سال جاری"
+        },
+
+        dormitories: [
+          { id: "1", name: "خوابگاه یک" },
+          { id: "2", name: "خوابگاه دو" },
+          { id: "3", name: "خوابگاه سه" }
+        ],
+
+        detail: {
+          type: "",
+          title: "",
+          item: {}
         },
 
         accommodationRequests: [
@@ -1744,6 +1823,7 @@
             loading: false,
             success: false,
             message: "",
+            editingId: "",
             data: {
               requested_dormitory_id: "",
               preferred_room_type: "",
@@ -1935,11 +2015,16 @@
 
           if (resource === "accommodationRequests") {
             this.accommodationRequests = list.map((item, index) => ({
-              id: this.toPersianNumber(item.id || index + 1),
+              id: String(item.id || index + 1),
+              display_id: this.toPersianNumber(item.id || index + 1),
               semester: item.semester || "—",
+              requested_dormitory_id: item.requested_dormitory?.id || item.requested_dormitory_id || "",
               dormitory: item.requested_dormitory?.name || item.dormitory || item.requested_dormitory_name || "بدون ترجیح",
               preferred_room_type: this.roomTypeText(item.preferred_room_type),
+              preferred_room_type_value: item.preferred_room_type || "",
               status: item.status || "pending",
+              request_date: item.request_date || item.created_at || "—",
+              rejection_reason: item.rejection_reason || item.review_note || "",
               description: item.description || item.review_note || ""
             }));
 
@@ -1951,16 +2036,29 @@
             return;
           }
 
+          if (resource === "dormitories") {
+            this.dormitories = list.map((item) => ({
+              id: String(item.id),
+              name: item.name || item.title || `خوابگاه ${item.id}`,
+              gender_type: item.gender_type || item.gender || "",
+              capacity: item.capacity || item.total_capacity || ""
+            }));
+            return;
+          }
+
           if (resource === "assignment") {
             const assignment = Array.isArray(list) ? list[0] : data;
             if (assignment) {
               this.assignment = {
+                id: assignment.id || "—",
                 dormitory: assignment.dormitory?.name || assignment.room?.dormitory?.name || assignment.dormitory_name || "—",
                 room: this.toPersianNumber(assignment.room?.room_number || assignment.room_number || assignment.bed?.room?.room_number || ""),
                 bed: this.toPersianNumber(assignment.bed?.bed_number || assignment.bed_number || ""),
                 start_date: assignment.start_date || "—",
+                end_date: assignment.end_date || "—",
                 status: assignment.status || "active",
-                notes: assignment.notes || ""
+                notes: assignment.notes || "",
+                history: assignment.history || assignment.assignments || []
               };
             }
             return;
@@ -1973,6 +2071,9 @@
               amount: this.formatAmount(item.amount),
               due_date: item.due_date || "—",
               status: item.status || "unpaid",
+              transaction_ref: item.transaction_ref || item.reference || "",
+              paid_at: item.paid_at || item.payment_date || "",
+              assignment: item.bed_assignment?.id || item.bed_assignment_id || "",
               description: item.description || ""
             }));
             this.updatePaymentSummary();
@@ -1987,7 +2088,9 @@
               location: item.location || `اتاق ${this.toPersianNumber(item.room?.room_number || item.room_id || "—")}`,
               priority: item.priority || "medium",
               status: item.status || "pending",
-              created_at: item.created_at || "—"
+              created_at: item.created_at || "—",
+              updated_at: item.updated_at || "",
+              comments: item.comments || item.history || []
             }));
             return;
           }
@@ -1998,6 +2101,8 @@
               title: item.title || "بدون عنوان",
               content: item.content || "",
               created_at: item.created_at || "—",
+              target: item.target_role?.name || item.target_dormitory?.name || item.target || "عمومی",
+              expires_at: item.expires_at || "",
               read: Boolean(item.read || item.is_read || item.read_at)
             }));
             this.updateUnreadBadge();
@@ -2038,11 +2143,15 @@
           this.showAlert("success", "درخواست اسکان ثبت شد و پس از بررسی وضعیت آن بروزرسانی می‌شود.");
 
           const newRequest = {
-            id: this.toPersianNumber(data?.id || this.accommodationRequests.length + 1),
+            id: String(data?.id || this.accommodationRequests.length + 1),
+            display_id: this.toPersianNumber(data?.id || this.accommodationRequests.length + 1),
             semester: this.forms.accommodation.data.semester,
+            requested_dormitory_id: this.forms.accommodation.data.requested_dormitory_id,
             dormitory: this.selectedDormitoryName(this.forms.accommodation.data.requested_dormitory_id),
             preferred_room_type: this.roomTypeText(this.forms.accommodation.data.preferred_room_type),
+            preferred_room_type_value: this.forms.accommodation.data.preferred_room_type,
             status: data?.status || "pending",
+            request_date: this.forms.accommodation.data.request_date || "امروز",
             description: this.forms.accommodation.data.description
           };
 
@@ -2095,6 +2204,13 @@
           if (this.hasFormErrors("accommodation")) {
             event.preventDefault();
             event.stopImmediatePropagation();
+            return;
+          }
+
+          if (form.editingId) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            this.saveAccommodationEdit();
           }
         },
 
@@ -2156,6 +2272,7 @@
           this.forms.accommodation.loading = false;
           this.forms.accommodation.message = "";
           this.forms.accommodation.success = false;
+          this.forms.accommodation.editingId = "";
           this.clearFormErrors("accommodation");
         },
 
@@ -2182,10 +2299,164 @@
           }
         },
 
-        markAnnouncementRead(announcement) {
+        openDetail(type, title, item) {
+          this.detail = { type, title, item: item || {} };
+          const modal = new bootstrap.Modal(document.getElementById("studentDetailModal"));
+          modal.show();
+        },
+
+        openAccommodationDetail(request) {
+          this.openDetail("accommodation", "جزئیات درخواست اسکان", request);
+        },
+
+        openPaymentDetail(payment) {
+          this.openDetail("payment", "جزئیات پرداخت", payment);
+        },
+
+        openMaintenanceDetail(ticket) {
+          this.openDetail("maintenance", "جزئیات درخواست تعمیرات", ticket);
+        },
+
+        openAnnouncementDetail(announcement) {
+          this.openDetail("announcement", announcement.title || "جزئیات اطلاعیه", announcement);
+        },
+
+        canModifyRequest(request) {
+          return request?.status === "pending";
+        },
+
+        editAccommodationRequest(request) {
+          if (!this.canModifyRequest(request)) return;
+          this.forms.accommodation.editingId = request.id;
+          this.forms.accommodation.data = {
+            requested_dormitory_id: request.requested_dormitory_id || "",
+            preferred_room_type: request.preferred_room_type_value || "",
+            semester: request.semester || "",
+            request_date: request.request_date || "",
+            description: request.description || ""
+          };
+          this.forms.accommodation.message = "";
+          this.forms.accommodation.success = false;
+          new bootstrap.Modal(document.getElementById("accommodationModal")).show();
+        },
+
+        async saveAccommodationEdit() {
+          const form = this.forms.accommodation;
+          form.loading = true;
+          form.message = "";
+
+          try {
+            const payload = { ...form.data };
+            if (!window.SaraAuth?.isDemoMode?.()) {
+              await window.SaraAPI.patch(`/api/accommodation-requests/${form.editingId}/`, payload);
+            }
+
+            this.accommodationRequests = this.accommodationRequests.map((request) => {
+              if (request.id !== form.editingId) return request;
+              return {
+                ...request,
+                semester: payload.semester,
+                requested_dormitory_id: payload.requested_dormitory_id,
+                dormitory: this.selectedDormitoryName(payload.requested_dormitory_id),
+                preferred_room_type: this.roomTypeText(payload.preferred_room_type),
+                preferred_room_type_value: payload.preferred_room_type,
+                request_date: payload.request_date,
+                description: payload.description
+              };
+            });
+
+            form.success = true;
+            form.message = "درخواست اسکان به‌روزرسانی شد.";
+            this.showAlert("success", "ویرایش درخواست اسکان ثبت شد.");
+            window.setTimeout(() => {
+              this.closeModal("accommodationModal");
+              this.resetAccommodationForm();
+            }, 700);
+          } catch (error) {
+            form.success = false;
+            form.message = error.message || "ویرایش درخواست اسکان ناموفق بود.";
+          } finally {
+            form.loading = false;
+          }
+        },
+
+        async cancelAccommodationRequest(request) {
+          if (!this.canModifyRequest(request)) return;
+
+          try {
+            if (!window.SaraAuth?.isDemoMode?.()) {
+              await window.SaraAPI.patch(`/api/accommodation-requests/${request.id}/`, { status: "cancelled" });
+            }
+            request.status = "cancelled";
+            request.description = request.description || "درخواست توسط دانشجو لغو شد.";
+            this.summary.request_status = "cancelled";
+            this.summary.request_title = this.statusText("cancelled");
+            this.showAlert("success", "درخواست اسکان لغو شد.");
+          } catch (error) {
+            this.showAlert("danger", error.message || "لغو درخواست اسکان ناموفق بود.");
+          }
+        },
+
+        detailRows() {
+          const item = this.detail.item || {};
+          const maps = {
+            accommodation: [
+              ["شناسه", item.display_id || item.id, true],
+              ["نیم‌سال", item.semester],
+              ["خوابگاه ترجیحی", item.dormitory],
+              ["نوع اتاق", item.preferred_room_type],
+              ["وضعیت", this.statusText(item.status)],
+              ["تاریخ درخواست", item.request_date],
+              ["دلیل رد/یادداشت", item.rejection_reason],
+              ["توضیحات", item.description]
+            ],
+            payment: [
+              ["شناسه", item.id, true],
+              ["نوع پرداخت", item.payment_type],
+              ["مبلغ", item.amount],
+              ["سررسید", item.due_date],
+              ["وضعیت", this.paymentStatusText(item.status)],
+              ["رسید/مرجع تراکنش", item.transaction_ref, true],
+              ["تاریخ پرداخت", item.paid_at],
+              ["تخصیص مرتبط", item.assignment, true],
+              ["توضیحات", item.description]
+            ],
+            maintenance: [
+              ["شناسه", item.id, true],
+              ["عنوان", item.title],
+              ["مکان", item.location],
+              ["اولویت", this.priorityText(item.priority)],
+              ["وضعیت", this.statusText(item.status)],
+              ["تاریخ ثبت", item.created_at],
+              ["آخرین بروزرسانی", item.updated_at],
+              ["شرح", item.description],
+              ["تاریخچه/یادداشت‌ها", this.historyText(item.comments)]
+            ]
+          };
+          return (maps[this.detail.type] || []).map(([label, value, ltr]) => ({ label, value, ltr: Boolean(ltr) }));
+        },
+
+        historyText(items) {
+          if (!Array.isArray(items) || items.length === 0) return "";
+          return items.map((item) => item.note || item.comment || item.status || String(item)).join(" | ");
+        },
+
+        async markAnnouncementRead(announcement) {
+          if (!announcement || announcement.read) return;
+          const previous = announcement.read;
           announcement.read = true;
           this.updateUnreadBadge();
-          this.showAlert("success", "اطلاعیه به عنوان خوانده‌شده علامت‌گذاری شد.");
+
+          try {
+            if (!window.SaraAuth?.isDemoMode?.()) {
+              await window.SaraAPI.post(`/api/announcements/${announcement.id}/read/`, {});
+            }
+            this.showAlert("success", "اطلاعیه به عنوان خوانده‌شده علامت‌گذاری شد.");
+          } catch (error) {
+            announcement.read = previous;
+            this.updateUnreadBadge();
+            this.showAlert("danger", error.message || "ثبت وضعیت خوانده‌شده ناموفق بود.");
+          }
         },
 
         updateUnreadBadge() {
@@ -2209,12 +2480,8 @@
         },
 
         selectedDormitoryName(value) {
-          const names = {
-            "1": "خوابگاه یک",
-            "2": "خوابگاه دو",
-            "3": "خوابگاه سه"
-          };
-          return names[value] || "بدون ترجیح";
+          const dormitory = this.dormitories.find((item) => String(item.id) === String(value));
+          return dormitory?.name || "بدون ترجیح";
         },
 
         roomTypeText(value) {
@@ -2232,6 +2499,7 @@
             approved: "تایید شده",
             rejected: "رد شده",
             assigned: "تخصیص داده شده",
+            cancelled: "لغو شده",
             active: "فعال",
             inactive: "غیرفعال",
             progress: "در حال رسیدگی",
@@ -2250,6 +2518,7 @@
             approved: "badge-approved",
             assigned: "badge-assigned",
             pending: "badge-pending",
+            cancelled: "badge-inactive",
             progress: "badge-progress",
             resolved: "badge-active",
             rejected: "badge-rejected",
@@ -2266,7 +2535,9 @@
           const labels = {
             paid: "پرداخت شده",
             unpaid: "پرداخت نشده",
-            pending: "در انتظار تایید"
+            pending: "در انتظار تایید",
+            overdue: "سررسید گذشته",
+            cancelled: "لغو شده"
           };
           return labels[status] || status || "نامشخص";
         },
@@ -2275,7 +2546,9 @@
           const classes = {
             paid: "badge-paid",
             unpaid: "badge-unpaid",
-            pending: "badge-pending"
+            pending: "badge-pending",
+            overdue: "badge-urgent",
+            cancelled: "badge-inactive"
           };
           return classes[status] || "badge-neutral";
         },
