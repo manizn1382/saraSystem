@@ -6,13 +6,14 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
 
 class RoomListView(APIView):
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, status=None):
-
         queryset = Room.objects.all()
 
         if status:
@@ -29,12 +30,19 @@ class RoomListView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class RoomCreateView(generics.CreateAPIView):
     serializer_class = RoomsInfoSerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
+        if not request.auth.get('is_staff', False):
+            return Response(
+                {'detail': 'Only admins can create rooms'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         return Response({
             'status': 'success',
@@ -45,7 +53,8 @@ class RoomCreateView(generics.CreateAPIView):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class RoomDeleteView(generics.DestroyAPIView):
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Room.objects.all()
     serializer_class = RoomsInfoSerializer
     lookup_field = 'id'
@@ -54,6 +63,12 @@ class RoomDeleteView(generics.DestroyAPIView):
         instance = self.get_object()
         room_number = instance.roomNumber
         dorm_name = instance.dormitory.name
+
+        if not request.auth.get('is_staff', False):
+            return Response(
+                {'detail': 'Only admins can create rooms'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         self.perform_destroy(instance)
 
@@ -70,3 +85,12 @@ class RoomUpdateView(generics.UpdateAPIView):
     queryset = Room.objects.all()
     serializer_class = RoomsInfoSerializer
     lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        if not request.auth.get('is_staff', False):
+            return Response(
+                {'detail': 'Only admins can update rooms'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        return super().update(request, *args, **kwargs)
