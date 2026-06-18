@@ -15,6 +15,8 @@ INSTALLED_APPS += [
     'dormitories',
 ]
 
+USER_SERVICE_URL = '127.0.0.1:8000'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',

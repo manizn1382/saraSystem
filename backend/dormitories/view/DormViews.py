@@ -5,6 +5,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
+import requests
+from backend.settings.dormitories_settings import USER_SERVICE_URL
 
 
 class DormitoryListView(generics.ListAPIView):
@@ -12,7 +14,6 @@ class DormitoryListView(generics.ListAPIView):
     serializer_class = DormitoriesInfoSerializer
     authentication_classes = [JWTStatelessUserAuthentication]
     permission_classes = [permissions.IsAuthenticated]
-
 
 
 class DormitoryWithRoomsView(generics.ListAPIView):
@@ -30,7 +31,19 @@ class DormCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
 
-        if not request.auth.get('is_staff', False):
+        try:
+            response = requests.get(
+                f"http://{USER_SERVICE_URL}/api/accounts/users/me/",
+                headers={"Authorization": request.headers.get("Authorization")},
+                timeout=3
+            )
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return Response({
+                'message': 'request error',
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if not response.json().get("is_staff"):
             return Response(
                 {'detail': 'Only admins can create dormitories'},
                 status=status.HTTP_403_FORBIDDEN
@@ -48,9 +61,6 @@ class DormCreateView(generics.CreateAPIView):
 
 
 class DormUpdateView(generics.UpdateAPIView):
-    """
-    GET /api/beds/{id}/
-    """
     authentication_classes = [JWTStatelessUserAuthentication]
     permission_classes = [permissions.IsAuthenticated]
     queryset = Dormitory.objects.all()
@@ -58,7 +68,20 @@ class DormUpdateView(generics.UpdateAPIView):
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-        if not request.auth.get('is_staff', False):
+
+        try:
+            response = requests.get(
+                f"http://{USER_SERVICE_URL}/api/accounts/users/me/",
+                headers={"Authorization": request.headers.get("Authorization")},
+                timeout=3
+            )
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return Response({
+                'message': 'request error',
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if not response.json().get("is_staff"):
             return Response(
                 {'detail': 'Only admins can update dormitories'},
                 status=status.HTTP_403_FORBIDDEN
