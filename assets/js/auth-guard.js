@@ -172,6 +172,7 @@
 
     if (!accessToken) {
       clearSession();
+      window.SaraAuth?.setSessionMessage?.('warning', 'برای دسترسی به این بخش ابتدا وارد سامانه شوید.');
       window.location.replace(addReturnParam(loginUrl));
       return false;
     }
@@ -204,8 +205,7 @@
       const status = event.detail?.xhr?.status;
       if (status === 401) {
         if (isDemoMode()) return;
-        clearSession();
-        window.location.replace(addReturnParam(loginUrl));
+        window.SaraAuth?.handleExpiredSession?.(addReturnParam(loginUrl)) || clearSession();
       }
 
       if (status === 403) {

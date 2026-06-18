@@ -205,7 +205,12 @@
           x-show="alert.message"
           x-transition
           class="alert mb-4"
-          :class="alert.type === 'success' ? 'alert-success' : 'alert-danger'"
+          :class="{
+            'alert-success': alert.type === 'success',
+            'alert-warning': alert.type === 'warning',
+            'alert-info': alert.type === 'info',
+            'alert-danger': !['success', 'warning', 'info'].includes(alert.type)
+          }"
           role="alert"
           aria-live="polite"
         >
@@ -480,6 +485,10 @@
 
         init() {
           this.demoModeEnabled = window.SaraAuth?.isDemoMode?.() === true;
+          const sessionMessage = window.SaraAuth?.consumeSessionMessage?.();
+          if (sessionMessage?.message) {
+            this.showAlert(sessionMessage.type || "warning", sessionMessage.message);
+          }
 
           document.body.addEventListener("htmx:beforeRequest", (event) => {
             if (!this.isLoginRequest(event)) return;

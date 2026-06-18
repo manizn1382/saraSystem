@@ -16,6 +16,7 @@
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   <script src="https://unpkg.com/htmx-ext-json-enc@2.0.1/json-enc.js" defer></script>
   <script src="../../assets/js/auth.js" defer></script>
+  <script src="../../assets/js/navigation.js" defer></script>
   <script src="../../assets/js/api.js" defer></script>
   <script src="../../assets/js/ui-helpers.js" defer></script>
   <script src="../../assets/js/status-badges.js" defer></script>
@@ -815,7 +816,7 @@
         </div>
 
         <nav class="sidebar-nav" aria-label="دسترسی‌های دانشجو">
-          <template x-for="item in navItems" :key="item.href">
+          <template x-for="item in visibleNavItems()" :key="item.href">
             <a
               class="sidebar-link"
               :class="{ 'active': activeSection === item.href }"
@@ -900,10 +901,10 @@
                     </div>
                     <div class="info-row">
                       <span>وضعیت حساب</span>
-                      <span class="status-badge badge-active">فعال</span>
+                      <span class="status-badge" :class="accountStatus().className" x-text="accountStatus().label"></span>
                     </div>
                   </div>
-                  <a class="btn btn-ss btn-ss-outline w-100 mb-2" href="#profile" @click="activeSection = '#profile'; profileOpen = false">
+                  <a class="btn btn-ss btn-ss-outline w-100 mb-2" href="../account.html" @click="profileOpen = false">
                     مشاهده پروفایل
                   </a>
                   <button class="btn btn-ss btn-ss-danger w-100" type="button" @click="logout()">
@@ -1239,7 +1240,7 @@
                   <h2 id="profileTitle" class="panel-title">پروفایل دانشجو</h2>
                   <p class="text-muted-ss small mb-0 mt-1">اطلاعات پایه دریافت‌شده از API کاربر</p>
                 </div>
-                <span class="status-badge badge-active">فعال</span>
+                <span class="status-badge" :class="accountStatus().className" x-text="accountStatus().label"></span>
               </div>
 
               <div class="panel-body">
@@ -1610,13 +1611,13 @@
         },
 
         navItems: [
-          { href: "#overview", icon: "📊", label: "داشبورد", badge: "" },
-          { href: "#accommodation", icon: "🏠", label: "درخواست اسکان", badge: "" },
-          { href: "#assignment", icon: "🛏️", label: "وضعیت اسکان", badge: "" },
-          { href: "#payments", icon: "💳", label: "پرداخت‌ها", badge: "" },
-          { href: "#maintenance", icon: "🛠️", label: "تعمیرات", badge: "" },
-          { href: "#announcements", icon: "📣", label: "اطلاعیه‌ها", badge: "جدید" },
-          { href: "#profile", icon: "👤", label: "پروفایل", badge: "" }
+          { href: "#overview", icon: "📊", label: "داشبورد", badge: "", roles: ["student", "resident"] },
+          { href: "#accommodation", icon: "🏠", label: "درخواست اسکان", badge: "", roles: ["student", "resident"], permissions: ["accommodation.request.view"] },
+          { href: "#assignment", icon: "🛏️", label: "وضعیت اسکان", badge: "", roles: ["student", "resident"], permissions: ["bed_assignment.view_own"] },
+          { href: "#payments", icon: "💳", label: "پرداخت‌ها", badge: "", roles: ["student", "resident"], permissions: ["payment.view_own"] },
+          { href: "#maintenance", icon: "🛠️", label: "تعمیرات", badge: "", roles: ["student", "resident"], permissions: ["maintenance.request.create"] },
+          { href: "#announcements", icon: "📣", label: "اطلاعیه‌ها", badge: "جدید", roles: ["student", "resident"], permissions: ["announcement.view"] },
+          { href: "#profile", icon: "👤", label: "پروفایل", badge: "", roles: ["student", "resident"] }
         ],
 
         user: {
@@ -1813,6 +1814,8 @@
 
           if (parsedUser) {
             this.user = { ...this.user, ...parsedUser };
+            const status = this.accountStatus();
+            if (status.message) this.showAlert("warning", status.message);
           }
         },
 
@@ -1833,7 +1836,15 @@
         },
 
         activeLabel() {
-          return this.navItems.find((item) => item.href === this.activeSection)?.label || "داشبورد";
+          return this.visibleNavItems().find((item) => item.href === this.activeSection)?.label || "داشبورد";
+        },
+
+        visibleNavItems() {
+          return window.SaraNavigation?.filter?.(this.navItems, this.user) || this.navItems;
+        },
+
+        accountStatus() {
+          return window.SaraAuth?.getAccountStatus?.(this.user) || { label: "نامشخص", className: "badge-neutral", message: "" };
         },
 
         watchCurrentSection() {
@@ -1916,6 +1927,9 @@
 
           if (resource === "me" && data && !Array.isArray(data)) {
             this.user = { ...this.user, ...data };
+            window.SaraAuth?.updateStoredUser?.(this.user);
+            const status = this.accountStatus();
+            if (status.message) this.showAlert("warning", status.message);
             return;
           }
 

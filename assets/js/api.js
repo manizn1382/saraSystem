@@ -38,6 +38,7 @@
 
   async function request(path, options = {}) {
     const method = options.method || 'GET';
+    const retryOnUnauthorized = options.retryOnUnauthorized !== false;
     const headers = {
       Accept: 'application/json',
       ...(options.body && !(options.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
@@ -58,8 +59,13 @@
 
     const data = await parseResponse(response);
 
-    if (response.status === 401 && !window.SaraAuth?.isDemoMode?.()) {
-      window.SaraAuth?.clearSession?.();
+    if (response.status === 401 && retryOnUnauthorized && !window.SaraAuth?.isDemoMode?.()) {
+      const refreshedToken = await window.SaraAuth?.refreshAccessToken?.();
+      if (refreshedToken) {
+        return request(path, { ...options, retryOnUnauthorized: false });
+      }
+
+      window.SaraAuth?.handleExpiredSession?.('../login.html') || window.SaraAuth?.clearSession?.();
     }
 
     if (!response.ok) {
