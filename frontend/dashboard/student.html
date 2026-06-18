@@ -1809,20 +1809,15 @@
         },
 
         loadStoredUser() {
-          const rawUser = localStorage.getItem("sarasystem.user") || sessionStorage.getItem("sarasystem.user");
+          const parsedUser = window.SaraAuth?.getStoredUser?.();
 
-          if (!rawUser) return;
-
-          try {
-            const parsedUser = JSON.parse(rawUser);
+          if (parsedUser) {
             this.user = { ...this.user, ...parsedUser };
-          } catch {
-            this.showAlert("danger", "اطلاعات ذخیره‌شده کاربر قابل خواندن نیست.");
           }
         },
 
         getAccessToken() {
-          return localStorage.getItem("sarasystem.accessToken") || sessionStorage.getItem("sarasystem.accessToken");
+          return window.SaraAuth?.getAccessToken?.() || "";
         },
 
         fullName() {
@@ -2292,32 +2287,11 @@
         },
 
         serverMessage(status, data) {
-          const serverMessage = data?.detail || data?.message || data?.error || data?.non_field_errors?.[0];
-
-          if (serverMessage) {
-            return this.normalizeError(serverMessage);
-          }
-
-          const messages = {
-            400: "اطلاعات ارسال‌شده معتبر نیست. لطفاً فیلدها را بررسی کنید.",
-            401: "برای مشاهده این بخش باید دوباره وارد سامانه شوید.",
-            403: "شما مجوز دسترسی به این بخش را ندارید.",
-            404: "آدرس API پیدا نشد.",
-            409: "این درخواست با داده‌های موجود تداخل دارد.",
-            422: "برخی اطلاعات قابل پذیرش نیست.",
-            429: "تعداد درخواست‌ها زیاد است. کمی بعد دوباره تلاش کنید.",
-            500: "خطای داخلی سرور رخ داده است. لطفاً بعداً دوباره تلاش کنید."
-          };
-
-          return messages[status] || "عملیات ناموفق بود. لطفاً دوباره تلاش کنید.";
+          return window.SaraUI?.apiErrorMessage?.(status, data) || "عملیات ناموفق بود. لطفاً دوباره تلاش کنید.";
         },
 
         asList(data) {
-          if (Array.isArray(data)) return data;
-          if (Array.isArray(data?.results)) return data.results;
-          if (Array.isArray(data?.data)) return data.data;
-          if (data && typeof data === "object") return [data];
-          return [];
+          return window.SaraUI?.asList?.(data) || [];
         },
 
         parseJson(value) {
@@ -2329,18 +2303,15 @@
         },
 
         normalizeError(error) {
-          return Array.isArray(error) ? error.join("، ") : String(error);
+          return window.SaraUI?.normalizeError?.(error) || String(error);
         },
 
         formatAmount(value) {
-          if (!value && value !== 0) return "—";
-          const number = Number(value);
-          if (Number.isNaN(number)) return String(value);
-          return `${this.toPersianNumber(number.toLocaleString("en-US"))} تومان`;
+          return window.SaraUI?.formatAmount?.(value, "تومان") || "—";
         },
 
         toPersianNumber(value) {
-          return String(value).replace(/\d/g, (digit) => "۰۱۲۳۴۵۶۷۸۹"[digit]);
+          return window.SaraUI?.toPersianNumber?.(value) || String(value);
         },
 
         clearAlert() {
@@ -2353,14 +2324,7 @@
         },
 
         logout() {
-          localStorage.removeItem("sarasystem.accessToken");
-          localStorage.removeItem("sarasystem.refreshToken");
-          localStorage.removeItem("sarasystem.user");
-          sessionStorage.removeItem("sarasystem.accessToken");
-          sessionStorage.removeItem("sarasystem.refreshToken");
-          sessionStorage.removeItem("sarasystem.user");
-
-          window.location.assign("../login.html");
+          window.SaraAuth?.logout?.("../login.html");
         }
       };
     }

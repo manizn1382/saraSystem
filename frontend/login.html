@@ -328,6 +328,7 @@
                 <button
                   type="button"
                   class="btn btn-outline-primary w-100 demo-account-btn"
+                  :disabled="!demoEnabled()"
                   @click="loginAsDemo(account.key)"
                 >
                   <span x-text="account.label"></span>
@@ -339,6 +340,9 @@
           <div class="small text-secondary mt-3" dir="rtl">
             رمز همه حساب‌های نمایشی: <code>demo1234</code> — می‌توانید از نام‌های
             <code>student</code>، <code>supervisor</code>، <code>admin</code>، <code>support</code> هم در فرم ورود استفاده کنید.
+          </div>
+          <div class="alert alert-warning py-2 px-3 mt-3 mb-0 small" x-show="!demoEnabled()" x-cloak>
+            حالت نمایشی غیرفعال است. برای فعال‌سازی محلی مقدار <code>sarasystem.demoMode</code> را در storage برابر <code>true</code> قرار دهید.
           </div>
         </section>
 
@@ -537,6 +541,8 @@
         },
 
         findDemoAccount(username, password) {
+          if (!this.demoEnabled()) return null;
+
           const normalizedUsername = String(username || "").toLowerCase().trim();
           const normalizedPassword = String(password || "");
 
@@ -558,18 +564,17 @@
           this.clearErrors();
           this.clearAlert();
 
-          const storage = this.remember ? localStorage : sessionStorage;
-
-          this.clearStoredSession();
-          storage.setItem("sarasystem.accessToken", `${account.token}-${Date.now()}`);
-          storage.setItem("sarasystem.refreshToken", `${account.refresh}-${Date.now()}`);
-          storage.setItem("sarasystem.user", JSON.stringify(account.user));
-          storage.setItem("sarasystem.demoMode", "true");
+          const demoSession = window.SaraDemoAuth?.login?.(account.username || account.key, account.password, this.remember);
+          if (!demoSession) {
+            this.loading = false;
+            this.showAlert("danger", "حالت نمایشی فعال نیست یا حساب نمایشی معتبر نیست.");
+            return;
+          }
 
           this.showAlert("success", `ورود نمایشی ${account.label} انجام شد. در حال انتقال به پنل...`);
 
           window.setTimeout(() => {
-            window.location.assign(this.getDashboardPath(account.user));
+            window.location.assign(this.getDashboardPath(demoSession.user));
           }, 350);
         },
 
@@ -593,19 +598,13 @@
             return;
           }
 
-          const storage = this.remember ? localStorage : sessionStorage;
-
-          this.clearStoredSession();
-          storage.setItem("sarasystem.accessToken", accessToken);
-          storage.setItem("sarasystem.demoMode", "false");
-
-          if (refreshToken) {
-            storage.setItem("sarasystem.refreshToken", refreshToken);
-          }
-
-          if (data?.user) {
-            storage.setItem("sarasystem.user", JSON.stringify(data.user));
-          }
+          window.SaraAuth?.clearSession?.();
+          window.SaraAuth?.setSession?.({
+            accessToken,
+            refreshToken,
+            user: data?.user,
+            demoMode: false
+          }, { remember: this.remember });
 
           this.showAlert("success", "ورود موفق بود. در حال انتقال به داشبورد...");
 
@@ -662,20 +661,7 @@
         },
 
         getDashboardPath(user) {
-          const roles = Array.isArray(user?.roles)
-            ? user.roles
-            : user?.role
-              ? [user.role]
-              : [];
-
-          const normalizedRoles = roles.map((role) => {
-            const value =
-              typeof role === "string"
-                ? role
-                : role?.code || role?.name || role?.slug || "";
-
-            return value.toLowerCase().trim().replace(/[\s-]+/g, "_");
-          });
+          const normalizedRoles = window.SaraAuth?.getUserRoles?.(user) || [];
 
           if (normalizedRoles.includes("student") || normalizedRoles.includes("resident")) {
             return "./dashboard/student.html";
@@ -717,19 +703,15 @@
         },
 
         normalizeError(error) {
-          return Array.isArray(error) ? error.join("، ") : String(error);
+          return window.SaraUI?.normalizeError?.(error) || String(error);
         },
 
         clearStoredSession() {
-          [
-            "sarasystem.accessToken",
-            "sarasystem.refreshToken",
-            "sarasystem.user",
-            "sarasystem.demoMode"
-          ].forEach((key) => {
-            localStorage.removeItem(key);
-            sessionStorage.removeItem(key);
-          });
+          window.SaraAuth?.clearSession?.();
+        },
+
+        demoEnabled() {
+          return window.SaraDemoAuth?.isEnabled?.() === true;
         },
 
         clearErrors() {

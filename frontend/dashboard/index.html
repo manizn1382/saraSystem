@@ -50,7 +50,7 @@
   <script>
     function dashboardRouter(){
       return {
-        user: window.SaraAuth?.getStoredUser() || {},
+        user: window.SaraAuth?.getStoredUser?.() || {},
         dashboards: [
           {icon:'🎓', title:'دانشجو', description:'درخواست اسکان، پرداخت‌ها، تعمیرات و اطلاعیه‌ها', href:'./student.html', enabled:true},
           {icon:'🛡️', title:'مسئول خوابگاه', description:'بررسی درخواست‌ها، ظرفیت و تخصیص تخت', href:'./dormitory-admin.html', enabled:true},
@@ -59,7 +59,7 @@
         ],
         fullName(){ return `${this.user.first_name || ''} ${this.user.last_name || ''}`.trim() || this.user.username || this.user.email || 'کاربر'; },
         rolesText(){ const roles = window.SaraAuth?.getUserRoles(this.user) || []; return roles.length ? roles.join(', ') : 'نامشخص'; },
-        logout(){ window.SaraAuth?.clearSession(); window.location.assign('../login.html'); }
+        logout(){ window.SaraAuth?.logout?.('../login.html'); }
       }
     }
   </script>

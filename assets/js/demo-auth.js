@@ -13,6 +13,12 @@
       user: { username: 'dormadmin', first_name: 'مسئول', last_name: 'خوابگاه', roles: ['dormitory_admin'] },
       dashboard: './dashboard/dormitory-admin.html'
     },
+    supervisor: {
+      password: 'demo1234',
+      token: 'demo-token-dormitory-admin',
+      user: { username: 'supervisor', first_name: 'مسئول', last_name: 'خوابگاه', roles: ['dormitory_admin'] },
+      dashboard: './dashboard/dormitory-admin.html'
+    },
     admin: {
       password: 'demo1234',
       token: 'demo-token-admin',

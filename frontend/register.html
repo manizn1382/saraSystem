@@ -638,13 +638,11 @@
         },
 
         normalizeError(error) {
-          return Array.isArray(error) ? error.join("، ") : String(error);
+          return window.SaraUI?.normalizeError?.(error) || String(error);
         },
 
         toEnglishDigits(value) {
-          return String(value)
-            .replace(/[۰-۹]/g, (digit) => "۰۱۲۳۴۵۶۷۸۹".indexOf(digit))
-            .replace(/[٠-٩]/g, (digit) => "٠١٢٣٤٥٦٧٨٩".indexOf(digit));
+          return window.SaraUI?.toEnglishDigits?.(value) || String(value);
         },
 
         isDigits(value) {
@@ -652,7 +650,7 @@
         },
 
         isValidEmail(value) {
-          return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+          return window.SaraValidate?.email?.(value) ?? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
         },
 
         hasErrors() {
