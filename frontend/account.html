@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -12,27 +12,7 @@
   <script src="../assets/js/status-badges.js" defer></script>
   <script src="../assets/js/auth-guard.js" data-login-url="./login.html" data-unauthorized-url="./403.html" defer></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-  <style>
-    [x-cloak]{display:none!important}
-    body{min-height:100vh;font-family:"Segoe UI",Tahoma,Arial,sans-serif;color:#f8fafc;background:radial-gradient(circle at 88% 8%,rgba(56,189,248,.22),transparent 28rem),radial-gradient(circle at 7% 96%,rgba(20,184,166,.22),transparent 30rem),linear-gradient(135deg,#06162b 0%,#071b35 48%,#08254a 100%)}
-    .account-shell{max-width:1120px;margin-inline:auto;padding:1rem}
-    .glass{border:1px solid rgba(255,255,255,.12);background:rgba(13,39,73,.78);box-shadow:0 28px 80px rgba(0,0,0,.28);backdrop-filter:blur(18px)}
-    .panel{border-radius:1.5rem}
-    .btn-ss{min-height:42px;border-radius:1rem;font-weight:900}
-    .btn-ss-primary{border:0;color:#06162b;background:linear-gradient(135deg,#38bdf8,#67e8f9)}
-    .btn-ss-outline{border:1px solid rgba(125,211,252,.28);color:#dff7ff;background:rgba(56,189,248,.08)}
-    .btn-ss-danger{border:0;color:#fff;background:linear-gradient(135deg,#ef4444,#fb7185)}
-    .text-muted-ss{color:#94a3b8}
-    .form-control,.form-select{border-color:rgba(255,255,255,.16);color:#f8fafc;background:rgba(255,255,255,.08)}
-    .form-control:focus,.form-select:focus{border-color:#67e8f9;box-shadow:0 0 0 .25rem rgba(56,189,248,.18);color:#fff;background:rgba(255,255,255,.11)}
-    .form-control::placeholder{color:#94a3b8}
-    .info-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:.85rem 1rem;background:rgba(255,255,255,.055)}
-    .status-badge{display:inline-flex;align-items:center;border-radius:999px;padding:.35rem .7rem;font-weight:900;font-size:.78rem}
-    .badge-active{border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.14);color:#dcfce7}
-    .badge-inactive{border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.14);color:#fee2e2}
-    .badge-pending,.badge-neutral{border:1px solid rgba(250,204,21,.25);background:rgba(250,204,21,.12);color:#fef9c3}
-    .avatar-lg{width:72px;height:72px;display:grid;place-items:center;border-radius:1.35rem;color:#06162b;background:linear-gradient(135deg,#38bdf8,#67e8f9);font-size:1.45rem;font-weight:950}
-  </style>
+  <link href="../assets/css/account-page.css" rel="stylesheet" />
 </head>
 <body x-data="accountPage()" x-init="init()">
   <main class="account-shell">
@@ -165,139 +145,6 @@
       </aside>
     </div>
   </main>
-
-  <script>
-    function accountPage() {
-      return {
-        profile: {},
-        profileImage: null,
-        profileLoading: false,
-        passwordLoading: false,
-        isDemo: false,
-        accountStatus: { label: 'نامشخص', className: 'badge-neutral', message: '' },
-        alert: { type: 'info', message: '' },
-        password: { current_password: '', new_password: '', confirm_password: '' },
-
-        async init() {
-          this.isDemo = window.SaraAuth?.isDemoMode?.() === true;
-          this.profile = { ...(window.SaraAuth?.getStoredUser?.() || {}) };
-          this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
-
-          const sessionMessage = window.SaraAuth?.consumeSessionMessage?.();
-          if (sessionMessage?.message) this.showAlert(sessionMessage.type || 'info', sessionMessage.message);
-
-          const user = await window.SaraAuth?.loadCurrentUser?.();
-          if (user) {
-            this.profile = { ...this.profile, ...user };
-            this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
-          }
-        },
-
-        async saveProfile() {
-          this.profileLoading = true;
-          try {
-            if (this.isDemo) {
-              this.profile = window.SaraAuth?.updateStoredUser?.(this.profile) || this.profile;
-              this.showAlert('success', 'پروفایل نمایشی به‌صورت محلی به‌روزرسانی شد.');
-              return;
-            }
-
-            const payload = this.profileImage ? this.toFormData() : this.profilePayload();
-            const updated = await window.SaraAPI.patch('/api/users/me/', payload);
-            this.profile = window.SaraAuth?.updateStoredUser?.(updated || this.profile) || this.profile;
-            this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
-            this.showAlert('success', 'پروفایل با موفقیت ذخیره شد.');
-          } catch (error) {
-            this.showAlert('danger', error.message || 'ذخیره پروفایل ناموفق بود.');
-          } finally {
-            this.profileLoading = false;
-          }
-        },
-
-        async changePassword() {
-          if (!this.password.current_password || !this.password.new_password) {
-            this.showAlert('warning', 'رمز فعلی و رمز جدید را وارد کنید.');
-            return;
-          }
-
-          if (this.password.new_password !== this.password.confirm_password) {
-            this.showAlert('warning', 'رمز جدید و تکرار آن برابر نیستند.');
-            return;
-          }
-
-          if (this.password.new_password.length < 8) {
-            this.showAlert('warning', 'رمز جدید باید حداقل ۸ کاراکتر باشد.');
-            return;
-          }
-
-          this.passwordLoading = true;
-          try {
-            if (this.isDemo) {
-              this.password = { current_password: '', new_password: '', confirm_password: '' };
-              this.showAlert('success', 'در حالت نمایشی، تغییر رمز فقط شبیه‌سازی شد.');
-              return;
-            }
-
-            await window.SaraAPI.post('/api/auth/change-password/', this.password);
-            this.password = { current_password: '', new_password: '', confirm_password: '' };
-            this.showAlert('success', 'رمز ورود با موفقیت تغییر کرد.');
-          } catch (error) {
-            this.showAlert('danger', error.message || 'تغییر رمز ورود ناموفق بود.');
-          } finally {
-            this.passwordLoading = false;
-          }
-        },
-
-        profilePayload() {
-          const fields = ['first_name', 'last_name', 'email', 'phone', 'student_id', 'national_id', 'gender'];
-          return Object.fromEntries(fields.map((field) => [field, this.profile[field] || '']));
-        },
-
-        toFormData() {
-          const formData = new FormData();
-          Object.entries(this.profilePayload()).forEach(([key, value]) => formData.append(key, value));
-          if (this.profileImage) formData.append('profile_image', this.profileImage);
-          return formData;
-        },
-
-        dashboardPath() {
-          const roles = window.SaraAuth?.getUserRoles?.(this.profile) || [];
-          if (roles.includes('student') || roles.includes('resident')) return './dashboard/student.html';
-          if (roles.includes('dormitory_admin') || roles.includes('dormitory_supervisor') || roles.includes('supervisor')) return './dashboard/dormitory-admin.html';
-          if (roles.includes('system_admin') || roles.includes('admin') || roles.includes('university_manager')) return './dashboard/admin.html';
-          if (roles.includes('support_staff') || roles.includes('support')) return './dashboard/support.html';
-          return './dashboard/index.html';
-        },
-
-        fullName() {
-          return `${this.profile.first_name || ''} ${this.profile.last_name || ''}`.trim() || this.profile.username || 'کاربر سراسیستم';
-        },
-
-        initials() {
-          const first = this.profile.first_name || this.profile.username || 'س';
-          const last = this.profile.last_name || 'س';
-          return `${first.charAt(0)}${last.charAt(0)}`;
-        },
-
-        rolesText() {
-          const roles = window.SaraAuth?.getUserRoles?.(this.profile) || [];
-          return roles.length ? roles.join('، ') : '—';
-        },
-
-        permissionsText() {
-          const permissions = window.SaraAuth?.getPermissions?.(this.profile) || [];
-          return permissions.length ? permissions.join('، ') : '—';
-        },
-
-        showAlert(type, message) {
-          this.alert = { type, message };
-        },
-
-        logout() {
-          window.SaraAuth?.logout?.('./login.html');
-        }
-      };
-    }
-  </script>
+  <script src="../assets/js/account-page.js"></script>
 </body>
 </html>
