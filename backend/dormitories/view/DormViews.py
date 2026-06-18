@@ -4,51 +4,87 @@ from dormitories.serializer.DormSerializers import DormitoriesInfoSerializer, Do
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
+import requests
+from backend.settings.dormitories_settings import USER_SERVICE_URL
 
 
 class DormitoryListView(generics.ListAPIView):
     queryset = Dormitory.objects.all()
     serializer_class = DormitoriesInfoSerializer
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
-
-
-class DormitoryBedsListView(generics.ListAPIView):
-    queryset = Dormitory.objects.all()
-
-    serializer_class = DormitoriesInfoSerializer
-    # permission_classes = [permissions.IsAuthenticated]
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 class DormitoryWithRoomsView(generics.ListAPIView):
     queryset = Dormitory.objects.prefetch_related('rooms').all()
     serializer_class = DormitoryWithRoomsSerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class DormCreateView(generics.CreateAPIView):
     serializer_class = DormitoriesInfoSerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
+
+        try:
+            response = requests.get(
+                f"http://{USER_SERVICE_URL}/api/accounts/users/me/",
+                headers={"Authorization": request.headers.get("Authorization")},
+                timeout=3
+            )
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return Response({
+                'message': 'request error',
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if not response.json().get("is_staff"):
+            return Response(
+                {'detail': 'Only admins can create dormitories'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
 
         return Response({
             'status': 'success',
-            'message': 'room created successfully',
+            'message': 'Dorm created successfully',
             'data': serializer.data
         }, status=status.HTTP_201_CREATED)
 
 
 class DormUpdateView(generics.UpdateAPIView):
-    """
-    GET /api/beds/{id}/
-    """
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Dormitory.objects.all()
     serializer_class = DormitoriesInfoSerializer
     lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+
+        try:
+            response = requests.get(
+                f"http://{USER_SERVICE_URL}/api/accounts/users/me/",
+                headers={"Authorization": request.headers.get("Authorization")},
+                timeout=3
+            )
+        except requests.exceptions.RequestException as e:
+            print(e)
+            return Response({
+                'message': 'request error',
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if not response.json().get("is_staff"):
+            return Response(
+                {'detail': 'Only admins can update dormitories'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        return super().update(request, *args, **kwargs)

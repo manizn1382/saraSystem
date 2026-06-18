@@ -1,19 +1,17 @@
-# dormitories/views.py
 from rest_framework import generics, permissions, status
-from ..models import Bed
-from ..serializer.BedSerializers import BedSerializer
+from dormitories.models import Bed
+from dormitories.serializer.BedSerializers import BedSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
 
 
 class RoomBedsListView(generics.ListAPIView):
-    """
-    GET /url/rooms/{room_id}/beds/
-    """
     serializer_class = BedSerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         room_id = self.kwargs.get('room_id')
@@ -21,7 +19,8 @@ class RoomBedsListView(generics.ListAPIView):
 
 
 class BedListView(APIView):
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, status=None):
         queryset = Bed.objects.all()
@@ -40,12 +39,19 @@ class BedListView(APIView):
 @method_decorator(csrf_exempt, name='dispatch')
 class BedCreateView(generics.CreateAPIView):
     serializer_class = BedSerializer
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
+
+        if not request.auth.get('is_staff', False):
+            return Response(
+                {'detail': 'Only admins can create beds'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         return Response({
             'status': 'success',
@@ -55,20 +61,25 @@ class BedCreateView(generics.CreateAPIView):
 
 
 class BedDetailView(generics.RetrieveAPIView):
-    """
-    GET /api/beds/{id}/
-    """
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Bed.objects.all()
     serializer_class = BedSerializer
     lookup_field = 'id'
 
 
 class BedUpdateView(generics.UpdateAPIView):
-    """
-    GET /api/beds/{id}/
-    """
-    permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTStatelessUserAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Bed.objects.all()
     serializer_class = BedSerializer
     lookup_field = 'id'
+
+    def update(self, request, *args, **kwargs):
+        if not request.auth.get('is_staff', False):
+            return Response(
+                {'detail': 'Only admins can update beds'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        return super().update(request, *args, **kwargs)
