@@ -35,6 +35,11 @@
   }
 
   function clearSession() {
+    if (window.SaraAuth?.clearSession && window.SaraAuth.clearSession !== clearSession) {
+      window.SaraAuth.clearSession();
+      return;
+    }
+
     TOKEN_KEYS.forEach((key) => {
       localStorage.removeItem(key);
       sessionStorage.removeItem(key);
@@ -102,6 +107,7 @@
       if (token) {
         event.detail.headers.Authorization = `Bearer ${token}`;
       }
+      event.detail.headers.Accept = 'application/json';
     });
 
     document.body.addEventListener('htmx:afterRequest', function (event) {
@@ -118,6 +124,7 @@
   }
 
   window.SaraAuth = {
+    ...(window.SaraAuth || {}),
     getAccessToken,
     getRefreshToken,
     isDemoMode,
