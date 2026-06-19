@@ -1,18 +1,58 @@
 /* SaraSystem JSON REST API helper. */
 (function () {
   const DEFAULT_BASE_URL = window.SARA_API_BASE_URL || '/api';
+  const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 
-  function joinUrl(baseUrl, path) {
-    if (/^https?:\/\//i.test(path)) return path;
-    if (/^\/api(\/|$)/i.test(path)) return path;
+  function configure(options = {}) {
+    if (options.baseUrl) window.SARA_API_BASE_URL = options.baseUrl;
+  }
+
+  function apiBaseUrl() {
+    return window.SARA_API_BASE_URL || DEFAULT_BASE_URL;
+  }
+
+  function joinUrl(path, baseUrl = apiBaseUrl()) {
+    const value = String(path || '');
+    if (/^https?:\/\//i.test(value)) return value;
+    if (/^\/api(\/|$)/i.test(value)) return value;
     const base = String(baseUrl || '').replace(/\/+$/, '');
-    const suffix = String(path || '').replace(/^\/+/, '');
+    const suffix = value.replace(/^\/+/, '');
     return `${base}/${suffix}`;
+  }
+
+  function normalizeEndpoint(path) {
+    return joinUrl(path).replace(/^\/api\/?/, '/api/');
+  }
+
+  function buildHeaders(options = {}) {
+    const body = options.body;
+    const headers = {
+      Accept: 'application/json',
+      ...(body && !(body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {})
+    };
+
+    const token = options.token || window.SaraAuth?.getAccessToken?.();
+    if (token && options.auth !== false) headers.Authorization = `Bearer ${token}`;
+    return headers;
+  }
+
+  function serializeBody(body) {
+    if (!body || body instanceof FormData || typeof body === 'string') return body;
+    return JSON.stringify(body);
   }
 
   async function parseResponse(response) {
     const text = await response.text();
     if (!text) return null;
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      try {
+        return JSON.parse(text);
+      } catch {
+        return null;
+      }
+    }
     try {
       return JSON.parse(text);
     } catch {
@@ -20,9 +60,42 @@
     }
   }
 
+  function pagination(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return { count: null, next: null, previous: null, page: 1, pageSize: null, totalPages: 1 };
+    }
+
+    const count = Number.isFinite(Number(data.count)) ? Number(data.count) : null;
+    const pageSize = Number.isFinite(Number(data.page_size || data.pageSize))
+      ? Number(data.page_size || data.pageSize)
+      : Array.isArray(data.results)
+        ? data.results.length
+        : null;
+    const page = Number.isFinite(Number(data.page)) ? Number(data.page) : 1;
+
+    return {
+      count,
+      next: data.next || null,
+      previous: data.previous || null,
+      page,
+      pageSize,
+      totalPages: count && pageSize ? Math.max(1, Math.ceil(count / pageSize)) : 1
+    };
+  }
+
+  function list(data) {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.results)) return data.results;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (data && typeof data === 'object') return [data];
+    return [];
+  }
+
   function fieldErrors(data) {
     if (!data || typeof data !== 'object') return {};
     if (data.errors && typeof data.errors === 'object') return data.errors;
+    if (data.field_errors && typeof data.field_errors === 'object') return data.field_errors;
     return Object.fromEntries(
       Object.entries(data).filter(([, value]) => Array.isArray(value) || typeof value === 'string')
     );
@@ -36,36 +109,52 @@
       || 'درخواست با خطا روبه‌رو شد.';
   }
 
+  function createError(response, data, path) {
+    const error = new Error(errorMessage(response.status, data));
+    error.name = 'SaraApiError';
+    error.status = response.status;
+    error.statusText = response.statusText;
+    error.data = data;
+    error.fields = fieldErrors(data);
+    error.endpoint = normalizeEndpoint(path);
+    error.retryable = RETRYABLE_STATUSES.has(response.status);
+    return error;
+  }
+
   async function request(path, options = {}) {
     const method = options.method || 'GET';
     const retryOnUnauthorized = options.retryOnUnauthorized !== false;
-    const headers = {
-      Accept: 'application/json',
-      ...(options.body && !(options.body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
-      ...(options.headers || {})
-    };
+    const url = joinUrl(path, options.baseUrl);
 
-    const token = window.SaraAuth?.getAccessToken?.();
-    if (token) headers.Authorization = `Bearer ${token}`;
-
-    const response = await fetch(joinUrl(options.baseUrl || DEFAULT_BASE_URL, path), {
-      ...options,
-      method,
-      headers,
-      body: options.body && !(options.body instanceof FormData) && typeof options.body !== 'string'
-        ? JSON.stringify(options.body)
-        : options.body
-    });
+    let response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        method,
+        headers: buildHeaders(options),
+        body: serializeBody(options.body)
+      });
+    } catch (networkError) {
+      const error = new Error('ارتباط با سرور برقرار نشد. اتصال اینترنت یا آدرس API را بررسی کنید.');
+      error.name = 'SaraNetworkError';
+      error.status = 0;
+      error.data = null;
+      error.fields = {};
+      error.endpoint = normalizeEndpoint(path);
+      error.retryable = true;
+      error.cause = networkError;
+      throw error;
+    }
 
     const data = await parseResponse(response);
 
-    if (response.status === 401 && retryOnUnauthorized && !window.SaraAuth?.isDemoMode?.()) {
+    if (response.status === 401 && retryOnUnauthorized && options.auth !== false && !window.SaraAuth?.isDemoMode?.()) {
       const refreshedToken = await window.SaraAuth?.refreshAccessToken?.();
       if (refreshedToken) {
         return request(path, { ...options, retryOnUnauthorized: false });
       }
 
-      if (window.SaraAuth?.handleExpiredSession) {
+      if (options.redirectOnExpired !== false && window.SaraAuth?.handleExpiredSession) {
         window.SaraAuth.handleExpiredSession();
         return null;
       }
@@ -73,27 +162,36 @@
       window.SaraAuth?.clearSession?.();
     }
 
-    if (!response.ok) {
-      const error = new Error(errorMessage(response.status, data));
-      error.status = response.status;
-      error.data = data;
-      error.fields = fieldErrors(data);
-      throw error;
-    }
-
+    if (!response.ok) throw createError(response, data, path);
     return data;
   }
 
+  function withQuery(path, params = {}) {
+    const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
+    if (!entries.length) return path;
+    const joiner = String(path).includes('?') ? '&' : '?';
+    const query = new URLSearchParams(entries).toString();
+    return `${path}${joiner}${query}`;
+  }
+
   window.SaraAPI = {
+    configure,
     API_BASE_URL: DEFAULT_BASE_URL,
+    apiBaseUrl,
+    joinUrl,
+    normalizeEndpoint,
+    buildHeaders,
+    parseResponse,
+    fieldErrors,
+    errorMessage,
+    pagination,
+    list,
+    withQuery,
     request,
     get: (path, options) => request(path, { ...options, method: 'GET' }),
     post: (path, body, options) => request(path, { ...options, method: 'POST', body }),
     patch: (path, body, options) => request(path, { ...options, method: 'PATCH', body }),
     put: (path, body, options) => request(path, { ...options, method: 'PUT', body }),
-    delete: (path, options) => request(path, { ...options, method: 'DELETE' }),
-    parseResponse,
-    errorMessage,
-    fieldErrors
+    delete: (path, options) => request(path, { ...options, method: 'DELETE' })
   };
 })();

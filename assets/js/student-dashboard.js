@@ -67,6 +67,17 @@
           announcements: true
         },
 
+        resourceStates: {
+          accommodationRequests: window.SaraUI?.createRequestState?.() || {
+            loading: false,
+            loaded: false,
+            error: "",
+            status: null,
+            retryable: false,
+            pagination: { count: null, next: null, previous: null, page: 1, pageSize: null, totalPages: 1 }
+          }
+        },
+
         accommodationRequests: [
           {
             id: "۱",
@@ -202,6 +213,7 @@
           this.loadStoredUser();
           this.updateUnreadBadge();
           this.watchCurrentSection();
+          this.loadAccommodationRequests({ silent: true });
 
           document.body.addEventListener("htmx:configRequest", (event) => {
             const token = this.getAccessToken();
@@ -271,7 +283,51 @@
         },
 
         isResourceLoading(resource) {
-          return Boolean(this.resourceLoading?.[resource]);
+          return Boolean(this.resourceStates?.[resource]?.loading || this.resourceLoading?.[resource]);
+        },
+
+        resourceError(resource) {
+          return this.resourceStates?.[resource]?.error || "";
+        },
+
+        canRetryResource(resource) {
+          return Boolean(this.resourceStates?.[resource]?.retryable || this.resourceError(resource));
+        },
+
+        retryResource(resource) {
+          if (resource === "accommodationRequests") {
+            return this.loadAccommodationRequests();
+          }
+          return null;
+        },
+
+        setResourceLoading(resource) {
+          this.resourceLoading[resource] = true;
+          if (this.resourceStates?.[resource]) window.SaraUI?.setLoading?.(this.resourceStates[resource]);
+        },
+
+        setResourceSuccess(resource, data) {
+          this.resourceLoading[resource] = false;
+          if (this.resourceStates?.[resource]) window.SaraUI?.setSuccess?.(this.resourceStates[resource], data);
+        },
+
+        setResourceError(resource, error) {
+          this.resourceLoading[resource] = false;
+          if (this.resourceStates?.[resource]) window.SaraUI?.setError?.(this.resourceStates[resource], error);
+        },
+
+        async loadAccommodationRequests(options = {}) {
+          if (this.isDemoMode()) return;
+          this.setResourceLoading("accommodationRequests");
+
+          try {
+            const data = await window.SaraAPI.get("/api/accommodation-requests/");
+            this.applyAccommodationRequests(data);
+            this.setResourceSuccess("accommodationRequests", data);
+          } catch (error) {
+            this.setResourceError("accommodationRequests", error);
+            if (!options.silent) this.showAlert("danger", error.message || "دریافت درخواست‌های اسکان ناموفق بود.");
+          }
         },
 
         fullName() {
@@ -320,7 +376,7 @@
 
         handleBeforeRequest(event) {
           const resource = event?.detail?.elt?.dataset?.resource;
-          if (resource) this.resourceLoading[resource] = true;
+          if (resource) this.setResourceLoading(resource);
 
           const formId = event?.detail?.elt?.id;
 
@@ -339,7 +395,7 @@
           const xhr = event.detail.xhr;
           const elt = event.detail.elt;
           const data = this.parseJson(xhr.responseText);
-          if (elt?.dataset?.resource) this.resourceLoading[elt.dataset.resource] = false;
+          if (elt?.dataset?.resource) this.setResourceSuccess(elt.dataset.resource, data);
 
           if (xhr.status >= 200 && xhr.status < 300) {
             if (elt?.dataset?.resource) {
@@ -363,7 +419,14 @@
 
         handleRequestFailure(event, message) {
           const elt = event?.detail?.elt;
-          if (elt?.dataset?.resource) this.resourceLoading[elt.dataset.resource] = false;
+          if (elt?.dataset?.resource) {
+            this.setResourceError(elt.dataset.resource, {
+              message,
+              status: 0,
+              data: null,
+              retryable: true
+            });
+          }
 
           if (elt?.id === "accommodationForm") {
             this.forms.accommodation.loading = false;
@@ -382,19 +445,14 @@
           this.showAlert("danger", message);
         },
 
-        applyResourceData(resource, data) {
-          const list = this.asList(data);
-
-          if (resource === "me" && data && !Array.isArray(data)) {
-            this.user = { ...this.user, ...data };
-            window.SaraAuth?.updateStoredUser?.(this.user);
-            const status = this.accountStatus();
-            if (status.message) this.showAlert("warning", status.message);
-            return;
-          }
-
-          if (resource === "accommodationRequests") {
-            this.accommodationRequests = list.map((item, index) => ({
+        applyAccommodationRequests(data) {
+          this.accommodationRequests = window.SaraAdapters
+            ? window.SaraAdapters.adaptList(data, window.SaraAdapters.accommodationRequest).map((request) => ({
+              ...request,
+              display_id: this.toPersianNumber(request.id),
+              preferred_room_type_value: request.preferred_room_type_value || request.preferred_room_type
+            }))
+            : this.asList(data).map((item, index) => ({
               id: String(item.id || index + 1),
               display_id: this.toPersianNumber(item.id || index + 1),
               semester: item.semester || "—",
@@ -408,11 +466,29 @@
               description: item.description || item.review_note || ""
             }));
 
-            const latest = this.accommodationRequests[0];
-            if (latest) {
-              this.summary.request_status = latest.status;
-              this.summary.request_title = this.statusText(latest.status);
-            }
+          const latest = this.accommodationRequests[0];
+          if (latest) {
+            this.summary.request_status = latest.status;
+            this.summary.request_title = this.statusText(latest.status);
+          } else {
+            this.summary.request_status = "unknown";
+            this.summary.request_title = "بدون درخواست";
+          }
+        },
+
+        applyResourceData(resource, data) {
+          const list = this.asList(data);
+
+          if (resource === "me" && data && !Array.isArray(data)) {
+            this.user = { ...this.user, ...data };
+            window.SaraAuth?.updateStoredUser?.(this.user);
+            const status = this.accountStatus();
+            if (status.message) this.showAlert("warning", status.message);
+            return;
+          }
+
+          if (resource === "accommodationRequests") {
+            this.applyAccommodationRequests(data);
             return;
           }
 
@@ -493,7 +569,13 @@
           const message = this.serverMessage(status, data);
 
           if (elt?.dataset?.resource) {
-            this.showAlert("danger", `${message} داده‌های نمونه فعلی حفظ شدند.`);
+            this.setResourceError(elt.dataset.resource, {
+              message,
+              status,
+              data,
+              retryable: [408, 429, 500, 502, 503, 504].includes(Number(status))
+            });
+            this.showAlert("danger", `${message} داده‌های فعلی حفظ شدند.`);
             return;
           }
 

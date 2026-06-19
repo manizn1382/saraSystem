@@ -23,6 +23,7 @@
     <script src="../../assets/js/navigation.js" defer></script>
     <script src="../../assets/js/api.js" defer></script>
     <script src="../../assets/js/ui-helpers.js" defer></script>
+    <script src="../../assets/js/api-adapters.js" defer></script>
     <script src="../../assets/js/status-badges.js" defer></script>
     <script src="../../assets/js/validation.js" defer></script>
 
@@ -426,10 +427,26 @@
                       >
                         در حال دریافت درخواست‌های اسکان...
                       </div>
+                      <div
+                        class="empty-state"
+                        x-show="resourceError('accommodationRequests') && !isResourceLoading('accommodationRequests')"
+                      >
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                          <span x-text="resourceError('accommodationRequests')"></span>
+                          <button
+                            class="btn btn-ss btn-ss-outline btn-sm"
+                            type="button"
+                            x-show="canRetryResource('accommodationRequests')"
+                            @click="retryResource('accommodationRequests')"
+                          >
+                            تلاش دوباره
+                          </button>
+                        </div>
+                      </div>
                       <template x-if="accommodationRequests.length === 0">
                         <div
                           class="empty-state"
-                          x-show="!isResourceLoading('accommodationRequests')"
+                          x-show="!isResourceLoading('accommodationRequests') && !resourceError('accommodationRequests')"
                         >
                           هنوز درخواست اسکانی ثبت نشده است. برای شروع، گزینه
                           «درخواست جدید» را انتخاب کنید.
