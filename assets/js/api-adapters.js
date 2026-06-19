@@ -7,9 +7,9 @@
 
    Expected endpoint families:
    /api/accounts/users/ -> User[]
-   /api/dormitories/ -> Dormitory[]
-   /api/rooms/ -> Room[]
-   /api/beds/ -> Bed[]
+   /api/dormitory/listAll/ -> Dormitory[]
+   /api/rooms/listAllRoom/ -> Room[]
+   /api/beds/listAll/ -> Bed[]
    /api/accommodation-requests/ -> AccommodationRequest[]
    /api/bed-assignments/ -> BedAssignment[]
    /api/payments/ -> Payment[]
@@ -67,10 +67,11 @@
       id: id(item.id, String(index + 1)),
       name: text(item.name || item.title || `خوابگاه ${item.id || index + 1}`),
       address: text(item.address, ''),
-      total_rooms: Number(item.total_rooms ?? item.rooms_count ?? 0),
+      total_rooms: Number(item.total_rooms ?? item.rooms_count ?? item.totalRoom ?? 0),
       occupied_beds: Number(item.occupied_beds ?? 0),
-      available_beds: Number(item.available_beds ?? 0),
-      occupancy: Number(item.occupancy ?? item.occupancy_percent ?? 0)
+      available_beds: Number(item.available_beds ?? item.available_capacity ?? 0),
+      occupancy: Number(item.occupancy ?? item.occupancy_percent ?? item.occupancy_percentage ?? 0),
+      gender_type: text(item.gender_type ?? item.gender, '')
     };
   }
 
@@ -78,13 +79,13 @@
     const dorm = item.dormitory || {};
     return {
       id: id(item.id, String(index + 1)),
-      dormitory_id: id(dorm.id || item.dormitory_id),
+      dormitory_id: id(dorm.id || item.dormitory_id || item.dormitory),
       dormitory_name: text(dorm.name || item.dormitory_name),
-      room_number: text(item.room_number || item.number),
-      floor_number: text(item.floor_number || item.floor),
+      room_number: text(item.room_number || item.roomNumber || item.number),
+      floor_number: text(item.floor_number || item.floorNumber || item.floor),
       capacity: text(item.capacity || 0),
-      occupied: text(item.occupied || item.occupied_beds || 0),
-      gender_type: text(item.gender_type, ''),
+      occupied: text(item.occupied || item.occupied_beds || item.currentOccupancy || 0),
+      gender_type: text(item.gender_type || item.gender, ''),
       status: text(item.status, 'active')
     };
   }
@@ -93,8 +94,8 @@
     const roomData = item.room || {};
     return {
       id: id(item.id, String(index + 1)),
-      room_id: id(roomData.id || item.room_id),
-      bed_number: text(item.bed_number || item.number || index + 1),
+      room_id: id(roomData.id || item.room_id || item.room),
+      bed_number: text(item.bed_number || item.bedNumber || item.number || index + 1),
       status: text(item.status, 'available'),
       description: text(item.description || item.notes, ''),
       occupant_name: fullName(item.occupant, item.occupant_name || '')

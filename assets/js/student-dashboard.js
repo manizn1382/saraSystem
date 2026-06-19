@@ -601,7 +601,7 @@
               id: String(item.id),
               name: item.name || item.title || `خوابگاه ${item.id}`,
               gender_type: item.gender_type || item.gender || "",
-              capacity: item.capacity || item.total_capacity || ""
+              capacity: item.capacity || item.total_capacity || item.totalRoom || ""
             }));
             return;
           }

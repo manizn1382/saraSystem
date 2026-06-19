@@ -1,26 +1,44 @@
 /* SaraSystem JSON REST API helper. */
 (function () {
   const DEFAULT_BASE_URL = '/api';
+  const DEFAULT_ACCOUNTS_BASE_URL = 'http://127.0.0.1:8001';
+  const DEFAULT_DORMITORY_BASE_URL = 'http://127.0.0.1:8000';
   const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 
   function configure(options = {}) {
     if (options.baseUrl) window.SARA_API_BASE_URL = options.baseUrl;
+    if (options.accountsBaseUrl) window.SARA_ACCOUNTS_API_BASE_URL = options.accountsBaseUrl;
+    if (options.dormitoryBaseUrl) window.SARA_DORMITORY_API_BASE_URL = options.dormitoryBaseUrl;
   }
 
-  function apiBaseUrl() {
+  function apiBaseUrl(path = '') {
+    const value = String(path || '');
+    if (/^\/api\/accounts(?:\/|$)/i.test(value)) {
+      return window.SARA_ACCOUNTS_API_BASE_URL
+        || localStorage.getItem('sarasystem.accountsApiBaseUrl')
+        || DEFAULT_ACCOUNTS_BASE_URL;
+    }
+
+    if (/^\/api\/(?:dormitory|rooms|beds)(?:\/|$)/i.test(value)) {
+      return window.SARA_DORMITORY_API_BASE_URL
+        || localStorage.getItem('sarasystem.dormitoryApiBaseUrl')
+        || DEFAULT_DORMITORY_BASE_URL;
+    }
+
     return window.SARA_API_BASE_URL
       || localStorage.getItem('sarasystem.apiBaseUrl')
       || DEFAULT_BASE_URL;
   }
 
-  function joinUrl(path, baseUrl = apiBaseUrl()) {
+  function joinUrl(path, baseUrl) {
     const value = String(path || '');
     if (/^https?:\/\//i.test(value)) return value;
 
-    const base = String(baseUrl || '').replace(/\/+$/, '');
+    const resolvedBaseUrl = baseUrl || apiBaseUrl(value);
+    const base = String(resolvedBaseUrl || '').replace(/\/+$/, '');
     if (/^\/api(\/|$)/i.test(value)) {
       if (/^https?:\/\//i.test(base)) {
-        return `${base}${value.replace(/^\/api\/?/i, '/')}`;
+        return `${base}${value}`;
       }
       return value;
     }
@@ -190,11 +208,17 @@
         if (!/^\/api(\/|$)/i.test(requestPath)) return;
 
         const resolvedPath = joinUrl(requestPath);
-        if (resolvedPath === requestPath) return;
+        if (resolvedPath !== requestPath) {
+          event.detail.path = resolvedPath;
+          if (event.detail.pathInfo) event.detail.pathInfo.requestPath = resolvedPath;
+          if (event.detail.requestConfig) event.detail.requestConfig.path = resolvedPath;
+        }
 
-        event.detail.path = resolvedPath;
-        if (event.detail.pathInfo) event.detail.pathInfo.requestPath = resolvedPath;
-        if (event.detail.requestConfig) event.detail.requestConfig.path = resolvedPath;
+        const token = window.SaraAuth?.getAccessToken?.();
+        if (token && !/^\/api\/accounts\/(?:getToken|register|refreshToken)\/?$/i.test(requestPath)) {
+          event.detail.headers = event.detail.headers || {};
+          event.detail.headers.Authorization = `Bearer ${token}`;
+        }
       });
     };
 

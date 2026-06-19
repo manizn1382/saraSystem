@@ -143,7 +143,7 @@
     const refreshToken = read(STORAGE_KEYS.refreshToken);
     if (!refreshToken) return '';
 
-    const endpoint = options.endpoint || '/api/auth/refresh/';
+    const endpoint = options.endpoint || '/api/accounts/refreshToken/';
     const response = await fetch(window.SaraAPI?.joinUrl?.(endpoint) || endpoint, {
       method: 'POST',
       headers: {
