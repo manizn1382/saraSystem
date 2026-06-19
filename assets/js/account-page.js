@@ -1,4 +1,4 @@
-﻿function accountPage() {
+function accountPage() {
       return {
         profile: {},
         profileImage: null,
@@ -33,8 +33,8 @@
               return;
             }
 
-            const payload = this.profileImage ? this.toFormData() : this.profilePayload();
-            const updated = await window.SaraAPI.patch('/api/users/me/', payload);
+            const payload = this.profilePayload();
+            const updated = await window.SaraAPI.patch('/api/accounts/update-profile/', payload);
             this.profile = window.SaraAuth?.updateStoredUser?.(updated || this.profile) || this.profile;
             this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
             this.showAlert('success', 'پروفایل با موفقیت ذخیره شد.');
@@ -69,7 +69,10 @@
               return;
             }
 
-            await window.SaraAPI.post('/api/auth/change-password/', this.password);
+            await window.SaraAPI.post('/api/accounts/change-password/', {
+              old_password: this.password.current_password,
+              new_password: this.password.new_password
+            });
             this.password = { current_password: '', new_password: '', confirm_password: '' };
             this.showAlert('success', 'رمز ورود با موفقیت تغییر کرد.');
           } catch (error) {
@@ -80,7 +83,7 @@
         },
 
         profilePayload() {
-          const fields = ['first_name', 'last_name', 'email', 'phone', 'student_id', 'national_id', 'gender'];
+          const fields = ['first_name', 'last_name', 'phone', 'gender'];
           return Object.fromEntries(fields.map((field) => [field, this.profile[field] || '']));
         },
 

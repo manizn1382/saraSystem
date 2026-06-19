@@ -1,4 +1,4 @@
-﻿function registerPage() {
+function registerPage() {
       return {
         form: {
           first_name: "",
@@ -99,8 +99,8 @@
             this.errors.national_id = "کد ملی باید عددی و ۱۰ رقم باشد.";
           }
 
-          if (!this.form.student_id) {
-            this.errors.student_id = "وارد کردن شماره دانشجویی الزامی است.";
+          if (this.form.student_id && !this.isDigits(this.form.student_id)) {
+            this.errors.student_id = "شماره دانشجویی باید فقط شامل عدد باشد.";
           }
 
           if (!this.form.phone) {

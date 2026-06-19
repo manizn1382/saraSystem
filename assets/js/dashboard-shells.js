@@ -92,45 +92,109 @@
       ...tableMixin(),
       ...requestStateMixin(),
       users: [],
+      roles: [],
+      forms: {
+        role: { loading: false, name: '', description: '', errors: {}, message: '', success: false }
+      },
       tableState: {
-        users: { query: '', sort: { key: 'last_name', direction: 'asc' }, page: 1, pageSize: 10 }
+        users: { query: '', sort: { key: 'last_name', direction: 'asc' }, page: 1, pageSize: 10 },
+        roles: { query: '', sort: { key: 'name', direction: 'asc' }, page: 1, pageSize: 10 }
       },
       resourceStates: {
-        users: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: '', retryable: false }
+        users: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: '', retryable: false },
+        roles: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: '', retryable: false }
       },
       stats: [
         { icon: '👥', value: '—', label: 'کاربران' },
-        { icon: '🏢', value: '—', label: 'خوابگاه‌ها' },
-        { icon: '🛏️', value: '—', label: 'تخت‌ها' },
-        { icon: '📌', value: '—', label: 'درخواست‌های فعال' }
+        { icon: '🔐', value: '—', label: 'نقش‌ها' },
+        { icon: '✅', value: '—', label: 'حساب‌های فعال' },
+        { icon: '⏳', value: '—', label: 'در انتظار تایید' }
       ],
       init() {
         window.SaraPage.bindGlobalAlert(this);
         document.body.addEventListener('htmx:beforeRequest', (event) => {
-          if (event.detail?.elt?.dataset?.resource === 'users') this.setResourceLoading('users');
+          const resource = event.detail?.elt?.dataset?.resource;
+          if (['users', 'roles'].includes(resource)) this.setResourceLoading(resource);
         });
         document.body.addEventListener('htmx:afterRequest', (event) => {
-          if (event.detail?.elt?.dataset?.resource !== 'users') return;
+          const resource = event.detail?.elt?.dataset?.resource;
+          if (!['users', 'roles'].includes(resource)) return;
           const data = this.parseJson(event.detail.xhr.responseText);
           if (event.detail.xhr.status >= 200 && event.detail.xhr.status < 300) {
-            this.applyUsers(data);
-            this.setResourceSuccess('users', data);
+            if (resource === 'users') this.applyUsers(data);
+            if (resource === 'roles') this.applyRoles(data);
+            this.setResourceSuccess(resource, data);
             return;
           }
-          this.setResourceError('users', { status: event.detail.xhr.status, data, message: window.SaraUI?.apiErrorMessage?.(event.detail.xhr.status, data), retryable: true });
+          this.setResourceError(resource, { status: event.detail.xhr.status, data, message: window.SaraUI?.apiErrorMessage?.(event.detail.xhr.status, data), retryable: true });
         });
-        document.body.addEventListener('htmx:sendError', () => this.setResourceError('users', { status: 0, message: 'ارتباط با سرور برقرار نشد.', retryable: true }));
-        document.body.addEventListener('htmx:timeout', () => this.setResourceError('users', { status: 504, message: 'زمان پاسخ‌گویی سرور به پایان رسید.', retryable: true }));
+        document.body.addEventListener('htmx:sendError', (event) => {
+          const resource = event.detail?.elt?.dataset?.resource;
+          if (['users', 'roles'].includes(resource)) this.setResourceError(resource, { status: 0, message: 'ارتباط با سرور برقرار نشد.', retryable: true });
+        });
+        document.body.addEventListener('htmx:timeout', (event) => {
+          const resource = event.detail?.elt?.dataset?.resource;
+          if (['users', 'roles'].includes(resource)) this.setResourceError(resource, { status: 504, message: 'زمان پاسخ‌گویی سرور به پایان رسید.', retryable: true });
+        });
       },
       applyUsers(data) {
         this.users = window.SaraAPI?.list?.(data) || [];
+        this.updateAccountStats();
+      },
+      applyRoles(data) {
+        this.roles = window.SaraAPI?.list?.(data) || [];
+        this.updateAccountStats();
+      },
+      updateAccountStats() {
         this.stats[0].value = this.users.length ? this.toPersianNumber(this.users.length) : '—';
+        this.stats[1].value = this.roles.length ? this.toPersianNumber(this.roles.length) : '—';
+        this.stats[2].value = this.users.length ? this.toPersianNumber(this.users.filter((user) => user.is_active !== false).length) : '—';
+        this.stats[3].value = this.users.length ? this.toPersianNumber(this.users.filter((user) => user.is_verified === false).length) : '—';
       },
       userList() {
         return this.tablePage('users', this.users, ['first_name', 'last_name', 'username', 'email', 'student_id', 'national_id']).items;
       },
       userPage() {
         return this.tablePage('users', this.users, ['first_name', 'last_name', 'username', 'email', 'student_id', 'national_id']);
+      },
+      roleList() {
+        return this.tablePage('roles', this.roles, ['name', 'description']).items;
+      },
+      rolePage() {
+        return this.tablePage('roles', this.roles, ['name', 'description']);
+      },
+      async createRole() {
+        this.forms.role.errors = {};
+        this.forms.role.message = '';
+        this.forms.role.success = false;
+
+        if (!this.forms.role.name.trim()) {
+          this.forms.role.errors.name = 'نام نقش الزامی است.';
+          return;
+        }
+
+        this.forms.role.loading = true;
+        try {
+          const role = await window.SaraAPI.post('/api/accounts/roles/', {
+            name: this.forms.role.name.trim(),
+            description: this.forms.role.description.trim()
+          });
+          this.roles = [role, ...this.roles.filter((item) => item.id !== role?.id)];
+          this.resetPage('roles');
+          this.updateAccountStats();
+          this.forms.role.success = true;
+          this.forms.role.message = 'نقش جدید با موفقیت ثبت شد.';
+          this.forms.role.name = '';
+          this.forms.role.description = '';
+        } catch (error) {
+          this.forms.role.errors = error.fields || {};
+          this.forms.role.message = error.message || 'ثبت نقش ناموفق بود.';
+        } finally {
+          this.forms.role.loading = false;
+        }
+      },
+      roleDescription(role) {
+        return role.description || '—';
       },
       fullName(user) {
         return `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || '—';

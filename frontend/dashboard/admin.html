@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
@@ -186,10 +186,107 @@
         </section>
 
         <section id="roles" class="ss-card ss-glass p-3 p-md-4 mb-3">
-          <h3 class="h5 fw-bold mb-2">نقش‌ها و مجوزها</h3>
-          <div class="ss-empty">
-            UI کامل تعریف نقش، اتصال مجوزها و تخصیص نقش به کاربر در مرحله سیستم
-            ادمین اضافه خواهد شد.
+          <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+            <div>
+              <h3 class="h5 fw-bold mb-1">نقش‌ها</h3>
+              <p class="ss-muted mb-0 small">لیست نقش‌ها و ایجاد نقش جدید از Accounts API</p>
+            </div>
+          </div>
+
+          <form class="row g-2 align-items-start mb-3" @submit.prevent="createRole()" novalidate>
+            <div class="col-md-4">
+              <label class="form-label small" for="roleName">نام نقش</label>
+              <input
+                id="roleName"
+                class="form-control"
+                :class="{ 'is-invalid': forms.role.errors.name }"
+                x-model.trim="forms.role.name"
+                placeholder="مثلاً super_admin"
+                dir="ltr"
+                autocomplete="off"
+              />
+              <div class="invalid-feedback" x-text="forms.role.errors.name"></div>
+            </div>
+            <div class="col-md-5">
+              <label class="form-label small" for="roleDescription">توضیح</label>
+              <input
+                id="roleDescription"
+                class="form-control"
+                :class="{ 'is-invalid': forms.role.errors.description }"
+                x-model.trim="forms.role.description"
+                placeholder="مثلاً مدیر ارشد سامانه"
+              />
+              <div class="invalid-feedback" x-text="forms.role.errors.description"></div>
+            </div>
+            <div class="col-md-3 d-grid pt-md-4">
+              <button class="btn ss-btn ss-btn-primary" type="submit" :disabled="forms.role.loading">
+                <span x-cloak x-show="forms.role.loading" class="spinner-border spinner-border-sm"></span>
+                <span x-text="forms.role.loading ? 'در حال ثبت...' : 'ایجاد نقش'"></span>
+              </button>
+            </div>
+            <div class="col-12" x-cloak x-show="forms.role.message">
+              <div class="alert mb-0" :class="forms.role.success ? 'alert-success' : 'alert-danger'" x-text="forms.role.message"></div>
+            </div>
+          </form>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-8">
+              <input
+                class="form-control"
+                type="search"
+                placeholder="جستجوی نام یا توضیح نقش"
+                x-model.debounce.300ms="tableState.roles.query"
+                @input="resetPage('roles')"
+              />
+            </div>
+            <div class="col-md-4">
+              <select class="form-select" x-model="tableState.roles.pageSize" @change="resetPage('roles')" aria-label="تعداد نقش در هر صفحه">
+                <option value="10">۱۰ مورد</option>
+                <option value="20">۲۰ مورد</option>
+                <option value="50">۵۰ مورد</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table ss-table align-middle">
+              <thead>
+                <tr>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('roles', 'name')">نام نقش <span x-text="sortIcon('roles', 'name')"></span></button></th>
+                  <th>توضیح</th>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="role in roleList()" :key="role.id || role.name">
+                  <tr>
+                    <td dir="ltr" x-text="role.name || '—'"></td>
+                    <td x-text="roleDescription(role)"></td>
+                  </tr>
+                </template>
+                <tr x-show="resourceError('roles') && !isResourceLoading('roles')">
+                  <td colspan="2">
+                    <div class="ss-empty m-2">
+                      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <span x-text="resourceError('roles')"></span>
+                        <button class="btn ss-btn ss-btn-outline btn-sm" id="retryRoles" type="button">تلاش دوباره</button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr x-show="rolePage().totalItems === 0 && !resourceError('roles')">
+                  <td colspan="2">
+                    <div class="ss-empty m-2">
+                      <span x-text="isResourceLoading('roles') ? 'در حال دریافت نقش‌ها...' : (tableState.roles.query ? 'نقشی با این جستجو پیدا نشد.' : 'هنوز نقشی از API دریافت نشده است یا API در دسترس نیست.')"></span>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" x-show="rolePage().totalPages > 1">
+            <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="tableState.roles.page = Math.max(1, tableState.roles.page - 1)">قبلی</button>
+            <span class="ss-muted small" x-text="`صفحه ${toPersianNumber(rolePage().page)} از ${toPersianNumber(rolePage().totalPages)}`"></span>
+            <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="tableState.roles.page = Math.min(rolePage().totalPages, tableState.roles.page + 1)">بعدی</button>
           </div>
         </section>
         <section id="dormitories" class="ss-card ss-glass p-3 p-md-4 mb-3">
@@ -212,8 +309,16 @@
     <div class="d-none">
       <div
         data-resource="users"
-        hx-get="/api/users/"
+        hx-get="/api/accounts/users/"
         hx-trigger="load, click from:#refreshDashboard, click from:#retryUsers"
+        hx-swap="none"
+        hx-timeout="15000"
+        hx-headers='{"Accept":"application/json"}'
+      ></div>
+      <div
+        data-resource="roles"
+        hx-get="/api/accounts/roles/"
+        hx-trigger="load, click from:#refreshDashboard, click from:#retryRoles"
         hx-swap="none"
         hx-timeout="15000"
         hx-headers='{"Accept":"application/json"}'

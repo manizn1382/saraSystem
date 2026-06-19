@@ -1,6 +1,6 @@
 /* SaraSystem JSON REST API helper. */
 (function () {
-  const DEFAULT_BASE_URL = window.SARA_API_BASE_URL || '/api';
+  const DEFAULT_BASE_URL = '/api';
   const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
 
   function configure(options = {}) {
@@ -8,14 +8,23 @@
   }
 
   function apiBaseUrl() {
-    return window.SARA_API_BASE_URL || DEFAULT_BASE_URL;
+    return window.SARA_API_BASE_URL
+      || localStorage.getItem('sarasystem.apiBaseUrl')
+      || DEFAULT_BASE_URL;
   }
 
   function joinUrl(path, baseUrl = apiBaseUrl()) {
     const value = String(path || '');
     if (/^https?:\/\//i.test(value)) return value;
-    if (/^\/api(\/|$)/i.test(value)) return value;
+
     const base = String(baseUrl || '').replace(/\/+$/, '');
+    if (/^\/api(\/|$)/i.test(value)) {
+      if (/^https?:\/\//i.test(base)) {
+        return `${base}${value.replace(/^\/api\/?/i, '/')}`;
+      }
+      return value;
+    }
+
     const suffix = value.replace(/^\/+/, '');
     return `${base}/${suffix}`;
   }
@@ -166,6 +175,36 @@
     return data;
   }
 
+
+  function configureHtmxApiBase() {
+    const attach = () => {
+      if (!document.body || document.body.dataset.saraApiHtmxBase === 'true') return;
+      document.body.dataset.saraApiHtmxBase = 'true';
+
+      document.body.addEventListener('htmx:configRequest', (event) => {
+        const requestPath = event.detail?.path
+          || event.detail?.pathInfo?.requestPath
+          || event.detail?.requestConfig?.path
+          || '';
+
+        if (!/^\/api(\/|$)/i.test(requestPath)) return;
+
+        const resolvedPath = joinUrl(requestPath);
+        if (resolvedPath === requestPath) return;
+
+        event.detail.path = resolvedPath;
+        if (event.detail.pathInfo) event.detail.pathInfo.requestPath = resolvedPath;
+        if (event.detail.requestConfig) event.detail.requestConfig.path = resolvedPath;
+      });
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', attach, { once: true });
+    } else {
+      attach();
+    }
+  }
+
   function withQuery(path, params = {}) {
     const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
     if (!entries.length) return path;
@@ -187,6 +226,7 @@
     pagination,
     list,
     withQuery,
+    configureHtmxApiBase,
     request,
     get: (path, options) => request(path, { ...options, method: 'GET' }),
     post: (path, body, options) => request(path, { ...options, method: 'POST', body }),
@@ -194,4 +234,6 @@
     put: (path, body, options) => request(path, { ...options, method: 'PUT', body }),
     delete: (path, options) => request(path, { ...options, method: 'DELETE' })
   };
+
+  configureHtmxApiBase();
 })();
