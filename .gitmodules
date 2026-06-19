@@ -1,0 +1,3 @@
+[submodule "django-projects/django-projects/dormitory"]
+	path = django-projects/django-projects/dormitory
+	url = https://github.com/manizn1382/saraSystem.git
