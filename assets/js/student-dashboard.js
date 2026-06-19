@@ -223,7 +223,6 @@
           this.loadStoredUser();
           this.updateUnreadBadge();
           this.watchCurrentSection();
-          this.loadAccommodationRequests({ silent: true });
 
           document.body.addEventListener("htmx:configRequest", (event) => {
             const token = this.getAccessToken();
@@ -324,31 +323,12 @@
         },
 
         async loadAccommodationRequests(options = {}) {
-          return this.loadResource("accommodationRequests", options);
+          this.setResourceError("accommodationRequests", new Error("سرویس درخواست اسکان در این استقرار در دسترس نیست."));
         },
 
-        async loadResource(resource, options = {}) {
+        async loadResource(resource) {
           if (this.isDemoMode()) return;
-
-          const endpoints = {
-            accommodationRequests: "/api/accommodation-requests/",
-            payments: "/api/payments/",
-            maintenanceRequests: "/api/maintenance-requests/",
-            announcements: "/api/announcements/"
-          };
-          const endpoint = endpoints[resource];
-          if (!endpoint) return;
-
-          this.setResourceLoading(resource);
-
-          try {
-            const data = await window.SaraAPI.get(endpoint);
-            this.applyResourceData(resource, data);
-            this.setResourceSuccess(resource, data);
-          } catch (error) {
-            this.setResourceError(resource, error);
-            if (!options.silent) this.showAlert("danger", error.message || "دریافت داده‌ها ناموفق بود.");
-          }
+          this.setResourceError(resource, new Error("این سرویس هنوز در بک‌اند فعال نشده است."));
         },
 
         fullName() {
@@ -396,6 +376,14 @@
         },
 
         handleBeforeRequest(event) {
+          const requestPath = event?.detail?.path || event?.detail?.pathInfo?.requestPath || "";
+          if (/\/api\/(accommodation-requests|maintenance-requests)\//.test(requestPath)) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            this.showAlert("warning", "این قابلیت تا زمان استقرار سرویس مربوطه در دسترس نیست.");
+            return;
+          }
+
           const resource = event?.detail?.elt?.dataset?.resource;
           if (resource) this.setResourceLoading(resource);
 
@@ -920,7 +908,7 @@
           try {
             const payload = { ...form.data };
             if (!window.SaraAuth?.isDemoMode?.()) {
-              await window.SaraAPI.patch(`/api/accommodation-requests/${form.editingId}/`, payload);
+              throw new Error("سرویس درخواست اسکان در این استقرار در دسترس نیست.");
             }
 
             this.accommodationRequests = this.accommodationRequests.map((request) => {
@@ -957,7 +945,7 @@
 
           try {
             if (!window.SaraAuth?.isDemoMode?.()) {
-              await window.SaraAPI.patch(`/api/accommodation-requests/${request.id}/`, { status: "cancelled" });
+              throw new Error("سرویس درخواست اسکان در این استقرار در دسترس نیست.");
             }
             request.status = "cancelled";
             request.description = request.description || "درخواست توسط دانشجو لغو شد.";
@@ -1021,7 +1009,7 @@
 
           try {
             if (!window.SaraAuth?.isDemoMode?.()) {
-              await window.SaraAPI.post(`/api/announcements/${announcement.id}/read/`, {});
+              throw new Error("سرویس اطلاعیه‌ها در این استقرار در دسترس نیست.");
             }
             this.showAlert("success", "اطلاعیه به عنوان خوانده‌شده علامت‌گذاری شد.");
           } catch (error) {

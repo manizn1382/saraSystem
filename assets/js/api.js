@@ -222,10 +222,10 @@
       });
     };
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', attach, { once: true });
-    } else {
+    if (document.body) {
       attach();
+    } else {
+      document.addEventListener('DOMContentLoaded', attach, { once: true });
     }
   }
 
