@@ -33,10 +33,11 @@ class DormCreateView(generics.CreateAPIView):
 
         try:
             response = requests.get(
-                f"http://{USER_SERVICE_URL}/api/accounts/users/me/",
+                f"http://127.0.0.1:8001/api/accounts/users/me/",
                 headers={"Authorization": request.headers.get("Authorization")},
                 timeout=3
             )
+            print(response)
         except requests.exceptions.RequestException as e:
             print(e)
             return Response({
@@ -71,7 +72,7 @@ class DormUpdateView(generics.UpdateAPIView):
 
         try:
             response = requests.get(
-                f"http://{USER_SERVICE_URL}/api/accounts/users/me/",
+                f"http://127.0.0.1:8001/api/accounts/users/me/",
                 headers={"Authorization": request.headers.get("Authorization")},
                 timeout=3
             )
