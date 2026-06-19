@@ -30,35 +30,54 @@ class DormCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
+        user_auth_tuple = JWTAuthentication().authenticate(request)
+        if user_auth_tuple is None:
+            return Response({'error': 'Invalid token'}, status=401)
 
-        try:
-            response = requests.get(
-                f"http://127.0.0.1:8001/api/accounts/users/me/",
-                headers={"Authorization": request.headers.get("Authorization")},
-                timeout=3
-            )
-            print(response)
-        except requests.exceptions.RequestException as e:
-            print(e)
-            return Response({
-                'message': 'request error',
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        user, validated_token = user_auth_tuple
 
-        if not response.json().get("is_staff"):
-            return Response(
-                {'detail': 'Only admins can create dormitories'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        # خوندن اطلاعات از توکن
+        user_id = validated_token.payload.get('user_id')
+        email = validated_token.payload.get('email')
+        is_staff = validated_token.payload.get('is_staff', False)
 
         return Response({
-            'status': 'success',
-            'message': 'Dorm created successfully',
-            'data': serializer.data
-        }, status=status.HTTP_201_CREATED)
+            'user_id': user_id,
+            'email': email,
+            'is_staff': is_staff
+        })
+
+    except Exception as e:
+    return Response({'error': str(e)}, status=401)
+
+    # try:
+        #     response = requests.get(
+        #         f"http://127.0.0.1:8001/api/accounts/users/me/",
+        #         headers={"Authorization": request.headers.get("Authorization")},
+        #         timeout=3
+        #     )
+        #     print(response)
+        # except requests.exceptions.RequestException as e:
+        #     print(e)
+        #     return Response({
+        #         'message': 'request error',
+        #     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        #
+        # if not response.json().get("is_staff"):
+        #     return Response(
+        #         {'detail': 'Only admins can create dormitories'},
+        #         status=status.HTTP_403_FORBIDDEN
+        #     )
+        #
+        # serializer = self.get_serializer(data=request.data)
+        # serializer.is_valid(raise_exception=True)
+        # self.perform_create(serializer)
+        #
+        # return Response({
+        #     'status': 'success',
+        #     'message': 'Dorm created successfully',
+        #     'data': serializer.data
+        # }, status=status.HTTP_201_CREATED)
 
 
 class DormUpdateView(generics.UpdateAPIView):
