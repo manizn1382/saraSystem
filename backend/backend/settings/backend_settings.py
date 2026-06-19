@@ -1,7 +1,7 @@
 from .base import *
 
 
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
@@ -10,7 +10,7 @@ ROOT_URLCONF = 'backend.urls'
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 INSTALLED_APPS += [
-    'dormitories',
+    'accounts',
 ]
 
 REST_FRAMEWORK = {
