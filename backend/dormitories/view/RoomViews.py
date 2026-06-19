@@ -66,7 +66,7 @@ class RoomDeleteView(generics.DestroyAPIView):
 
         if not request.auth.get('is_staff', False):
             return Response(
-                {'detail': 'Only admins can create rooms'},
+                {'detail': 'Only admins can delete rooms'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
