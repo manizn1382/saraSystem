@@ -116,6 +116,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
+      'SIGNING_KEY': 'o2Z9t#L$mP5xVqR8kW3nBf7cYzJhXaQ1rS4gU6vMwNpEeTbZyKjCxAtHfDlV= ', 
 }
 
 # CORS
