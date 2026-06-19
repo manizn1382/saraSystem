@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="fa" dir="rtl">
   <head>
     <meta charset="UTF-8" />
@@ -143,6 +143,7 @@
                     type="email"
                     dir="ltr"
                     autocomplete="email"
+                    readonly
                   />
                 </div>
                 <div class="col-md-6">
@@ -164,6 +165,7 @@
                     id="studentId"
                     x-model.trim="profile.student_id"
                     dir="ltr"
+                    readonly
                   />
                 </div>
                 <div class="col-md-6">
@@ -173,6 +175,7 @@
                     id="nationalId"
                     x-model.trim="profile.national_id"
                     dir="ltr"
+                    readonly
                   />
                 </div>
                 <div class="col-md-6">
@@ -197,8 +200,10 @@
                     id="profileImage"
                     type="file"
                     accept="image/*"
+                    disabled
                     @change="profileImage = $event.target.files[0] || null"
                   />
+                  <div class="form-text">API فعلی حساب کاربری تصویر پروفایل دریافت نمی‌کند.</div>
                 </div>
               </div>
 

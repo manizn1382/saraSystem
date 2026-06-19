@@ -144,7 +144,7 @@
     if (!refreshToken) return '';
 
     const endpoint = options.endpoint || '/api/auth/refresh/';
-    const response = await fetch(endpoint, {
+    const response = await fetch(window.SaraAPI?.joinUrl?.(endpoint) || endpoint, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -179,12 +179,12 @@
   async function loadCurrentUser(options = {}) {
     if (read(STORAGE_KEYS.demoMode) === 'true') return getUser();
 
-    const endpoint = options.endpoint || '/api/users/me/';
+    const endpoint = options.endpoint || '/api/accounts/me/';
     const retryOnUnauthorized = options.retryOnUnauthorized !== false;
     const token = read(STORAGE_KEYS.accessToken);
     if (!token) return null;
 
-    const response = await fetch(endpoint, {
+    const response = await fetch(window.SaraAPI?.joinUrl?.(endpoint) || endpoint, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${token}`
