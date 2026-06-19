@@ -1,3 +1,4 @@
+import requests
 from rest_framework import generics, permissions
 from dormitory_service.models import Room
 from dormitory_service.serializer.RoomSerializers import RoomsInfoSerializer
@@ -34,15 +35,23 @@ class RoomCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        response = requests.get(
+            f"http://127.0.0.1:8001/api/accounts/users/me/",
+            headers={"Authorization": request.headers.get("Authorization")},
+            timeout=3
+        )
 
-        if not request.auth.get('is_staff', False):
+        if not response.json().get('is_staff', False):
             return Response(
                 {'detail': 'Only admins can create rooms'},
                 status=status.HTTP_403_FORBIDDEN
             )
+
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
 
         return Response({
             'status': 'success',
@@ -64,7 +73,13 @@ class RoomDeleteView(generics.DestroyAPIView):
         room_number = instance.roomNumber
         dorm_name = instance.dormitory.name
 
-        if not request.auth.get('is_staff', False):
+        response = requests.get(
+            f"http://127.0.0.1:8001/api/accounts/users/me/",
+            headers={"Authorization": request.headers.get("Authorization")},
+            timeout=3
+        )
+
+        if not response.json().get('is_staff', False):
             return Response(
                 {'detail': 'Only admins can delete rooms'},
                 status=status.HTTP_403_FORBIDDEN
@@ -87,7 +102,14 @@ class RoomUpdateView(generics.UpdateAPIView):
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-        if not request.auth.get('is_staff', False):
+
+        response = requests.get(
+            f"http://127.0.0.1:8001/api/accounts/users/me/",
+            headers={"Authorization": request.headers.get("Authorization")},
+            timeout=3
+        )
+
+        if not response.json().get('is_staff', False):
             return Response(
                 {'detail': 'Only admins can update rooms'},
                 status=status.HTTP_403_FORBIDDEN

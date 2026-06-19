@@ -1,3 +1,4 @@
+import requests
 from rest_framework import generics, permissions, status
 from dormitory_service.models import Bed
 from dormitory_service.serializer.BedSerializers import BedSerializer
@@ -43,15 +44,23 @@ class BedCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
 
-        if not request.auth.get('is_staff', False):
+
+        response = requests.get(
+            f"http://127.0.0.1:8001/api/accounts/users/me/",
+            headers={"Authorization": request.headers.get("Authorization")},
+            timeout=3
+        )
+
+        if not response.json().get('is_staff', False):
             return Response(
                 {'detail': 'Only admins can create beds'},
                 status=status.HTTP_403_FORBIDDEN
             )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
 
         return Response({
             'status': 'success',
@@ -76,7 +85,14 @@ class BedUpdateView(generics.UpdateAPIView):
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-        if not request.auth.get('is_staff', False):
+
+        response = requests.get(
+            f"http://127.0.0.1:8001/api/accounts/users/me/",
+            headers={"Authorization": request.headers.get("Authorization")},
+            timeout=3
+        )
+
+        if not response.json().get('is_staff', False):
             return Response(
                 {'detail': 'Only admins can update beds'},
                 status=status.HTTP_403_FORBIDDEN
