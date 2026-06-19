@@ -36,7 +36,7 @@ class DormCreateView(generics.CreateAPIView):
                 headers={"Authorization": request.headers.get("Authorization")},
                 timeout=3
             )
-            print(response)
+            print(response.json())
         except requests.exceptions.RequestException as e:
             print(e)
             return Response({
