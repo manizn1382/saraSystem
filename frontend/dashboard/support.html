@@ -114,10 +114,19 @@
               </p>
             </div>
             <div class="d-flex flex-wrap gap-2">
+              <input
+                class="form-control"
+                style="width: 220px"
+                type="search"
+                placeholder="جستجوی عنوان، مکان یا مسئول"
+                x-model.debounce.300ms="tableState.maintenance.query"
+                @input="resetPage('maintenance')"
+              />
               <select
                 class="form-select"
                 style="width: 155px"
                 x-model="filters.priority"
+                @change="resetPage('maintenance')"
                 aria-label="فیلتر اولویت"
               >
                 <option value="all">همه اولویت‌ها</option>
@@ -130,6 +139,7 @@
                 class="form-select"
                 style="width: 155px"
                 x-model="filters.status"
+                @change="resetPage('maintenance')"
                 aria-label="فیلتر وضعیت"
               >
                 <option value="all">همه وضعیت‌ها</option>
@@ -143,12 +153,12 @@
             <table class="table ss-table align-middle">
               <thead>
                 <tr>
-                  <th>عنوان</th>
-                  <th>مکان</th>
-                  <th>اولویت</th>
-                  <th>وضعیت</th>
-                  <th>مسئول</th>
-                  <th>تاریخ</th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'title')">عنوان <span x-text="sortIcon('maintenance', 'title')"></span></button></th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'location')">مکان <span x-text="sortIcon('maintenance', 'location')"></span></button></th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'priority')">اولویت <span x-text="sortIcon('maintenance', 'priority')"></span></button></th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'status')">وضعیت <span x-text="sortIcon('maintenance', 'status')"></span></button></th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'assigned_to')">مسئول <span x-text="sortIcon('maintenance', 'assigned_to')"></span></button></th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'created_at')">تاریخ <span x-text="sortIcon('maintenance', 'created_at')"></span></button></th>
                 </tr>
               </thead>
               <tbody>
@@ -180,15 +190,28 @@
                     ></td>
                     <td x-text="ticket.created_at || '—'"></td></tr
                 ></template>
-                <tr x-show="filteredTickets().length === 0">
+                <tr x-show="resourceError('maintenance') && !isResourceLoading('maintenance')">
                   <td colspan="6">
                     <div class="ss-empty m-2">
-                      درخواستی برای نمایش وجود ندارد یا API در دسترس نیست.
+                      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <span x-text="resourceError('maintenance')"></span>
+                        <button class="btn ss-btn ss-btn-outline btn-sm" id="retryMaintenance" type="button">تلاش دوباره</button>
+                      </div>
                     </div>
+                  </td>
+                </tr>
+                <tr x-show="ticketPage().totalItems === 0 && !resourceError('maintenance')">
+                  <td colspan="6">
+                    <div class="ss-empty m-2" x-text="isResourceLoading('maintenance') ? 'در حال دریافت درخواست‌های تعمیرات...' : 'درخواستی برای نمایش وجود ندارد یا API در دسترس نیست.'"></div>
                   </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" x-show="ticketPage().totalPages > 1">
+            <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="tableState.maintenance.page = Math.max(1, tableState.maintenance.page - 1)">قبلی</button>
+            <span class="ss-muted small" x-text="`صفحه ${toPersianNumber(ticketPage().page)} از ${toPersianNumber(ticketPage().totalPages)}`"></span>
+            <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="tableState.maintenance.page = Math.min(ticketPage().totalPages, tableState.maintenance.page + 1)">بعدی</button>
           </div>
         </section>
 
@@ -206,7 +229,7 @@
       <div
         data-resource="maintenance"
         hx-get="/api/maintenance-requests/"
-        hx-trigger="load, click from:#refreshDashboard"
+        hx-trigger="load, click from:#refreshDashboard, click from:#retryMaintenance"
         hx-swap="none"
         hx-timeout="15000"
         hx-headers='{"Accept":"application/json"}'

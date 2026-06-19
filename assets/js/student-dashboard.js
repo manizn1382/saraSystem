@@ -75,7 +75,17 @@
             status: null,
             retryable: false,
             pagination: { count: null, next: null, previous: null, page: 1, pageSize: null, totalPages: 1 }
-          }
+          },
+          payments: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
+          maintenanceRequests: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
+          announcements: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false }
+        },
+
+        tableState: {
+          accommodationRequests: { query: "", sort: { key: "request_date", direction: "desc" }, page: 1, pageSize: 5 },
+          payments: { query: "", sort: { key: "due_date", direction: "desc" }, page: 1, pageSize: 6 },
+          maintenanceRequests: { query: "", sort: { key: "created_at", direction: "desc" }, page: 1, pageSize: 6 },
+          announcements: { query: "", sort: { key: "created_at", direction: "desc" }, page: 1, pageSize: 6 }
         },
 
         accommodationRequests: [
@@ -295,10 +305,7 @@
         },
 
         retryResource(resource) {
-          if (resource === "accommodationRequests") {
-            return this.loadAccommodationRequests();
-          }
-          return null;
+          return this.loadResource(resource);
         },
 
         setResourceLoading(resource) {
@@ -317,16 +324,30 @@
         },
 
         async loadAccommodationRequests(options = {}) {
+          return this.loadResource("accommodationRequests", options);
+        },
+
+        async loadResource(resource, options = {}) {
           if (this.isDemoMode()) return;
-          this.setResourceLoading("accommodationRequests");
+
+          const endpoints = {
+            accommodationRequests: "/api/accommodation-requests/",
+            payments: "/api/payments/",
+            maintenanceRequests: "/api/maintenance-requests/",
+            announcements: "/api/announcements/"
+          };
+          const endpoint = endpoints[resource];
+          if (!endpoint) return;
+
+          this.setResourceLoading(resource);
 
           try {
-            const data = await window.SaraAPI.get("/api/accommodation-requests/");
-            this.applyAccommodationRequests(data);
-            this.setResourceSuccess("accommodationRequests", data);
+            const data = await window.SaraAPI.get(endpoint);
+            this.applyResourceData(resource, data);
+            this.setResourceSuccess(resource, data);
           } catch (error) {
-            this.setResourceError("accommodationRequests", error);
-            if (!options.silent) this.showAlert("danger", error.message || "دریافت درخواست‌های اسکان ناموفق بود.");
+            this.setResourceError(resource, error);
+            if (!options.silent) this.showAlert("danger", error.message || "دریافت داده‌ها ناموفق بود.");
           }
         },
 
@@ -476,6 +497,89 @@
           }
         },
 
+        queryResource(resource, items, keys) {
+          const state = this.tableState[resource];
+          return window.SaraUI?.searchList?.(items, state?.query, keys) || items;
+        },
+
+        sortedResource(resource, items) {
+          return window.SaraUI?.sortList?.(items, this.tableState[resource]?.sort) || items;
+        },
+
+        pagedResource(resource, items) {
+          const state = this.tableState[resource];
+          const page = window.SaraUI?.pageList?.(items, state?.page, state?.pageSize) || {
+            items,
+            page: 1,
+            pageSize: items.length || 1,
+            totalPages: 1,
+            totalItems: items.length
+          };
+          if (state && state.page !== page.page) state.page = page.page;
+          return page;
+        },
+
+        tableItems(resource, items, keys) {
+          return this.pagedResource(
+            resource,
+            this.sortedResource(resource, this.queryResource(resource, items, keys))
+          ).items;
+        },
+
+        tablePage(resource, items, keys) {
+          return this.pagedResource(
+            resource,
+            this.sortedResource(resource, this.queryResource(resource, items, keys))
+          );
+        },
+
+        setTableSort(resource, key) {
+          this.tableState[resource].sort = window.SaraUI?.toggleSort?.(this.tableState[resource].sort, key) || { key, direction: "asc" };
+          this.tableState[resource].page = 1;
+        },
+
+        resetTablePage(resource) {
+          if (this.tableState[resource]) this.tableState[resource].page = 1;
+        },
+
+        sortIcon(resource, key) {
+          const sort = this.tableState[resource]?.sort;
+          if (sort?.key !== key) return "↕";
+          return sort.direction === "asc" ? "↑" : "↓";
+        },
+
+        accommodationList() {
+          return this.tableItems("accommodationRequests", this.accommodationRequests, ["id", "semester", "dormitory", "preferred_room_type", "status", "request_date", "description"]);
+        },
+
+        accommodationPage() {
+          return this.tablePage("accommodationRequests", this.accommodationRequests, ["id", "semester", "dormitory", "preferred_room_type", "status", "request_date", "description"]);
+        },
+
+        paymentList() {
+          return this.tableItems("payments", this.payments, ["id", "payment_type", "amount", "due_date", "status", "description", "transaction_ref"]);
+        },
+
+        paymentPage() {
+          return this.tablePage("payments", this.payments, ["id", "payment_type", "amount", "due_date", "status", "description", "transaction_ref"]);
+        },
+
+        maintenanceList() {
+          return this.tableItems("maintenanceRequests", this.maintenanceRequests, ["id", "title", "description", "location", "priority", "status", "created_at"]);
+        },
+
+        maintenancePage() {
+          return this.tablePage("maintenanceRequests", this.maintenanceRequests, ["id", "title", "description", "location", "priority", "status", "created_at"]);
+        },
+
+        announcementList() {
+          return this.tableItems("announcements", this.announcements, ["id", "title", "content", "target", "created_at"]);
+        },
+
+        announcementPage() {
+          return this.tablePage("announcements", this.announcements, ["id", "title", "content", "target", "created_at"]);
+        },
+
         applyResourceData(resource, data) {
           const list = this.asList(data);
 
@@ -521,46 +625,52 @@
           }
 
           if (resource === "payments") {
-            this.payments = list.map((item) => ({
-              id: item.transaction_ref || item.id || "—",
-              payment_type: item.payment_type || "—",
-              amount: this.formatAmount(item.amount),
-              due_date: item.due_date || "—",
-              status: item.status || "unpaid",
-              transaction_ref: item.transaction_ref || item.reference || "",
-              paid_at: item.paid_at || item.payment_date || "",
-              assignment: item.bed_assignment?.id || item.bed_assignment_id || "",
-              description: item.description || ""
-            }));
+            this.payments = window.SaraAdapters
+              ? window.SaraAdapters.adaptList(data, window.SaraAdapters.payment)
+              : list.map((item) => ({
+                id: item.transaction_ref || item.id || "—",
+                payment_type: item.payment_type || "—",
+                amount: this.formatAmount(item.amount),
+                due_date: item.due_date || "—",
+                status: item.status || "unpaid",
+                transaction_ref: item.transaction_ref || item.reference || "",
+                paid_at: item.paid_at || item.payment_date || "",
+                assignment: item.bed_assignment?.id || item.bed_assignment_id || "",
+                description: item.description || ""
+              }));
             this.updatePaymentSummary();
             return;
           }
 
           if (resource === "maintenanceRequests") {
-            this.maintenanceRequests = list.map((item) => ({
-              id: item.id || "—",
-              title: item.title || "بدون عنوان",
-              description: item.description || "",
-              location: item.location || `اتاق ${this.toPersianNumber(item.room?.room_number || item.room_id || "—")}`,
-              priority: item.priority || "medium",
-              status: item.status || "pending",
-              created_at: item.created_at || "—",
-              updated_at: item.updated_at || "",
-              comments: item.comments || item.history || []
-            }));
+            this.maintenanceRequests = window.SaraAdapters
+              ? window.SaraAdapters.adaptList(data, window.SaraAdapters.maintenanceRequest)
+              : list.map((item) => ({
+                id: item.id || "—",
+                title: item.title || "بدون عنوان",
+                description: item.description || "",
+                location: item.location || `اتاق ${this.toPersianNumber(item.room?.room_number || item.room_id || "—")}`,
+                priority: item.priority || "medium",
+                status: item.status || "pending",
+                created_at: item.created_at || "—",
+                updated_at: item.updated_at || "",
+                comments: item.comments || item.history || []
+              }));
             return;
           }
 
           if (resource === "announcements") {
-            this.announcements = list.map((item) => ({
-              id: item.id || "—",
-              title: item.title || "بدون عنوان",
-              content: item.content || "",
-              created_at: item.created_at || "—",
-              target: item.target_role?.name || item.target_dormitory?.name || item.target || "عمومی",
-              expires_at: item.expires_at || "",
-              read: Boolean(item.read || item.is_read || item.read_at)
-            }));
+            this.announcements = window.SaraAdapters
+              ? window.SaraAdapters.adaptList(data, window.SaraAdapters.announcement)
+              : list.map((item) => ({
+                id: item.id || "—",
+                title: item.title || "بدون عنوان",
+                content: item.content || "",
+                created_at: item.created_at || "—",
+                target: item.target_role?.name || item.target_dormitory?.name || item.target || "عمومی",
+                expires_at: item.expires_at || "",
+                read: Boolean(item.read || item.is_read || item.read_at)
+              }));
             this.updateUnreadBadge();
           }
         },

@@ -117,18 +117,36 @@
               >افزودن کاربر در مرحله بعد</a
             >
           </div>
+          <div class="row g-2 mb-3">
+            <div class="col-md-8">
+              <input
+                class="form-control"
+                type="search"
+                placeholder="جستجوی کاربر، ایمیل، شماره دانشجویی یا کد ملی"
+                x-model.debounce.300ms="tableState.users.query"
+                @input="resetPage('users')"
+              />
+            </div>
+            <div class="col-md-4">
+              <select class="form-select" x-model="tableState.users.pageSize" @change="resetPage('users')" aria-label="تعداد کاربر در هر صفحه">
+                <option value="10">۱۰ مورد</option>
+                <option value="20">۲۰ مورد</option>
+                <option value="50">۵۰ مورد</option>
+              </select>
+            </div>
+          </div>
           <div class="table-responsive">
             <table class="table ss-table align-middle">
               <thead>
                 <tr>
-                  <th>نام</th>
-                  <th>ایمیل</th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('users', 'last_name')">نام <span x-text="sortIcon('users', 'last_name')"></span></button></th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('users', 'email')">ایمیل <span x-text="sortIcon('users', 'email')"></span></button></th>
                   <th>نقش</th>
-                  <th>وضعیت</th>
+                  <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('users', 'is_active')">وضعیت <span x-text="sortIcon('users', 'is_active')"></span></button></th>
                 </tr>
               </thead>
               <tbody>
-                <template x-for="u in users" :key="u.id || u.email"
+                <template x-for="u in userList()" :key="u.id || u.email"
                   ><tr>
                     <td x-text="fullName(u)"></td>
                     <td dir="ltr" x-text="u.email || '—'"></td>
@@ -140,15 +158,30 @@
                       ></span>
                     </td></tr
                 ></template>
-                <tr x-show="users.length === 0">
+                <tr x-show="resourceError('users') && !isResourceLoading('users')">
                   <td colspan="4">
                     <div class="ss-empty m-2">
-                      هنوز داده‌ای از API دریافت نشده است یا API در دسترس نیست.
+                      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <span x-text="resourceError('users')"></span>
+                        <button class="btn ss-btn ss-btn-outline btn-sm" id="retryUsers" type="button">تلاش دوباره</button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                <tr x-show="userPage().totalItems === 0 && !resourceError('users')">
+                  <td colspan="4">
+                    <div class="ss-empty m-2">
+                      <span x-text="isResourceLoading('users') ? 'در حال دریافت کاربران...' : (tableState.users.query ? 'کاربری با این جستجو پیدا نشد.' : 'هنوز داده‌ای از API دریافت نشده است یا API در دسترس نیست.')"></span>
                     </div>
                   </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" x-show="userPage().totalPages > 1">
+            <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="tableState.users.page = Math.max(1, tableState.users.page - 1)">قبلی</button>
+            <span class="ss-muted small" x-text="`صفحه ${toPersianNumber(userPage().page)} از ${toPersianNumber(userPage().totalPages)}`"></span>
+            <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="tableState.users.page = Math.min(userPage().totalPages, tableState.users.page + 1)">بعدی</button>
           </div>
         </section>
 
@@ -180,7 +213,7 @@
       <div
         data-resource="users"
         hx-get="/api/users/"
-        hx-trigger="load, click from:#refreshDashboard"
+        hx-trigger="load, click from:#refreshDashboard, click from:#retryUsers"
         hx-swap="none"
         hx-timeout="15000"
         hx-headers='{"Accept":"application/json"}'

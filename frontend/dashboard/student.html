@@ -421,6 +421,40 @@
                     </div>
 
                     <div class="panel-body">
+                      <div class="row g-2 mb-3">
+                        <div class="col-md-8">
+                          <input
+                            class="form-control"
+                            type="search"
+                            placeholder="جستجو در درخواست‌ها"
+                            x-model.debounce.300ms="tableState.accommodationRequests.query"
+                            @input="resetTablePage('accommodationRequests')"
+                          />
+                        </div>
+                        <div class="col-md-4">
+                          <select
+                            class="form-select"
+                            x-model="tableState.accommodationRequests.pageSize"
+                            @change="resetTablePage('accommodationRequests')"
+                            aria-label="تعداد درخواست در هر صفحه"
+                          >
+                            <option value="5">۵ مورد</option>
+                            <option value="10">۱۰ مورد</option>
+                            <option value="20">۲۰ مورد</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="setTableSort('accommodationRequests', 'request_date')">
+                          تاریخ <span x-text="sortIcon('accommodationRequests', 'request_date')"></span>
+                        </button>
+                        <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="setTableSort('accommodationRequests', 'status')">
+                          وضعیت <span x-text="sortIcon('accommodationRequests', 'status')"></span>
+                        </button>
+                        <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="setTableSort('accommodationRequests', 'semester')">
+                          نیم‌سال <span x-text="sortIcon('accommodationRequests', 'semester')"></span>
+                        </button>
+                      </div>
                       <div
                         class="empty-state"
                         x-show="isResourceLoading('accommodationRequests')"
@@ -443,22 +477,21 @@
                           </button>
                         </div>
                       </div>
-                      <template x-if="accommodationRequests.length === 0">
+                      <template x-if="accommodationPage().totalItems === 0">
                         <div
                           class="empty-state"
                           x-show="!isResourceLoading('accommodationRequests') && !resourceError('accommodationRequests')"
                         >
-                          هنوز درخواست اسکانی ثبت نشده است. برای شروع، گزینه
-                          «درخواست جدید» را انتخاب کنید.
+                          <span x-text="tableState.accommodationRequests.query ? 'درخواستی با این جستجو پیدا نشد.' : 'هنوز درخواست اسکانی ثبت نشده است. برای شروع، گزینه «درخواست جدید» را انتخاب کنید.'"></span>
                         </div>
                       </template>
 
                       <div
                         class="timeline"
-                        x-show="accommodationRequests.length > 0"
+                        x-show="accommodationPage().totalItems > 0"
                       >
                         <template
-                          x-for="request in accommodationRequests"
+                          x-for="request in accommodationList()"
                           :key="request.id"
                         >
                           <article class="timeline-item">
@@ -522,6 +555,18 @@
                             </div>
                           </article>
                         </template>
+                      </div>
+                      <div
+                        class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3"
+                        x-show="accommodationPage().totalPages > 1"
+                      >
+                        <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="tableState.accommodationRequests.page = Math.max(1, tableState.accommodationRequests.page - 1)">
+                          قبلی
+                        </button>
+                        <span class="text-muted-ss small" x-text="`صفحه ${toPersianNumber(accommodationPage().page)} از ${toPersianNumber(accommodationPage().totalPages)}`"></span>
+                        <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="tableState.accommodationRequests.page = Math.min(accommodationPage().totalPages, tableState.accommodationRequests.page + 1)">
+                          بعدی
+                        </button>
                       </div>
                     </div>
                   </article>
@@ -607,21 +652,40 @@
                   >
                 </div>
 
+                <div class="row g-2 px-3 px-md-4 pb-3">
+                  <div class="col-md-8">
+                    <input
+                      class="form-control"
+                      type="search"
+                      placeholder="جستجو در پرداخت‌ها"
+                      x-model.debounce.300ms="tableState.payments.query"
+                      @input="resetTablePage('payments')"
+                    />
+                  </div>
+                  <div class="col-md-4">
+                    <select class="form-select" x-model="tableState.payments.pageSize" @change="resetTablePage('payments')" aria-label="تعداد پرداخت در هر صفحه">
+                      <option value="6">۶ مورد</option>
+                      <option value="10">۱۰ مورد</option>
+                      <option value="20">۲۰ مورد</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div class="table-responsive">
                   <table class="table table-ss align-middle">
                     <thead>
                       <tr>
-                        <th scope="col">شناسه</th>
-                        <th scope="col">نوع پرداخت</th>
-                        <th scope="col">مبلغ</th>
-                        <th scope="col">سررسید</th>
-                        <th scope="col">وضعیت</th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('payments', 'id')">شناسه <span x-text="sortIcon('payments', 'id')"></span></button></th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('payments', 'payment_type')">نوع پرداخت <span x-text="sortIcon('payments', 'payment_type')"></span></button></th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('payments', 'amount')">مبلغ <span x-text="sortIcon('payments', 'amount')"></span></button></th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('payments', 'due_date')">سررسید <span x-text="sortIcon('payments', 'due_date')"></span></button></th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('payments', 'status')">وضعیت <span x-text="sortIcon('payments', 'status')"></span></button></th>
                         <th scope="col">توضیحات</th>
                         <th scope="col">جزئیات</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <template x-for="payment in payments" :key="payment.id">
+                      <template x-for="payment in paymentList()" :key="payment.id">
                         <tr>
                           <td x-text="payment.id"></td>
                           <td x-text="payment.payment_type"></td>
@@ -647,16 +711,33 @@
                         </tr>
                       </template>
 
-                      <tr x-show="payments.length === 0">
+                      <tr x-show="resourceError('payments') && !isResourceLoading('payments')">
+                        <td colspan="7">
+                          <div class="empty-state m-3">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                              <span x-text="resourceError('payments')"></span>
+                              <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="retryResource('payments')">تلاش دوباره</button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <tr x-show="paymentPage().totalItems === 0">
                         <td colspan="7">
                           <div
                             class="empty-state m-3"
-                            x-text="isResourceLoading('payments') ? 'در حال دریافت پرداخت‌ها...' : 'پرداختی برای نمایش وجود ندارد.'"
+                            x-show="!resourceError('payments')"
+                            x-text="isResourceLoading('payments') ? 'در حال دریافت پرداخت‌ها...' : (tableState.payments.query ? 'پرداختی با این جستجو پیدا نشد.' : 'پرداختی برای نمایش وجود ندارد.')"
                           ></div>
                         </td>
                       </tr>
                     </tbody>
                   </table>
+                </div>
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 px-md-4 pb-3" x-show="paymentPage().totalPages > 1">
+                  <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="tableState.payments.page = Math.max(1, tableState.payments.page - 1)">قبلی</button>
+                  <span class="text-muted-ss small" x-text="`صفحه ${toPersianNumber(paymentPage().page)} از ${toPersianNumber(paymentPage().totalPages)}`"></span>
+                  <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="tableState.payments.page = Math.min(paymentPage().totalPages, tableState.payments.page + 1)">بعدی</button>
                 </div>
               </article>
             </section>
@@ -686,21 +767,40 @@
                   </button>
                 </div>
 
+                <div class="row g-2 px-3 px-md-4 pb-3">
+                  <div class="col-md-8">
+                    <input
+                      class="form-control"
+                      type="search"
+                      placeholder="جستجو در تعمیرات"
+                      x-model.debounce.300ms="tableState.maintenanceRequests.query"
+                      @input="resetTablePage('maintenanceRequests')"
+                    />
+                  </div>
+                  <div class="col-md-4">
+                    <select class="form-select" x-model="tableState.maintenanceRequests.pageSize" @change="resetTablePage('maintenanceRequests')" aria-label="تعداد تعمیرات در هر صفحه">
+                      <option value="6">۶ مورد</option>
+                      <option value="10">۱۰ مورد</option>
+                      <option value="20">۲۰ مورد</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div class="table-responsive">
                   <table class="table table-ss align-middle">
                     <thead>
                       <tr>
-                        <th scope="col">عنوان</th>
-                        <th scope="col">مکان</th>
-                        <th scope="col">اولویت</th>
-                        <th scope="col">وضعیت</th>
-                        <th scope="col">تاریخ ثبت</th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('maintenanceRequests', 'title')">عنوان <span x-text="sortIcon('maintenanceRequests', 'title')"></span></button></th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('maintenanceRequests', 'location')">مکان <span x-text="sortIcon('maintenanceRequests', 'location')"></span></button></th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('maintenanceRequests', 'priority')">اولویت <span x-text="sortIcon('maintenanceRequests', 'priority')"></span></button></th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('maintenanceRequests', 'status')">وضعیت <span x-text="sortIcon('maintenanceRequests', 'status')"></span></button></th>
+                        <th scope="col"><button class="btn btn-link p-0 text-decoration-none" type="button" @click="setTableSort('maintenanceRequests', 'created_at')">تاریخ ثبت <span x-text="sortIcon('maintenanceRequests', 'created_at')"></span></button></th>
                         <th scope="col">جزئیات</th>
                       </tr>
                     </thead>
                     <tbody>
                       <template
-                        x-for="ticket in maintenanceRequests"
+                        x-for="ticket in maintenanceList()"
                         :key="ticket.id"
                       >
                         <tr>
@@ -742,16 +842,33 @@
                         </tr>
                       </template>
 
-                      <tr x-show="maintenanceRequests.length === 0">
+                      <tr x-show="resourceError('maintenanceRequests') && !isResourceLoading('maintenanceRequests')">
+                        <td colspan="6">
+                          <div class="empty-state m-3">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                              <span x-text="resourceError('maintenanceRequests')"></span>
+                              <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="retryResource('maintenanceRequests')">تلاش دوباره</button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <tr x-show="maintenancePage().totalItems === 0">
                         <td colspan="6">
                           <div
                             class="empty-state m-3"
-                            x-text="isResourceLoading('maintenanceRequests') ? 'در حال دریافت درخواست‌های تعمیرات...' : 'درخواست تعمیراتی ثبت نشده است.'"
+                            x-show="!resourceError('maintenanceRequests')"
+                            x-text="isResourceLoading('maintenanceRequests') ? 'در حال دریافت درخواست‌های تعمیرات...' : (tableState.maintenanceRequests.query ? 'درخواست تعمیراتی با این جستجو پیدا نشد.' : 'درخواست تعمیراتی ثبت نشده است.')"
                           ></div>
                         </td>
                       </tr>
                     </tbody>
                   </table>
+                </div>
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 px-md-4 pb-3" x-show="maintenancePage().totalPages > 1">
+                  <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="tableState.maintenanceRequests.page = Math.max(1, tableState.maintenanceRequests.page - 1)">قبلی</button>
+                  <span class="text-muted-ss small" x-text="`صفحه ${toPersianNumber(maintenancePage().page)} از ${toPersianNumber(maintenancePage().totalPages)}`"></span>
+                  <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="tableState.maintenanceRequests.page = Math.min(maintenancePage().totalPages, tableState.maintenanceRequests.page + 1)">بعدی</button>
                 </div>
               </article>
             </section>
@@ -778,9 +895,38 @@
                 </div>
 
                 <div class="panel-body">
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-8">
+                      <input
+                        class="form-control"
+                        type="search"
+                        placeholder="جستجو در اطلاعیه‌ها"
+                        x-model.debounce.300ms="tableState.announcements.query"
+                        @input="resetTablePage('announcements')"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <select class="form-select" x-model="tableState.announcements.pageSize" @change="resetTablePage('announcements')" aria-label="تعداد اطلاعیه در هر صفحه">
+                        <option value="6">۶ مورد</option>
+                        <option value="10">۱۰ مورد</option>
+                        <option value="20">۲۰ مورد</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="setTableSort('announcements', 'created_at')">
+                      تاریخ <span x-text="sortIcon('announcements', 'created_at')"></span>
+                    </button>
+                    <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="setTableSort('announcements', 'title')">
+                      عنوان <span x-text="sortIcon('announcements', 'title')"></span>
+                    </button>
+                    <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="setTableSort('announcements', 'read')">
+                      خوانده‌شده <span x-text="sortIcon('announcements', 'read')"></span>
+                    </button>
+                  </div>
                   <div class="row g-3">
                     <template
-                      x-for="announcement in announcements"
+                      x-for="announcement in announcementList()"
                       :key="announcement.id"
                     >
                       <div class="col-lg-6">
@@ -827,12 +973,26 @@
                       </div>
                     </template>
 
-                    <div class="col-12" x-show="announcements.length === 0">
+                    <div class="col-12" x-show="resourceError('announcements') && !isResourceLoading('announcements')">
+                      <div class="empty-state">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                          <span x-text="resourceError('announcements')"></span>
+                          <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="retryResource('announcements')">تلاش دوباره</button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-12" x-show="announcementPage().totalItems === 0 && !resourceError('announcements')">
                       <div
                         class="empty-state"
-                        x-text="isResourceLoading('announcements') ? 'در حال دریافت اطلاعیه‌ها...' : 'اطلاعیه‌ای برای نمایش وجود ندارد.'"
+                        x-text="isResourceLoading('announcements') ? 'در حال دریافت اطلاعیه‌ها...' : (tableState.announcements.query ? 'اطلاعیه‌ای با این جستجو پیدا نشد.' : 'اطلاعیه‌ای برای نمایش وجود ندارد.')"
                       ></div>
                     </div>
+                  </div>
+                  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" x-show="announcementPage().totalPages > 1">
+                    <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="tableState.announcements.page = Math.max(1, tableState.announcements.page - 1)">قبلی</button>
+                    <span class="text-muted-ss small" x-text="`صفحه ${toPersianNumber(announcementPage().page)} از ${toPersianNumber(announcementPage().totalPages)}`"></span>
+                    <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="tableState.announcements.page = Math.min(announcementPage().totalPages, tableState.announcements.page + 1)">بعدی</button>
                   </div>
                 </div>
               </article>

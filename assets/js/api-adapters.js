@@ -1,5 +1,21 @@
 /* SaraSystem API response adapters.
-   Expected JSON shapes can be direct objects, arrays, or paginated { results, count, next, previous } responses. */
+   Rendering decision for Section 10:
+   - JSON endpoints are normalized here and rendered by Alpine controllers.
+   - HTMX is kept for request triggering, form submission, and non-visual API events where the server returns JSON.
+   - Large lists may arrive as arrays or paginated { results, count, next, previous, page, page_size } payloads.
+   - Backend shape assumptions are intentionally centralized here so endpoint changes do not spread across pages.
+
+   Expected endpoint families:
+   /api/users/ -> User[]
+   /api/dormitories/ -> Dormitory[]
+   /api/rooms/ -> Room[]
+   /api/beds/ -> Bed[]
+   /api/accommodation-requests/ -> AccommodationRequest[]
+   /api/bed-assignments/ -> BedAssignment[]
+   /api/payments/ -> Payment[]
+   /api/maintenance-requests/ -> MaintenanceRequest[]
+   /api/announcements/ -> Announcement[]
+*/
 (function () {
   function text(value, fallback = '—') {
     return value === null || value === undefined || value === '' ? fallback : String(value);

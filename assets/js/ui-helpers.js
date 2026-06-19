@@ -107,6 +107,55 @@
     return formErrors;
   }
 
+  function valueAt(item, key) {
+    if (typeof key === 'function') return key(item);
+    return String(key || '').split('.').reduce((value, part) => value?.[part], item);
+  }
+
+  function searchList(items = [], query = '', keys = []) {
+    const needle = toEnglishDigits(query).toLowerCase().trim();
+    if (!needle) return items;
+
+    return items.filter((item) => {
+      const haystack = (keys.length ? keys : Object.keys(item || {}))
+        .map((key) => normalizeError(valueAt(item, key)))
+        .join(' ');
+      return toEnglishDigits(haystack).toLowerCase().includes(needle);
+    });
+  }
+
+  function sortList(items = [], sort = {}) {
+    const key = sort.key;
+    if (!key) return items;
+
+    const direction = sort.direction === 'desc' ? -1 : 1;
+    return [...items].sort((a, b) => {
+      const left = normalizeError(valueAt(a, key));
+      const right = normalizeError(valueAt(b, key));
+      return left.localeCompare(right, 'fa', { numeric: true, sensitivity: 'base' }) * direction;
+    });
+  }
+
+  function pageList(items = [], page = 1, pageSize = 10) {
+    const safePageSize = Math.max(1, Number(pageSize) || 10);
+    const totalPages = Math.max(1, Math.ceil(items.length / safePageSize));
+    const currentPage = Math.min(Math.max(1, Number(page) || 1), totalPages);
+    const start = (currentPage - 1) * safePageSize;
+
+    return {
+      items: items.slice(start, start + safePageSize),
+      page: currentPage,
+      pageSize: safePageSize,
+      totalPages,
+      totalItems: items.length
+    };
+  }
+
+  function toggleSort(current = {}, key) {
+    if (current.key !== key) return { key, direction: 'asc' };
+    return { key, direction: current.direction === 'asc' ? 'desc' : 'asc' };
+  }
+
   window.SaraUI = {
     toPersianNumber,
     toEnglishDigits,
@@ -119,6 +168,10 @@
     setLoading,
     setSuccess,
     setError,
-    applyFieldErrors
+    applyFieldErrors,
+    searchList,
+    sortList,
+    pageList,
+    toggleSort
   };
 })();
