@@ -1,0 +1,150 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>حساب کاربری | سراسیستم</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet" />
+  <link href="../assets/css/sarasystem.css" rel="stylesheet" />
+  <script src="../assets/js/auth.js" defer></script>
+  <script src="../assets/js/api.js" defer></script>
+  <script src="../assets/js/ui-helpers.js" defer></script>
+  <script src="../assets/js/status-badges.js" defer></script>
+  <script src="../assets/js/auth-guard.js" data-login-url="./login.html" data-unauthorized-url="./403.html" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <link href="../assets/css/account-page.css" rel="stylesheet" />
+</head>
+<body x-data="accountPage()" x-init="init()">
+  <main class="account-shell">
+    <header class="panel glass p-3 p-md-4 mb-3">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="avatar-lg" x-text="initials()"></div>
+          <div>
+            <p class="text-muted-ss mb-1">حساب کاربری سراسیستم</p>
+            <h1 class="h3 fw-bold mb-1" x-text="fullName()"></h1>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <span class="status-badge" :class="accountStatus.className" x-text="accountStatus.label"></span>
+              <span class="text-muted-ss small" dir="ltr" x-text="profile.email || '—'"></span>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+          <a class="btn btn-ss btn-ss-outline" :href="dashboardPath()">بازگشت به پنل</a>
+          <button class="btn btn-ss btn-ss-danger" type="button" @click="logout()">خروج</button>
+        </div>
+      </div>
+    </header>
+
+    <div x-cloak x-show="alert.message" class="alert mb-3" :class="alert.type === 'success' ? 'alert-success' : alert.type === 'warning' ? 'alert-warning' : 'alert-danger'" role="alert" aria-live="polite">
+      <div class="d-flex align-items-start justify-content-between gap-3">
+        <span x-text="alert.message"></span>
+        <button class="btn-close" type="button" aria-label="بستن پیام" @click="alert.message = ''"></button>
+      </div>
+    </div>
+
+    <section x-cloak x-show="accountStatus.message" class="alert alert-warning" role="status">
+      <span x-text="accountStatus.message"></span>
+    </section>
+
+    <div class="row g-3">
+      <section class="col-lg-7">
+        <article class="panel glass p-3 p-md-4 h-100">
+          <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+            <div>
+              <h2 class="h5 fw-bold mb-1">ویرایش پروفایل</h2>
+              <p class="text-muted-ss small mb-0">این فرم فقط فیلدهای حساب کاربری را به API ارسال می‌کند.</p>
+            </div>
+            <span class="status-badge badge-neutral" x-text="isDemo ? 'حالت نمایشی' : 'API'"></span>
+          </div>
+
+          <form @submit.prevent="saveProfile()" novalidate>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="firstName">نام</label>
+                <input class="form-control form-control-lg" id="firstName" x-model.trim="profile.first_name" autocomplete="given-name" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="lastName">نام خانوادگی</label>
+                <input class="form-control form-control-lg" id="lastName" x-model.trim="profile.last_name" autocomplete="family-name" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="email">ایمیل</label>
+                <input class="form-control form-control-lg" id="email" x-model.trim="profile.email" type="email" dir="ltr" autocomplete="email" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="phone">شماره تماس</label>
+                <input class="form-control form-control-lg" id="phone" x-model.trim="profile.phone" dir="ltr" autocomplete="tel" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="studentId">شماره دانشجویی</label>
+                <input class="form-control form-control-lg" id="studentId" x-model.trim="profile.student_id" dir="ltr" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="nationalId">کد ملی</label>
+                <input class="form-control form-control-lg" id="nationalId" x-model.trim="profile.national_id" dir="ltr" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="gender">جنسیت</label>
+                <select class="form-select form-select-lg" id="gender" x-model="profile.gender">
+                  <option value="">ثبت نشده</option>
+                  <option value="female">زن</option>
+                  <option value="male">مرد</option>
+                  <option value="other">سایر</option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="profileImage">تصویر پروفایل، اختیاری</label>
+                <input class="form-control form-control-lg" id="profileImage" type="file" accept="image/*" @change="profileImage = $event.target.files[0] || null" />
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              <button class="btn btn-ss btn-ss-primary px-4" type="submit" :disabled="profileLoading">
+                <span x-cloak x-show="profileLoading" class="spinner-border spinner-border-sm"></span>
+                <span x-text="profileLoading ? 'در حال ذخیره...' : 'ذخیره پروفایل'"></span>
+              </button>
+            </div>
+          </form>
+        </article>
+      </section>
+
+      <aside class="col-lg-5">
+        <article class="panel glass p-3 p-md-4 mb-3">
+          <h2 class="h5 fw-bold mb-3">وضعیت و دسترسی</h2>
+          <div class="d-grid gap-2">
+            <div class="info-row"><span>فعال بودن حساب</span><span x-text="profile.is_active === false ? 'غیرفعال' : 'فعال'"></span></div>
+            <div class="info-row"><span>تایید حساب</span><span x-text="profile.is_verified === false ? 'تاییدنشده' : 'تاییدشده'"></span></div>
+            <div class="info-row"><span>نقش‌ها</span><span x-text="rolesText()"></span></div>
+            <div class="info-row"><span>مجوزها</span><span x-text="permissionsText()"></span></div>
+          </div>
+        </article>
+
+        <article class="panel glass p-3 p-md-4">
+          <h2 class="h5 fw-bold mb-1">تغییر رمز ورود</h2>
+          <p class="text-muted-ss small">رمز جدید فقط به API ارسال می‌شود و در فرانت‌اند ذخیره نمی‌شود.</p>
+          <form @submit.prevent="changePassword()" novalidate>
+            <div class="mb-3">
+              <label class="form-label" for="currentPassword">رمز فعلی</label>
+              <input class="form-control form-control-lg" id="currentPassword" type="password" x-model="password.current_password" autocomplete="current-password" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="newPassword">رمز جدید</label>
+              <input class="form-control form-control-lg" id="newPassword" type="password" x-model="password.new_password" autocomplete="new-password" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="confirmPassword">تکرار رمز جدید</label>
+              <input class="form-control form-control-lg" id="confirmPassword" type="password" x-model="password.confirm_password" autocomplete="new-password" />
+            </div>
+            <button class="btn btn-ss btn-ss-outline w-100" type="submit" :disabled="passwordLoading">
+              <span x-cloak x-show="passwordLoading" class="spinner-border spinner-border-sm"></span>
+              <span x-text="passwordLoading ? 'در حال ثبت...' : 'تغییر رمز ورود'"></span>
+            </button>
+          </form>
+        </article>
+      </aside>
+    </div>
+  </main>
+  <script src="../assets/js/account-page.js"></script>
+</body>
+</html>

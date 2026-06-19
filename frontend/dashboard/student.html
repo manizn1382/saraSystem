@@ -1,0 +1,932 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>پنل دانشجو | سراسیستم</title>
+
+  <!-- Bootstrap RTL -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css"
+    rel="stylesheet"
+  />
+  <link href="../../assets/css/sarasystem.css" rel="stylesheet" />
+
+  <!-- HTMX + JSON encoder extension -->
+  <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+  <script src="https://unpkg.com/htmx-ext-json-enc@2.0.1/json-enc.js" defer></script>
+  <script src="../../assets/js/auth.js" defer></script>
+  <script src="../../assets/js/navigation.js" defer></script>
+  <script src="../../assets/js/api.js" defer></script>
+  <script src="../../assets/js/ui-helpers.js" defer></script>
+  <script src="../../assets/js/status-badges.js" defer></script>
+  <script src="../../assets/js/validation.js" defer></script>
+
+  <!-- Alpine.js -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+  <script src="../../assets/js/auth-guard.js" data-login-url="../login.html" data-unauthorized-url="../403.html" data-allowed-roles="student resident" defer></script>
+  <link href="../../assets/css/student-dashboard.css" rel="stylesheet" />
+</head>
+
+<body x-data="studentDashboard()">
+  <div class="student-app">
+    <div
+      class="mobile-sidebar-backdrop"
+      :class="{ 'show': sidebarOpen }"
+      @click="sidebarOpen = false"
+      aria-hidden="true"
+    ></div>
+
+    <div class="layout-shell">
+      <aside class="sidebar glass" :class="{ 'open': sidebarOpen }" aria-label="منوی پنل دانشجو">
+        <div class="sidebar-header">
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <a href="../index.html" class="d-flex align-items-center gap-3" aria-label="بازگشت به صفحه اصلی سراسیستم">
+              <span class="brand-logo">
+                <img src="../assets/logo_with_outline.png" alt="لوگوی سراسیستم" onerror="this.classList.add('d-none')" />
+              </span>
+              <span>
+                <span class="d-block brand-title">سراسیستم</span>
+                <span class="d-block brand-subtitle">پنل دانشجو</span>
+              </span>
+            </a>
+
+            <button
+              class="btn btn-ss btn-ss-outline d-lg-none px-3"
+              type="button"
+              aria-label="بستن منوی کناری"
+              @click="sidebarOpen = false"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div class="student-mini-card">
+          <div class="d-flex align-items-center gap-3">
+            <span class="avatar" x-text="userInitials()"></span>
+            <div class="min-w-0">
+              <strong class="d-block text-truncate" x-text="fullName()"></strong>
+              <span class="d-block text-muted-ss small" x-text="`شماره دانشجویی: ${user.student_id || '—'}`"></span>
+            </div>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="دسترسی‌های دانشجو">
+          <template x-for="item in visibleNavItems()" :key="item.href">
+            <a
+              class="sidebar-link"
+              :class="{ 'active': activeSection === item.href }"
+              :href="item.href"
+              @click="activeSection = item.href; sidebarOpen = false"
+            >
+              <span class="label">
+                <span class="nav-icon" x-text="item.icon"></span>
+                <span x-text="item.label"></span>
+              </span>
+              <span
+                x-show="item.badge"
+                class="status-badge badge-info"
+                x-text="item.badge"
+              ></span>
+            </a>
+          </template>
+        </nav>
+
+        <div class="sidebar-footer">
+          <button class="btn btn-ss btn-ss-danger w-100" type="button" @click="logout()">
+            خروج از حساب
+          </button>
+        </div>
+      </aside>
+
+      <div class="content-shell">
+        <header class="topbar px-3 px-md-4 py-3 mb-3">
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <button
+                class="btn btn-ss btn-ss-outline d-lg-none px-3"
+                type="button"
+                aria-label="باز کردن منوی کناری"
+                :aria-expanded="sidebarOpen.toString()"
+                @click="sidebarOpen = true"
+              >
+                ☰
+              </button>
+
+              <div class="min-w-0">
+                <div class="breadcrumb-ss mb-1">سراسیستم / پنل دانشجو / <span x-text="activeLabel()"></span></div>
+                <h1 class="page-title h4 mb-0 text-truncate">داشبورد دانشجو</h1>
+              </div>
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <button
+                id="refreshDashboard"
+                class="btn btn-ss btn-ss-outline px-3"
+                type="button"
+                aria-label="بروزرسانی داده‌های داشبورد"
+              >
+                <span class="htmx-indicator spinner-border spinner-border-sm" aria-hidden="true"></span>
+                بروزرسانی
+              </button>
+
+              <div class="profile-menu" @keydown.escape.window="profileOpen = false">
+                <button
+                  class="btn btn-ss btn-ss-primary px-3"
+                  type="button"
+                  :aria-expanded="profileOpen.toString()"
+                  aria-label="باز و بسته کردن منوی پروفایل"
+                  @click="profileOpen = !profileOpen"
+                >
+                  <span class="avatar" style="width: 32px; height: 32px; border-radius: .75rem;" x-text="userInitials()"></span>
+                  <span class="d-none d-md-inline" x-text="fullName()"></span>
+                </button>
+
+                <div x-cloak x-show="profileOpen" x-transition class="profile-dropdown" @click.outside="profileOpen = false">
+                  <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="avatar" x-text="userInitials()"></span>
+                    <div>
+                      <strong class="d-block" x-text="fullName()"></strong>
+                      <span class="text-muted-ss small" x-text="user.email || 'ایمیل ثبت نشده'"></span>
+                    </div>
+                  </div>
+                  <div class="info-list mb-3">
+                    <div class="info-row">
+                      <span>نقش</span>
+                      <span>دانشجو</span>
+                    </div>
+                    <div class="info-row">
+                      <span>وضعیت حساب</span>
+                      <span class="status-badge" :class="accountStatus().className" x-text="accountStatus().label"></span>
+                    </div>
+                  </div>
+                  <a class="btn btn-ss btn-ss-outline w-100 mb-2" :href="accountPath()" @click="profileOpen = false">
+                    مشاهده پروفایل
+                  </a>
+                  <button class="btn btn-ss btn-ss-danger w-100" type="button" @click="logout()">
+                    خروج
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div
+          x-cloak
+          x-show="alert.message"
+          x-transition
+          class="alert mb-3"
+          :class="alert.type === 'success' ? 'alert-ss-success' : alert.type === 'danger' ? 'alert-ss-danger' : 'alert-ss'"
+          role="alert"
+          aria-live="polite"
+        >
+          <div class="d-flex align-items-start justify-content-between gap-3">
+            <span x-text="alert.message"></span>
+            <button class="btn-close btn-close-white" type="button" aria-label="بستن پیام" @click="clearAlert()"></button>
+          </div>
+        </div>
+
+        <main>
+          <section id="overview" class="dashboard-section" aria-labelledby="overviewTitle">
+            <article class="hero-card p-4 p-lg-5 mb-3">
+              <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                  <div class="eyebrow">🎓 نمای سریع خدمات دانشجویی</div>
+                  <h2 id="overviewTitle" class="page-title h2 mb-3">
+                    خوش آمدید، <span x-text="fullName()"></span>
+                  </h2>
+                  <p class="text-soft mb-0" style="line-height: 2;">
+                    از این پنل می‌توانید درخواست اسکان ثبت کنید، وضعیت تخصیص خوابگاه، اتاق و تخت را ببینید،
+                    پرداخت‌ها را پیگیری کنید، درخواست تعمیرات بفرستید و اطلاعیه‌های خوابگاه را دنبال کنید.
+                  </p>
+                </div>
+
+                <div class="col-lg-4">
+                  <div class="d-grid gap-2">
+                    <button class="btn btn-ss btn-ss-primary" type="button" data-bs-toggle="modal" data-bs-target="#accommodationModal">
+                      ثبت درخواست اسکان جدید
+                    </button>
+                    <button class="btn btn-ss btn-ss-outline" type="button" data-bs-toggle="modal" data-bs-target="#maintenanceModal">
+                      ثبت درخواست تعمیرات
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+
+            <div class="row g-3 mb-3">
+              <div class="col-12 col-sm-6 col-xl-3">
+                <article class="stat-card">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <span class="stat-icon">🏠</span>
+                    <span class="status-badge" :class="statusBadgeClass(summary.request_status)" x-text="statusText(summary.request_status)"></span>
+                  </div>
+                  <strong class="stat-value" x-text="summary.request_title"></strong>
+                  <span class="stat-label">آخرین وضعیت درخواست اسکان</span>
+                </article>
+              </div>
+
+              <div class="col-12 col-sm-6 col-xl-3">
+                <article class="stat-card">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <span class="stat-icon">🛏️</span>
+                    <span class="status-badge" :class="statusBadgeClass(assignment.status)" x-text="statusText(assignment.status)"></span>
+                  </div>
+                  <strong class="stat-value" x-text="assignment.room ? `اتاق ${assignment.room}` : 'بدون تخصیص'"></strong>
+                  <span class="stat-label">خوابگاه، اتاق و تخت فعلی</span>
+                </article>
+              </div>
+
+              <div class="col-12 col-sm-6 col-xl-3">
+                <article class="stat-card">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <span class="stat-icon">💳</span>
+                    <span class="status-badge badge-unpaid" x-text="summary.unpaid_count"></span>
+                  </div>
+                  <strong class="stat-value" x-text="summary.unpaid_total"></strong>
+                  <span class="stat-label">پرداخت‌های در انتظار</span>
+                </article>
+              </div>
+
+              <div class="col-12 col-sm-6 col-xl-3">
+                <article class="stat-card">
+                  <div class="d-flex align-items-start justify-content-between gap-3">
+                    <span class="stat-icon">📣</span>
+                    <span class="status-badge badge-unread" x-text="summary.unread_announcements"></span>
+                  </div>
+                  <strong class="stat-value">اطلاعیه جدید</strong>
+                  <span class="stat-label">اعلان‌های خوانده‌نشده</span>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <section id="accommodation" class="dashboard-section" aria-labelledby="accommodationTitle">
+            <div class="row g-3">
+              <div class="col-xl-7">
+                <article class="panel-card">
+                  <div class="panel-header">
+                    <div>
+                      <h2 id="accommodationTitle" class="panel-title">درخواست‌های اسکان</h2>
+                      <p class="text-muted-ss small mb-0 mt-1">ثبت، مشاهده و پیگیری وضعیت درخواست‌های خوابگاه</p>
+                    </div>
+                    <button class="btn btn-ss btn-ss-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#accommodationModal">
+                      درخواست جدید
+                    </button>
+                  </div>
+
+                  <div class="panel-body">
+                    <div class="empty-state" x-show="isResourceLoading('accommodationRequests')">
+                      در حال دریافت درخواست‌های اسکان...
+                    </div>
+                    <template x-if="accommodationRequests.length === 0">
+                      <div class="empty-state" x-show="!isResourceLoading('accommodationRequests')">
+                        هنوز درخواست اسکانی ثبت نشده است. برای شروع، گزینه «درخواست جدید» را انتخاب کنید.
+                      </div>
+                    </template>
+
+                    <div class="timeline" x-show="accommodationRequests.length > 0">
+                      <template x-for="request in accommodationRequests" :key="request.id">
+                        <article class="timeline-item">
+                          <span class="timeline-dot" x-text="request.display_id || request.id"></span>
+                          <div class="timeline-content">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+                              <h3 x-text="request.semester"></h3>
+                              <span class="status-badge" :class="statusBadgeClass(request.status)" x-text="statusText(request.status)"></span>
+                            </div>
+                            <p>
+                              خوابگاه ترجیحی:
+                              <strong class="text-soft" x-text="request.dormitory || 'بدون ترجیح'"> </strong>
+                              · نوع اتاق:
+                              <strong class="text-soft" x-text="request.preferred_room_type || 'ثبت نشده'"></strong>
+                            </p>
+                            <p x-show="request.description" x-text="request.description"></p>
+                            <div class="d-flex flex-wrap gap-2 mt-3">
+                              <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="openAccommodationDetail(request)">
+                                مشاهده جزئیات
+                              </button>
+                              <button x-show="canModifyRequest(request)" class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="editAccommodationRequest(request)">
+                                ویرایش
+                              </button>
+                              <button x-show="canModifyRequest(request)" class="btn btn-ss btn-ss-danger btn-sm" type="button" @click="cancelAccommodationRequest(request)">
+                                لغو درخواست
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      </template>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <div class="col-xl-5" id="assignment">
+                <article class="panel-card">
+                  <div class="panel-header">
+                    <div>
+                      <h2 class="panel-title">وضعیت اسکان فعلی</h2>
+                      <p class="text-muted-ss small mb-0 mt-1">خوابگاه، اتاق و تخت تخصیص‌یافته</p>
+                    </div>
+                    <span class="status-badge" :class="statusBadgeClass(assignment.status)" x-text="statusText(assignment.status)"></span>
+                  </div>
+
+                  <div class="panel-body">
+                    <div class="empty-state" x-show="isResourceLoading('assignment')">
+                      در حال دریافت وضعیت اسکان...
+                    </div>
+                    <template x-if="!assignment.room">
+                      <div class="empty-state" x-show="!isResourceLoading('assignment')">
+                        هنوز تختی برای شما تخصیص داده نشده است. پس از تایید درخواست، اطلاعات اسکان اینجا نمایش داده می‌شود.
+                      </div>
+                    </template>
+
+                    <div class="info-list" x-show="assignment.room">
+                      <div class="info-row">
+                        <span>خوابگاه</span>
+                        <span x-text="assignment.dormitory"></span>
+                      </div>
+                      <div class="info-row">
+                        <span>اتاق</span>
+                        <span x-text="assignment.room"></span>
+                      </div>
+                      <div class="info-row">
+                        <span>تخت</span>
+                        <span x-text="assignment.bed"></span>
+                      </div>
+                      <div class="info-row">
+                        <span>تاریخ شروع</span>
+                        <span x-text="assignment.start_date"></span>
+                      </div>
+                      <div class="info-row">
+                        <span>توضیحات</span>
+                        <span x-text="assignment.notes || '—'"></span>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <section id="payments" class="dashboard-section" aria-labelledby="paymentsTitle">
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <h2 id="paymentsTitle" class="panel-title">پرداخت‌ها</h2>
+                  <p class="text-muted-ss small mb-0 mt-1">نمایش وضعیت مالی مرتبط با اسکان؛ بدون پیاده‌سازی پرداخت بانکی واقعی</p>
+                </div>
+                <a class="btn btn-ss btn-ss-outline btn-sm" href="#payments">مشاهده همه</a>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-ss align-middle">
+                  <thead>
+                    <tr>
+                      <th scope="col">شناسه</th>
+                      <th scope="col">نوع پرداخت</th>
+                      <th scope="col">مبلغ</th>
+                      <th scope="col">سررسید</th>
+                      <th scope="col">وضعیت</th>
+                      <th scope="col">توضیحات</th>
+                      <th scope="col">جزئیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="payment in payments" :key="payment.id">
+                      <tr>
+                        <td x-text="payment.id"></td>
+                        <td x-text="payment.payment_type"></td>
+                        <td x-text="payment.amount"></td>
+                        <td x-text="payment.due_date"></td>
+                        <td>
+                          <span class="status-badge" :class="paymentBadgeClass(payment.status)" x-text="paymentStatusText(payment.status)"></span>
+                        </td>
+                        <td x-text="payment.description || '—'"></td>
+                        <td><button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="openPaymentDetail(payment)">مشاهده</button></td>
+                      </tr>
+                    </template>
+
+                    <tr x-show="payments.length === 0">
+                      <td colspan="7">
+                        <div class="empty-state m-3" x-text="isResourceLoading('payments') ? 'در حال دریافت پرداخت‌ها...' : 'پرداختی برای نمایش وجود ندارد.'"></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <section id="maintenance" class="dashboard-section" aria-labelledby="maintenanceTitle">
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <h2 id="maintenanceTitle" class="panel-title">درخواست‌های تعمیرات</h2>
+                  <p class="text-muted-ss small mb-0 mt-1">ثبت مشکل اتاق یا تخت و پیگیری وضعیت رسیدگی</p>
+                </div>
+                <button class="btn btn-ss btn-ss-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#maintenanceModal">
+                  درخواست تعمیرات
+                </button>
+              </div>
+
+              <div class="table-responsive">
+                <table class="table table-ss align-middle">
+                  <thead>
+                    <tr>
+                      <th scope="col">عنوان</th>
+                      <th scope="col">مکان</th>
+                      <th scope="col">اولویت</th>
+                      <th scope="col">وضعیت</th>
+                      <th scope="col">تاریخ ثبت</th>
+                      <th scope="col">جزئیات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template x-for="ticket in maintenanceRequests" :key="ticket.id">
+                      <tr>
+                        <td>
+                          <strong class="text-soft" x-text="ticket.title"></strong>
+                          <div class="text-muted-ss small" x-text="ticket.description"></div>
+                        </td>
+                        <td x-text="ticket.location"></td>
+                        <td>
+                          <span class="status-badge" :class="priorityBadgeClass(ticket.priority)" x-text="priorityText(ticket.priority)"></span>
+                        </td>
+                        <td>
+                          <span class="status-badge" :class="statusBadgeClass(ticket.status)" x-text="statusText(ticket.status)"></span>
+                        </td>
+                        <td x-text="ticket.created_at"></td>
+                        <td><button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="openMaintenanceDetail(ticket)">مشاهده</button></td>
+                      </tr>
+                    </template>
+
+                    <tr x-show="maintenanceRequests.length === 0">
+                      <td colspan="6">
+                        <div class="empty-state m-3" x-text="isResourceLoading('maintenanceRequests') ? 'در حال دریافت درخواست‌های تعمیرات...' : 'درخواست تعمیراتی ثبت نشده است.'"></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+
+          <section id="announcements" class="dashboard-section" aria-labelledby="announcementsTitle">
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <h2 id="announcementsTitle" class="panel-title">اطلاعیه‌ها</h2>
+                  <p class="text-muted-ss small mb-0 mt-1">اعلان‌های عمومی و هدفمند مرتبط با نقش یا خوابگاه شما</p>
+                </div>
+                <span class="status-badge badge-unread" x-text="`${summary.unread_announcements} خوانده‌نشده`"></span>
+              </div>
+
+              <div class="panel-body">
+                <div class="row g-3">
+                  <template x-for="announcement in announcements" :key="announcement.id">
+                    <div class="col-lg-6">
+                      <article class="announcement-item" :class="{ 'unread': !announcement.read }">
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+                          <h3 x-text="announcement.title"></h3>
+                          <span class="status-badge" :class="announcement.read ? 'badge-read' : 'badge-unread'" x-text="announcement.read ? 'خوانده شده' : 'جدید'"></span>
+                        </div>
+                        <p x-text="announcement.content"></p>
+                        <div class="d-flex align-items-center justify-content-between gap-2 mt-3">
+                          <span class="text-muted-ss small" x-text="announcement.created_at"></span>
+                          <div class="d-flex flex-wrap gap-2">
+                            <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="openAnnouncementDetail(announcement)">جزئیات</button>
+                            <button class="btn btn-ss btn-ss-outline btn-sm" type="button" @click="markAnnouncementRead(announcement)">
+                              علامت‌گذاری خوانده‌شده
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    </div>
+                  </template>
+
+                  <div class="col-12" x-show="announcements.length === 0">
+                    <div class="empty-state" x-text="isResourceLoading('announcements') ? 'در حال دریافت اطلاعیه‌ها...' : 'اطلاعیه‌ای برای نمایش وجود ندارد.'"></div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section id="profile" class="dashboard-section pb-4" aria-labelledby="profileTitle">
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <h2 id="profileTitle" class="panel-title">پروفایل دانشجو</h2>
+                  <p class="text-muted-ss small mb-0 mt-1">اطلاعات پایه دریافت‌شده از API کاربر</p>
+                </div>
+                <span class="status-badge" :class="accountStatus().className" x-text="accountStatus().label"></span>
+              </div>
+
+              <div class="panel-body">
+                <div class="row g-3">
+                  <div class="col-md-6 col-xl-4">
+                    <div class="info-row h-100">
+                      <span>نام کامل</span>
+                      <span x-text="fullName()"></span>
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-xl-4">
+                    <div class="info-row h-100">
+                      <span>شماره دانشجویی</span>
+                      <span x-text="user.student_id || '—'"></span>
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-xl-4">
+                    <div class="info-row h-100">
+                      <span>کد ملی</span>
+                      <span x-text="user.national_id || '—'"></span>
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-xl-4">
+                    <div class="info-row h-100">
+                      <span>ایمیل</span>
+                      <span dir="ltr" x-text="user.email || '—'"></span>
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-xl-4">
+                    <div class="info-row h-100">
+                      <span>شماره تماس</span>
+                      <span x-text="user.phone || '—'"></span>
+                    </div>
+                  </div>
+                  <div class="col-md-6 col-xl-4">
+                    <div class="info-row h-100">
+                      <span>نقش</span>
+                      <span>دانشجو</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </section>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden HTMX JSON requests. Alpine updates the UI after each response. -->
+  <div class="d-none">
+    <div
+      data-resource="me"
+      hx-get="/api/users/me/"
+      hx-trigger="load, click from:#refreshDashboard"
+      hx-swap="none"
+      hx-timeout="15000"
+      hx-headers='{"Accept": "application/json"}'
+    ></div>
+
+    <div
+      data-resource="accommodationRequests"
+      hx-get="/api/accommodation-requests/"
+      hx-trigger="load, click from:#refreshDashboard"
+      hx-swap="none"
+      hx-timeout="15000"
+      hx-headers='{"Accept": "application/json"}'
+    ></div>
+
+    <div
+      data-resource="dormitories"
+      hx-get="/api/dormitories/"
+      hx-trigger="load, click from:#refreshDashboard"
+      hx-swap="none"
+      hx-timeout="15000"
+      hx-headers='{"Accept": "application/json"}'
+    ></div>
+
+    <div
+      data-resource="assignment"
+      hx-get="/api/bed-assignments/"
+      hx-trigger="load, click from:#refreshDashboard"
+      hx-swap="none"
+      hx-timeout="15000"
+      hx-headers='{"Accept": "application/json"}'
+    ></div>
+
+    <div
+      data-resource="payments"
+      hx-get="/api/payments/"
+      hx-trigger="load, click from:#refreshDashboard"
+      hx-swap="none"
+      hx-timeout="15000"
+      hx-headers='{"Accept": "application/json"}'
+    ></div>
+
+    <div
+      data-resource="maintenanceRequests"
+      hx-get="/api/maintenance-requests/"
+      hx-trigger="load, click from:#refreshDashboard"
+      hx-swap="none"
+      hx-timeout="15000"
+      hx-headers='{"Accept": "application/json"}'
+    ></div>
+
+    <div
+      data-resource="announcements"
+      hx-get="/api/announcements/"
+      hx-trigger="load, click from:#refreshDashboard"
+      hx-swap="none"
+      hx-timeout="15000"
+      hx-headers='{"Accept": "application/json"}'
+    ></div>
+  </div>
+
+  <!-- Accommodation Modal -->
+  <div class="modal fade" id="accommodationModal" tabindex="-1" aria-labelledby="accommodationModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <form
+          id="accommodationForm"
+          novalidate
+          hx-ext="json-enc"
+          hx-post="/api/accommodation-requests/"
+          hx-trigger="submit"
+          hx-swap="none"
+          hx-timeout="15000"
+          hx-headers='{"Accept": "application/json"}'
+          @submit.capture="validateAccommodation($event)"
+        >
+          <div class="modal-header">
+            <h2 class="modal-title h5 fw-bold" id="accommodationModalTitle" x-text="forms.accommodation.editingId ? 'ویرایش درخواست اسکان' : 'ثبت درخواست اسکان'"></h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+          </div>
+
+          <div class="modal-body">
+            <div
+              x-cloak
+              x-show="forms.accommodation.message"
+              class="alert mb-3"
+              :class="forms.accommodation.success ? 'alert-ss-success' : 'alert-ss-danger'"
+              role="alert"
+            >
+              <span x-text="forms.accommodation.message"></span>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="requestedDormitory" class="form-label">خوابگاه ترجیحی</label>
+                <select
+                  x-model="forms.accommodation.data.requested_dormitory_id"
+                  :class="{ 'is-invalid': forms.accommodation.errors.requested_dormitory_id }"
+                  class="form-select form-select-lg"
+                  id="requestedDormitory"
+                  name="requested_dormitory_id"
+                  aria-describedby="requestedDormitoryError"
+                >
+                  <option value="">بدون ترجیح</option>
+                  <template x-for="dormitory in dormitories" :key="dormitory.id">
+                    <option :value="dormitory.id" x-text="dormitory.name"></option>
+                  </template>
+                </select>
+                <div id="requestedDormitoryError" class="invalid-feedback" x-text="forms.accommodation.errors.requested_dormitory_id"></div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="preferredRoomType" class="form-label">نوع اتاق ترجیحی</label>
+                <select
+                  x-model="forms.accommodation.data.preferred_room_type"
+                  :class="{ 'is-invalid': forms.accommodation.errors.preferred_room_type }"
+                  class="form-select form-select-lg"
+                  id="preferredRoomType"
+                  name="preferred_room_type"
+                  required
+                  aria-describedby="preferredRoomTypeError"
+                >
+                  <option value="">انتخاب کنید</option>
+                  <option value="single">تک‌نفره</option>
+                  <option value="double">دونفره</option>
+                  <option value="shared">چندنفره</option>
+                </select>
+                <div id="preferredRoomTypeError" class="invalid-feedback" x-text="forms.accommodation.errors.preferred_room_type"></div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="semester" class="form-label">نیم‌سال</label>
+                <input
+                  x-model.trim="forms.accommodation.data.semester"
+                  :class="{ 'is-invalid': forms.accommodation.errors.semester }"
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="semester"
+                  name="semester"
+                  required
+                  aria-describedby="semesterError"
+                  placeholder="مثلاً ۱۴۰۴-۱۴۰۵ نیم‌سال اول"
+                />
+                <div id="semesterError" class="invalid-feedback" x-text="forms.accommodation.errors.semester"></div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="requestDate" class="form-label">تاریخ درخواست</label>
+                <input
+                  x-model.trim="forms.accommodation.data.request_date"
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="requestDate"
+                  name="request_date"
+                  placeholder="۱۴۰۴/۰۶/۱۵"
+                />
+              </div>
+
+              <div class="col-12">
+                <label for="accommodationDescription" class="form-label">توضیحات</label>
+                <textarea
+                  x-model.trim="forms.accommodation.data.description"
+                  class="form-control"
+                  id="accommodationDescription"
+                  name="description"
+                  rows="4"
+                  placeholder="توضیحات تکمیلی درباره شرایط اسکان یا ترجیحات خود را وارد کنید."
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ss btn-ss-outline" data-bs-dismiss="modal">انصراف</button>
+            <button type="submit" class="btn btn-ss btn-ss-primary" :disabled="forms.accommodation.loading">
+              <span x-cloak x-show="forms.accommodation.loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              <span x-text="forms.accommodation.loading ? 'در حال ارسال...' : (forms.accommodation.editingId ? 'ذخیره ویرایش' : 'ارسال درخواست')"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Maintenance Modal -->
+  <div class="modal fade" id="maintenanceModal" tabindex="-1" aria-labelledby="maintenanceModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <form
+          id="maintenanceForm"
+          novalidate
+          hx-ext="json-enc"
+          hx-post="/api/maintenance-requests/"
+          hx-trigger="submit"
+          hx-swap="none"
+          hx-timeout="15000"
+          hx-headers='{"Accept": "application/json"}'
+          @submit.capture="validateMaintenance($event)"
+        >
+          <div class="modal-header">
+            <h2 class="modal-title h5 fw-bold" id="maintenanceModalTitle">ثبت درخواست تعمیرات</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+          </div>
+
+          <div class="modal-body">
+            <div
+              x-cloak
+              x-show="forms.maintenance.message"
+              class="alert mb-3"
+              :class="forms.maintenance.success ? 'alert-ss-success' : 'alert-ss-danger'"
+              role="alert"
+            >
+              <span x-text="forms.maintenance.message"></span>
+            </div>
+
+            <div class="row g-3">
+              <div class="col-md-8">
+                <label for="maintenanceTitleInput" class="form-label">عنوان مشکل</label>
+                <input
+                  x-model.trim="forms.maintenance.data.title"
+                  :class="{ 'is-invalid': forms.maintenance.errors.title }"
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="maintenanceTitleInput"
+                  name="title"
+                  required
+                  aria-describedby="maintenanceTitleError"
+                  placeholder="مثلاً خرابی شیر آب"
+                />
+                <div id="maintenanceTitleError" class="invalid-feedback" x-text="forms.maintenance.errors.title"></div>
+              </div>
+
+              <div class="col-md-4">
+                <label for="maintenancePriority" class="form-label">اولویت</label>
+                <select
+                  x-model="forms.maintenance.data.priority"
+                  :class="{ 'is-invalid': forms.maintenance.errors.priority }"
+                  class="form-select form-select-lg"
+                  id="maintenancePriority"
+                  name="priority"
+                  required
+                  aria-describedby="maintenancePriorityError"
+                >
+                  <option value="">انتخاب کنید</option>
+                  <option value="low">کم</option>
+                  <option value="medium">متوسط</option>
+                  <option value="high">زیاد</option>
+                  <option value="urgent">فوری</option>
+                </select>
+                <div id="maintenancePriorityError" class="invalid-feedback" x-text="forms.maintenance.errors.priority"></div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="maintenanceRoom" class="form-label">شناسه اتاق</label>
+                <input
+                  x-model.trim="forms.maintenance.data.room_id"
+                  :class="{ 'is-invalid': forms.maintenance.errors.room_id }"
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="maintenanceRoom"
+                  name="room_id"
+                  required
+                  aria-describedby="maintenanceRoomError"
+                  placeholder="مثلاً 212"
+                />
+                <div id="maintenanceRoomError" class="invalid-feedback" x-text="forms.maintenance.errors.room_id"></div>
+              </div>
+
+              <div class="col-md-6">
+                <label for="maintenanceBed" class="form-label">شناسه تخت، اختیاری</label>
+                <input
+                  x-model.trim="forms.maintenance.data.bed_id"
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="maintenanceBed"
+                  name="bed_id"
+                  placeholder="مثلاً 3"
+                />
+              </div>
+
+              <div class="col-12">
+                <label for="maintenanceDescription" class="form-label">شرح مشکل</label>
+                <textarea
+                  x-model.trim="forms.maintenance.data.description"
+                  :class="{ 'is-invalid': forms.maintenance.errors.description }"
+                  class="form-control"
+                  id="maintenanceDescription"
+                  name="description"
+                  rows="4"
+                  required
+                  aria-describedby="maintenanceDescriptionError"
+                  placeholder="جزئیات مشکل و محل دقیق آن را بنویسید."
+                ></textarea>
+                <div id="maintenanceDescriptionError" class="invalid-feedback" x-text="forms.maintenance.errors.description"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-ss btn-ss-outline" data-bs-dismiss="modal">انصراف</button>
+            <button type="submit" class="btn btn-ss btn-ss-primary" :disabled="forms.maintenance.loading">
+              <span x-cloak x-show="forms.maintenance.loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              <span x-text="forms.maintenance.loading ? 'در حال ارسال...' : 'ارسال درخواست'"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="studentDetailModal" tabindex="-1" aria-labelledby="studentDetailModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5 fw-bold" id="studentDetailModalTitle" x-text="detail.title"></h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="بستن"></button>
+        </div>
+        <div class="modal-body">
+          <template x-if="detail.type === 'announcement'">
+            <article>
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                <span class="text-muted-ss small" x-text="detail.item.created_at || '—'"></span>
+                <span class="status-badge" :class="detail.item.read ? 'badge-read' : 'badge-unread'" x-text="detail.item.read ? 'خوانده شده' : 'جدید'"></span>
+              </div>
+              <p class="mb-0" style="line-height:2" x-text="detail.item.content || '—'"></p>
+            </article>
+          </template>
+
+          <template x-if="detail.type !== 'announcement'">
+            <div class="info-list">
+              <template x-for="row in detailRows()" :key="row.label">
+                <div class="info-row">
+                  <span x-text="row.label"></span>
+                  <span :dir="row.ltr ? 'ltr' : 'rtl'" x-text="row.value || '—'"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ss btn-ss-outline" data-bs-dismiss="modal">بستن</button>
+          <button x-show="detail.type === 'announcement' && detail.item && !detail.item.read" class="btn btn-ss btn-ss-primary" type="button" @click="markAnnouncementRead(detail.item)">
+            علامت‌گذاری خوانده‌شده
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../../assets/js/student-dashboard.js"></script>
+</body>
+</html>

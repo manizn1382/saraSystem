@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8" />
@@ -11,135 +11,20 @@
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css"
     rel="stylesheet"
   />
+  <link href="../assets/css/sarasystem.css" rel="stylesheet" />
 
   <!-- HTMX + JSON encoder extension -->
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
   <script src="https://unpkg.com/htmx-ext-json-enc@2.0.1/json-enc.js" defer></script>
+  <script src="../assets/js/auth.js" defer></script>
+  <script src="../assets/js/api.js" defer></script>
+  <script src="../assets/js/ui-helpers.js" defer></script>
+  <script src="../assets/js/validation.js" defer></script>
+  <script src="../assets/js/demo-auth.js" defer></script>
 
   <!-- Alpine.js -->
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-
-  <style>
-    [x-cloak] {
-      display: none !important;
-    }
-
-    :root {
-      --ss-primary: #08254a;
-      --ss-primary-soft: #0d6efd;
-      --ss-card-radius: 1.25rem;
-    }
-
-    body {
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 88% 8%, rgba(56, 189, 248, .22), transparent 28rem),
-        radial-gradient(circle at 7% 96%, rgba(20, 184, 166, .22), transparent 30rem),
-        radial-gradient(circle at 48% 28%, rgba(99, 102, 241, .09), transparent 26rem),
-        linear-gradient(135deg, #06162b 0%, #071b35 48%, #08254a 100%);
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .auth-card {
-      width: 100%;
-      max-width: 430px;
-      border: 0;
-      border-radius: var(--ss-card-radius);
-      box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, .28);
-      background: rgba(248, 250, 252, .94);
-      /* background: rgba(255, 255, 255, .96); */
-      backdrop-filter: blur(10px);
-    }
-
-    .brand-logo {
-      max-width: 280px;
-      width: 100%;
-      height: auto;
-    }
-
-    .btn-sarasystem {
-      --bs-btn-bg: var(--ss-primary);
-      --bs-btn-border-color: var(--ss-primary);
-      --bs-btn-hover-bg: #0b3569;
-      --bs-btn-hover-border-color: #0b3569;
-      --bs-btn-active-bg: #061b36;
-      --bs-btn-active-border-color: #061b36;
-      --bs-btn-color: #fff;
-      --bs-btn-hover-color: #fff;
-      --bs-btn-active-color: #fff;
-    }
-
-    .form-control:focus {
-      border-color: var(--ss-primary-soft);
-      box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15);
-    }
-
-    .password-control {
-    padding-left: 4.75rem;
-    }
-
-    .password-toggle {
-    position: absolute;
-    top: 50%;
-    left: .65rem;
-    transform: translateY(-50%);
-    z-index: 5;
-    border: 0;
-    border-radius: 999px;
-    background: #eef3f8;
-    color: #475569;
-    font-size: .85rem;
-    font-weight: 600;
-    line-height: 1;
-    padding: .45rem .75rem;
-    transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
-    }
-
-    .password-toggle:hover {
-    background: #dbeafe;
-    color: #0d6efd;
-    }
-
-    .password-toggle:focus-visible {
-    outline: 0;
-    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .2);
-    }
-
-    .password-control.is-invalid {
-    background-position: left calc(4.75rem + .1875rem) center;
-    }
-
-    .home-back-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .45rem;
-    min-height: 38px;
-    padding: .45rem .95rem;
-    border: 1px solid rgba(125, 211, 252, .28);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, .08);
-    color: #dff7ff;
-    font-size: .875rem;
-    font-weight: 700;
-    text-decoration: none;
-    backdrop-filter: blur(12px);
-    transition: transform .2s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
-    }
-
-    .home-back-btn:hover {
-    color: #fff;
-    background: rgba(56, 189, 248, .16);
-    border-color: rgba(125, 211, 252, .42);
-    transform: translateY(-1px);
-    }
-
-    .home-back-btn:focus-visible {
-    outline: 0;
-    box-shadow: 0 0 0 .2rem rgba(56, 189, 248, .24);
-    }
-
-  </style>
+  <link href="../assets/css/login-page.css" rel="stylesheet" />
 </head>
 
 <body x-data="loginPage()">
@@ -172,7 +57,12 @@
           x-show="alert.message"
           x-transition
           class="alert mb-4"
-          :class="alert.type === 'success' ? 'alert-success' : 'alert-danger'"
+          :class="{
+            'alert-success': alert.type === 'success',
+            'alert-warning': alert.type === 'warning',
+            'alert-info': alert.type === 'info',
+            'alert-danger': !['success', 'warning', 'info'].includes(alert.type)
+          }"
           role="alert"
           aria-live="polite"
         >
@@ -257,7 +147,7 @@
               </label>
             </div>
 
-            <a href="/forgot-password.html" class="link-primary text-decoration-none small">
+            <a href="./forgot-password.html" class="link-primary text-decoration-none small">
               فراموشی رمز ورود
             </a>
           </div>
@@ -279,6 +169,50 @@
           </button>
         </form>
 
+
+        <section class="demo-login-box p-3 mt-4" aria-labelledby="demoLoginTitle">
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div>
+              <h2 id="demoLoginTitle" class="demo-title h6 mb-1">ورود سریع برای مشاهده پنل‌ها</h2>
+              <p class="text-secondary small mb-0">این حساب‌ها فقط برای پیش‌نمایش فرانت‌اند هستند و به API واقعی وصل نیستند.</p>
+            </div>
+            <div class="form-check form-switch m-0">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                id="demoModeSwitch"
+                x-model="demoModeEnabled"
+                @change="setDemoMode($event.target.checked)"
+              />
+              <label class="form-check-label small fw-bold" for="demoModeSwitch">حالت نمایشی</label>
+            </div>
+          </div>
+
+          <div class="row g-2">
+            <template x-for="account in demoAccounts" :key="account.key">
+              <div class="col-12 col-sm-6">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary w-100 demo-account-btn"
+                  :disabled="!demoModeEnabled"
+                  @click="loginAsDemo(account.key)"
+                >
+                  <span x-text="account.label"></span>
+                </button>
+              </div>
+            </template>
+          </div>
+
+          <div class="small text-secondary mt-3" dir="rtl">
+            رمز همه حساب‌های نمایشی: <code>demo1234</code> — می‌توانید از نام‌های
+            <code>student</code>، <code>supervisor</code>، <code>admin</code>، <code>support</code> هم در فرم ورود استفاده کنید.
+          </div>
+          <div class="alert alert-warning py-2 px-3 mt-3 mb-0 small" x-show="!demoModeEnabled" x-cloak>
+            برای استفاده از حساب‌های نمایشی، کلید حالت نمایشی را فعال کنید.
+          </div>
+        </section>
+
         <div class="border-top pt-3 mt-4 text-center">
           <span class="text-secondary small">حساب دانشجویی ندارید؟</span>
           <a href="./register.html" class="small text-decoration-none">
@@ -288,249 +222,6 @@
       </div>
     </section>
   </main>
-
-  <script>
-    function loginPage() {
-      return {
-        form: {
-          username: "",
-          password: ""
-        },
-
-        errors: {
-          username: "",
-          password: ""
-        },
-
-        alert: {
-          type: "danger",
-          message: ""
-        },
-
-        loading: false,
-        remember: false,
-        showPassword: false,
-
-        init() {
-          document.body.addEventListener("htmx:beforeRequest", (event) => {
-            if (!this.isLoginRequest(event)) return;
-
-            this.loading = true;
-            this.clearErrors();
-            this.clearAlert();
-          });
-
-          document.body.addEventListener("htmx:afterRequest", (event) => {
-            if (!this.isLoginRequest(event)) return;
-
-            this.loading = false;
-
-            const xhr = event.detail.xhr;
-            const data = this.parseJson(xhr.responseText);
-
-            if (xhr.status >= 200 && xhr.status < 300) {
-              this.handleLoginSuccess(data);
-              return;
-            }
-
-            this.handleLoginError(xhr.status, data);
-          });
-
-          document.body.addEventListener("htmx:sendError", (event) => {
-            if (!this.isLoginRequest(event)) return;
-
-            this.loading = false;
-            this.showAlert(
-              "danger",
-              "ارتباط با سرور برقرار نشد. لطفاً اتصال اینترنت یا آدرس API را بررسی کنید."
-            );
-          });
-
-          document.body.addEventListener("htmx:timeout", (event) => {
-            if (!this.isLoginRequest(event)) return;
-
-            this.loading = false;
-            this.showAlert(
-              "danger",
-              "زمان پاسخ‌گویی سرور به پایان رسید. لطفاً دوباره تلاش کنید."
-            );
-          });
-        },
-
-        validateBeforeSubmit(event) {
-          this.clearErrors();
-          this.clearAlert();
-
-          if (!this.form.username) {
-            this.errors.username = "وارد کردن شناسه کاربری الزامی است.";
-          }
-
-          if (!this.form.password) {
-            this.errors.password = "وارد کردن رمز ورود الزامی است.";
-          }
-
-          if (this.errors.username || this.errors.password) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-          }
-        },
-
-        handleLoginSuccess(data) {
-          const accessToken =
-            data?.access ||
-            data?.access_token ||
-            data?.token ||
-            data?.tokens?.access;
-
-          const refreshToken =
-            data?.refresh ||
-            data?.refresh_token ||
-            data?.tokens?.refresh;
-
-          if (!accessToken) {
-            this.showAlert(
-              "danger",
-              "ورود انجام شد، اما پاسخ سرور شامل توکن معتبر نیست."
-            );
-            return;
-          }
-
-          const storage = this.remember ? localStorage : sessionStorage;
-
-          storage.setItem("sarasystem.accessToken", accessToken);
-
-          if (refreshToken) {
-            storage.setItem("sarasystem.refreshToken", refreshToken);
-          }
-
-          if (data?.user) {
-            storage.setItem("sarasystem.user", JSON.stringify(data.user));
-          }
-
-          this.showAlert("success", "ورود موفق بود. در حال انتقال به داشبورد...");
-
-          window.setTimeout(() => {
-            window.location.assign(this.getDashboardPath(data?.user));
-          }, 700);
-        },
-
-        handleLoginError(status, data) {
-          this.applyServerFieldErrors(data);
-
-          const serverMessage =
-            data?.detail ||
-            data?.message ||
-            data?.error ||
-            data?.non_field_errors?.[0];
-
-          if (serverMessage) {
-            this.showAlert("danger", serverMessage);
-            return;
-          }
-
-          const messages = {
-            400: "اطلاعات واردشده معتبر نیست. لطفاً فیلدها را بررسی کنید.",
-            401: "شناسه کاربری یا رمز ورود اشتباه است.",
-            403: "حساب شما مجوز ورود به این بخش را ندارد یا غیرفعال شده است.",
-            404: "آدرس API ورود پیدا نشد.",
-            429: "تعداد تلاش‌های ورود زیاد است. کمی بعد دوباره تلاش کنید.",
-            500: "خطای داخلی سرور رخ داده است. لطفاً بعداً دوباره تلاش کنید."
-          };
-
-          this.showAlert(
-            "danger",
-            messages[status] || "ورود ناموفق بود. لطفاً دوباره تلاش کنید."
-          );
-        },
-
-        applyServerFieldErrors(data) {
-          const usernameError =
-            data?.username ||
-            data?.email ||
-            data?.student_id ||
-            data?.national_id;
-
-          const passwordError = data?.password;
-
-          if (usernameError) {
-            this.errors.username = this.normalizeError(usernameError);
-          }
-
-          if (passwordError) {
-            this.errors.password = this.normalizeError(passwordError);
-          }
-        },
-
-        getDashboardPath(user) {
-          const roles = Array.isArray(user?.roles)
-            ? user.roles
-            : user?.role
-              ? [user.role]
-              : [];
-
-          const normalizedRoles = roles.map((role) => {
-            const value =
-              typeof role === "string"
-                ? role
-                : role?.code || role?.name || "";
-
-            return value.toLowerCase().trim().replace(/\s+/g, "_");
-          });
-
-          if (normalizedRoles.includes("student") || normalizedRoles.includes("resident")) {
-            return "/dashboard/student.html";
-          }
-
-          if (normalizedRoles.includes("dormitory_admin")) {
-            return "/dashboard/dormitory-admin.html";
-          }
-
-          if (
-            normalizedRoles.includes("system_admin") ||
-            normalizedRoles.includes("admin") ||
-            normalizedRoles.includes("university_manager")
-          ) {
-            return "/dashboard/admin.html";
-          }
-
-          if (normalizedRoles.includes("support_staff")) {
-            return "/dashboard/support.html";
-          }
-
-          return "/dashboard/index.html";
-        },
-
-        isLoginRequest(event) {
-          return event?.detail?.elt?.id === "loginForm";
-        },
-
-        parseJson(value) {
-          try {
-            return value ? JSON.parse(value) : {};
-          } catch {
-            return {};
-          }
-        },
-
-        normalizeError(error) {
-          return Array.isArray(error) ? error.join("، ") : String(error);
-        },
-
-        clearErrors() {
-          this.errors.username = "";
-          this.errors.password = "";
-        },
-
-        clearAlert() {
-          this.alert.message = "";
-        },
-
-        showAlert(type, message) {
-          this.alert.type = type;
-          this.alert.message = message;
-        }
-      };
-    }
-  </script>
+  <script src="../assets/js/login-page.js"></script>
 </body>
 </html>

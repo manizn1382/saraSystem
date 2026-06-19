@@ -1,0 +1,145 @@
+﻿[x-cloak] {
+      display: none !important;
+    }
+
+    :root {
+      --ss-primary: #08254a;
+      --ss-primary-soft: #0d6efd;
+      --ss-card-radius: 1.25rem;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 88% 8%, rgba(56, 189, 248, .22), transparent 28rem),
+        radial-gradient(circle at 7% 96%, rgba(20, 184, 166, .22), transparent 30rem),
+        radial-gradient(circle at 48% 28%, rgba(99, 102, 241, .09), transparent 26rem),
+        linear-gradient(135deg, #06162b 0%, #071b35 48%, #08254a 100%);
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 430px;
+      border: 0;
+      border-radius: var(--ss-card-radius);
+      box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, .28);
+      background: rgba(248, 250, 252, .94);
+      /* background: rgba(255, 255, 255, .96); */
+      backdrop-filter: blur(10px);
+    }
+
+    .brand-logo {
+      max-width: 280px;
+      width: 100%;
+      height: auto;
+    }
+
+    .btn-sarasystem {
+      --bs-btn-bg: var(--ss-primary);
+      --bs-btn-border-color: var(--ss-primary);
+      --bs-btn-hover-bg: #0b3569;
+      --bs-btn-hover-border-color: #0b3569;
+      --bs-btn-active-bg: #061b36;
+      --bs-btn-active-border-color: #061b36;
+      --bs-btn-color: #fff;
+      --bs-btn-hover-color: #fff;
+      --bs-btn-active-color: #fff;
+    }
+
+    .form-control:focus {
+      border-color: var(--ss-primary-soft);
+      box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .15);
+    }
+
+    .password-control {
+    padding-left: 4.75rem;
+    }
+
+    .password-toggle {
+    position: absolute;
+    top: 50%;
+    left: .65rem;
+    transform: translateY(-50%);
+    z-index: 5;
+    border: 0;
+    border-radius: 999px;
+    background: #eef3f8;
+    color: #475569;
+    font-size: .85rem;
+    font-weight: 600;
+    line-height: 1;
+    padding: .45rem .75rem;
+    transition: background-color .2s ease, color .2s ease, box-shadow .2s ease;
+    }
+
+    .password-toggle:hover {
+    background: #dbeafe;
+    color: #0d6efd;
+    }
+
+    .password-toggle:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .2);
+    }
+
+    .password-control.is-invalid {
+    background-position: left calc(4.75rem + .1875rem) center;
+    }
+
+    .home-back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    min-height: 38px;
+    padding: .45rem .95rem;
+    border: 1px solid rgba(125, 211, 252, .28);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, .08);
+    color: #dff7ff;
+    font-size: .875rem;
+    font-weight: 700;
+    text-decoration: none;
+    backdrop-filter: blur(12px);
+    transition: transform .2s ease, background-color .2s ease, color .2s ease, border-color .2s ease;
+    }
+
+    .home-back-btn:hover {
+    color: #fff;
+    background: rgba(56, 189, 248, .16);
+    border-color: rgba(125, 211, 252, .42);
+    transform: translateY(-1px);
+    }
+
+    .home-back-btn:focus-visible {
+    outline: 0;
+    box-shadow: 0 0 0 .2rem rgba(56, 189, 248, .24);
+    }
+
+
+    .demo-login-box {
+      border: 1px dashed rgba(13, 110, 253, .25);
+      border-radius: 1rem;
+      background: rgba(13, 110, 253, .06);
+    }
+
+    .demo-login-box .demo-title {
+      color: #08254a;
+      font-weight: 800;
+    }
+
+    .demo-login-box .demo-account-btn {
+      border-radius: .85rem;
+      font-weight: 700;
+    }
+
+    .demo-login-box code {
+      color: #0f172a;
+      background: rgba(255, 255, 255, .7);
+      border: 1px solid rgba(15, 23, 42, .08);
+      border-radius: .45rem;
+      padding: .08rem .35rem;
+      direction: ltr;
+      display: inline-block;
+    }
