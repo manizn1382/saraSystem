@@ -13,6 +13,9 @@
     return {
       ...window.SaraPage.basePanelState(),
       user: window.SaraAuth?.getStoredUser?.() || {},
+      sidebarOpen: false,
+      profileOpen: false,
+      activeSection: '#overview',
       users: [],
       roles: [],
       dormitories: [],
@@ -40,6 +43,30 @@
       init() {
         window.SaraPage.bindGlobalAlert(this);
         this.loadAll();
+        this.watchSections();
+      },
+
+      watchSections() {
+        if (!('IntersectionObserver' in window)) return;
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) this.activeSection = `#${entry.target.id}`;
+          });
+        }, { rootMargin: '-22% 0px -66% 0px', threshold: 0.01 });
+        document.querySelectorAll('.admin-section').forEach((section) => observer.observe(section));
+      },
+
+      userInitials() {
+        const first = (this.user.first_name || this.user.email || 'م').trim().charAt(0);
+        const last = (this.user.last_name || '').trim().charAt(0);
+        return `${first}${last}`.toUpperCase();
+      },
+
+      activeLabel() {
+        return {
+          '#overview': 'نمای کلی', '#users': 'کاربران', '#roles': 'نقش‌ها',
+          '#dormitories': 'خوابگاه‌ها', '#operations': 'عملیات', '#reports': 'گزارش‌ها'
+        }[this.activeSection] || 'مدیریت سامانه';
       },
 
       async loadAll() {

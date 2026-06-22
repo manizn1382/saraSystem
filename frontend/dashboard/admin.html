@@ -17,37 +17,49 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="../../assets/js/auth-guard.js" data-login-url="../login.html" data-unauthorized-url="../403.html" data-allowed-roles="system_admin admin university_manager" defer></script>
   </head>
-  <body class="ss-page" x-data="systemAdminPanel()">
-    <div class="ss-dashboard-layout admin-shell">
-      <aside class="ss-dashboard-sidebar ss-glass ss-sidebar" aria-label="منوی مدیریت سامانه">
-        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-          <div>
-            <h1 class="h5 fw-bold mb-1">سراسیستم</h1>
-            <span class="ss-muted small">مدیریت دانشگاه</span>
+  <body class="ss-page admin-page" x-data="systemAdminPanel()">
+    <div class="admin-app">
+      <div class="admin-sidebar-backdrop" :class="{ 'show': sidebarOpen }" @click="sidebarOpen = false" aria-hidden="true"></div>
+      <div class="ss-dashboard-layout admin-shell">
+      <aside class="ss-dashboard-sidebar ss-glass ss-sidebar admin-sidebar" :class="{ 'open': sidebarOpen }" aria-label="منوی مدیریت سامانه">
+        <div class="admin-sidebar-header">
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <a href="../index.html" class="d-flex align-items-center gap-3" aria-label="بازگشت به صفحه اصلی سراسیستم">
+              <span class="admin-brand-logo"><img src="../../assets/logo_with_outline.png" alt="لوگوی سراسیستم" onerror="this.classList.add('d-none')" /></span>
+              <span><span class="d-block admin-brand-title">سراسیستم</span><span class="d-block admin-brand-subtitle">مدیریت دانشگاه</span></span>
+            </a>
+            <button class="admin-icon-button d-lg-none" type="button" aria-label="بستن منوی کناری" @click="sidebarOpen = false">×</button>
           </div>
-          <a class="btn ss-btn ss-btn-outline btn-sm" href="../index.html">خانه</a>
         </div>
-        <nav class="d-grid gap-1" aria-label="بخش‌های مدیریت">
-          <a class="ss-nav-link active" href="#overview">نمای کلی</a>
-          <a class="ss-nav-link" href="#users">کاربران</a>
-          <a class="ss-nav-link" href="#roles">نقش‌ها</a>
-          <a class="ss-nav-link" href="#dormitories">خوابگاه‌ها</a>
-          <a class="ss-nav-link" href="#operations">عملیات</a>
-          <a class="ss-nav-link" href="#reports">گزارش‌ها</a>
+        <div class="admin-user-card">
+          <span class="admin-avatar" x-text="userInitials()"></span>
+          <div class="min-w-0"><strong class="d-block text-truncate" x-text="fullName(user)"></strong><span class="d-block admin-brand-subtitle text-truncate" x-text="roleLabel(user)"></span></div>
+        </div>
+        <nav class="admin-nav" aria-label="بخش‌های مدیریت">
+          <template x-for="item in [{href:'#overview',label:'نمای کلی',icon:'نمای'},{href:'#users',label:'کاربران',icon:'کاربر'},{href:'#roles',label:'نقش‌ها',icon:'نقش'},{href:'#dormitories',label:'خوابگاه‌ها',icon:'ظرفیت'},{href:'#operations',label:'عملیات',icon:'عملیات'},{href:'#reports',label:'گزارش‌ها',icon:'گزارش'}]" :key="item.href">
+            <a class="admin-nav-link" :class="{ 'active': activeSection === item.href }" :href="item.href" @click="activeSection = item.href; sidebarOpen = false"><span class="admin-nav-icon" x-text="item.icon"></span><span x-text="item.label"></span></a>
+          </template>
         </nav>
-        <button class="btn ss-btn ss-btn-outline w-100 mt-3" type="button" @click="logout()">خروج</button>
+        <div class="admin-sidebar-footer"><button class="btn admin-danger-button w-100" type="button" @click="logout()">خروج از حساب</button></div>
       </aside>
 
       <main class="min-w-0">
-        <header class="ss-topbar ss-glass p-3 p-md-4 mb-3">
+        <header class="ss-topbar ss-glass admin-topbar p-3 p-md-4 mb-3">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div>
-              <div class="ss-muted small mb-1">سراسیستم / مدیریت دانشگاه</div>
-              <h2 class="h3 fw-bold mb-0">کنترل مدیریتی سامانه</h2>
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <button class="admin-icon-button d-lg-none" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
+              <div class="min-w-0">
+                <div class="admin-breadcrumb mb-1">سراسیستم / مدیریت دانشگاه / <span x-text="activeLabel()"></span></div>
+                <h2 class="h3 fw-bold mb-0 text-truncate">کنترل مدیریتی سامانه</h2>
+              </div>
             </div>
             <div class="d-flex align-items-center gap-2">
               <div data-sara-theme-slot></div>
-              <button class="btn ss-btn ss-btn-primary px-4" type="button" @click="loadAll()">بروزرسانی</button>
+              <button class="btn admin-outline-button" type="button" @click="loadAll()">بروزرسانی</button>
+              <div class="admin-profile-menu" @keydown.escape.window="profileOpen = false">
+                <button class="btn admin-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen"><span class="admin-avatar admin-avatar-sm" x-text="userInitials()"></span><span class="d-none d-md-inline" x-text="fullName(user)"></span></button>
+                <div x-cloak x-show="profileOpen" x-transition class="admin-profile-dropdown" @click.outside="profileOpen = false"><strong class="d-block" x-text="fullName(user)"></strong><span class="d-block admin-brand-subtitle mb-3" dir="ltr" x-text="user.email || '—'"></span><a class="btn admin-outline-button w-100 mb-2" href="../account.html">پروفایل</a><button class="btn admin-danger-button w-100" type="button" @click="logout()">خروج</button></div>
+              </div>
             </div>
           </div>
         </header>
@@ -57,8 +69,10 @@
         </div>
 
         <section id="overview" class="admin-section mb-3" aria-labelledby="overviewTitle">
-          <h3 id="overviewTitle" class="visually-hidden">نمای کلی</h3>
-          <div class="row g-3">
+          <article class="admin-hero mb-3">
+            <div class="row align-items-center g-4"><div class="col-lg-8"><span class="admin-eyebrow">مرکز کنترل دانشگاه</span><h3 id="overviewTitle" class="admin-hero-title">مدیریت کاربران، ظرفیت و عملیات دانشگاه</h3><p class="admin-hero-copy mb-0">وضعیت حساب‌ها، نقش‌ها و ظرفیت خوابگاه‌ها را از یک سطح مدیریتی دنبال کنید.</p></div><div class="col-lg-4"><div class="d-grid gap-2"><button class="btn admin-primary-button" type="button" @click="openUserForm()">افزودن کاربر</button><a class="btn admin-outline-button" href="#roles">مدیریت نقش‌ها</a></div></div></div>
+          </article>
+          <div class="row g-3 admin-stat-grid">
             <template x-for="stat in stats" :key="stat.label">
               <div class="col-sm-6 col-xl-3">
                 <article class="ss-stat admin-kpi">
@@ -192,6 +206,7 @@
       <section class="admin-dialog" x-show="dialog.type === 'role-form'" role="dialog" aria-modal="true" aria-labelledby="roleFormTitle">
         <form @submit.prevent="saveRole()"><header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3"><h3 id="roleFormTitle" class="h5 fw-bold mb-0" x-text="roleForm.id ? 'ویرایش نقش' : 'ایجاد نقش'"></h3><button class="admin-action-button" type="button" @click="closeDialog()">بستن</button></header><div class="p-3"><label class="form-label" for="role-name">نام نقش</label><input id="role-name" class="form-control mb-3" x-model.trim="roleForm.name" required dir="ltr" /><label class="form-label" for="role-description">توضیحات</label><textarea id="role-description" class="form-control" rows="4" x-model.trim="roleForm.description"></textarea></div><footer class="d-flex justify-content-end gap-2 border-top p-3"><button class="btn ss-btn ss-btn-outline" type="button" @click="closeDialog()">انصراف</button><button class="btn ss-btn ss-btn-primary" type="submit" :disabled="loading.saving" x-text="loading.saving ? 'در حال ثبت...' : (roleForm.id ? 'ثبت تغییرات' : 'ایجاد نقش')"></button></footer></form>
       </section>
+    </div>
     </div>
   </body>
 </html>
