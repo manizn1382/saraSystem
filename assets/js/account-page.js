@@ -92,6 +92,15 @@
         },
 
         dashboardPath() {
+          const requestedPanel = new URLSearchParams(window.location.search).get('from');
+          const knownPanels = {
+            student: './dashboard/student.html',
+            dormitory_admin: './dashboard/dormitory-admin.html',
+            admin: './dashboard/admin.html',
+            support: './dashboard/support.html'
+          };
+          if (knownPanels[requestedPanel]) return knownPanels[requestedPanel];
+
           const roles = window.SaraAuth?.getUserRoles?.(this.profile) || [];
           if (roles.includes('student') || roles.includes('resident')) return './dashboard/student.html';
           if (roles.includes('dormitory_admin') || roles.includes('dormitory_supervisor') || roles.includes('supervisor')) return './dashboard/dormitory-admin.html';

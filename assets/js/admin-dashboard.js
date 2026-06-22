@@ -25,6 +25,15 @@
       dialog: { open: false, type: '', subject: null },
       userForm: {},
       roleForm: { name: '', description: '' },
+      accessControl: { userId: '', roleName: '', notice: '' },
+      permissionCatalog: [
+        { code: 'users.manage', label: 'مدیریت کاربران' },
+        { code: 'dormitories.manage', label: 'مدیریت خوابگاه‌ها' },
+        { code: 'accommodation.review', label: 'بررسی درخواست‌های اسکان' },
+        { code: 'payments.manage', label: 'مدیریت پرداخت‌ها' },
+        { code: 'maintenance.manage', label: 'مدیریت تعمیرات' },
+        { code: 'announcements.manage', label: 'مدیریت اطلاعیه‌ها' }
+      ],
       stats: [
         { label: 'کل کاربران', value: '—', icon: 'کاربر' },
         { label: 'کاربران فعال', value: '—', icon: 'فعال' },
@@ -67,6 +76,12 @@
           '#overview': 'نمای کلی', '#users': 'کاربران', '#roles': 'نقش‌ها',
           '#dormitories': 'خوابگاه‌ها', '#operations': 'عملیات', '#reports': 'گزارش‌ها'
         }[this.activeSection] || 'مدیریت سامانه';
+      },
+
+      accountPath() {
+        const params = new URLSearchParams({ from: 'admin' });
+        if (window.SaraAuth?.isDemoMode?.()) params.set('demo', 'admin');
+        return `../account.html?${params.toString()}`;
       },
 
       async loadAll() {
@@ -203,6 +218,18 @@
           ? { id: role.id, name: role.name || '', description: role.description || '' }
           : { name: '', description: '' };
         this.dialog = { open: true, type: 'role-form', subject: role };
+      },
+
+      selectedAccessUser() {
+        return this.users.find((item) => String(item.id) === String(this.accessControl.userId)) || null;
+      },
+
+      requestRoleAssignment() {
+        if (!this.accessControl.userId || !this.accessControl.roleName) {
+          this.accessControl.notice = 'کاربر و نقش را انتخاب کنید.';
+          return;
+        }
+        this.accessControl.notice = 'برای ثبت تخصیص نقش، API اختصاصی UserRole باید توسط بک‌اند منتشر شود.';
       },
 
       closeDialog() {

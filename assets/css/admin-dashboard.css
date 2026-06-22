@@ -84,6 +84,58 @@
   font-size: 1rem;
 }
 
+.admin-access-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.admin-access-card {
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 0.9rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.admin-access-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--ss-line-soft);
+  color: var(--ss-muted);
+  font-size: 0.84rem;
+}
+
+.admin-access-preview strong {
+  color: var(--ss-soft);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.admin-permission-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.admin-permission {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 0.6rem;
+  padding: 0.55rem 0.65rem;
+  color: var(--ss-soft);
+  font-size: 0.82rem;
+}
+
+.admin-permission code {
+  color: var(--ss-primary-2);
+  font-size: 0.72rem;
+}
+
 .admin-dialog-backdrop {
   position: fixed;
   z-index: 1080;
@@ -154,6 +206,10 @@
   }
 
   .admin-operation-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-access-grid {
     grid-template-columns: 1fr;
   }
 
