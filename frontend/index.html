@@ -228,13 +228,7 @@
               </span>
             </div>
 
-            <div
-              class="row g-3"
-              hx-get="/api/public/stats/"
-              hx-trigger="load"
-              hx-swap="innerHTML"
-              hx-indicator=".htmx-indicator"
-            >
+            <div class="row g-3">
               <div class="col-6 col-lg-2">
                 <div class="stat-card">
                   <strong>۲۴۸</strong>
@@ -589,12 +583,7 @@
                 </div>
 
                 <div class="col-lg-7">
-                  <div
-                    class="row g-3"
-                    hx-get="/api/announcements/public/"
-                    hx-trigger="load"
-                    hx-swap="innerHTML"
-                  >
+                  <div class="row g-3">
                     <div class="col-md-6">
                       <article class="announcement-card p-3">
                         <div
@@ -872,7 +861,7 @@
               <div class="col-lg">
                 <h3 class="card-title-ss mb-3">اتصال API</h3>
                 <div class="d-grid gap-1">
-                  <span class="footer-link">/api/auth/login/</span>
+                  <span class="footer-link">/api/accounts/getToken/</span>
                   <span class="footer-link">/api/accommodation-requests/</span>
                   <span class="footer-link">/api/maintenance-requests/</span>
                   <span class="footer-link">/api/announcements/</span>

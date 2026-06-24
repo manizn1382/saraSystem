@@ -22,7 +22,6 @@ class Dormitory(models.Model):
     currentOccupancy = models.IntegerField(default=0)
 
     class Meta:
-        app_label = "dormitories"
         db_table = "dormitory"
         ordering = ['createdAt']
 
@@ -31,12 +30,23 @@ class Dormitory(models.Model):
 
     @property
     def available_capacity(self):
-        return self.totalRoom - self.currentOccupancy
+        return sum(
+            max(room.capacity - room.currentOccupancy, 0)
+            for room in self.rooms.all()
+        )
+
+    @property
+    def total_beds(self):
+        return sum(room.capacity for room in self.rooms.all())
+
+    @property
+    def occupied_beds(self):
+        return sum(room.currentOccupancy for room in self.rooms.all())
 
     @property
     def occupancy_percentage(self):
-        if self.totalRoom > 0:
-            return (self.currentOccupancy / self.totalRoom) * 100
+        if self.total_beds > 0:
+            return (self.occupied_beds / self.total_beds) * 100
         return 0
 
 
@@ -59,10 +69,14 @@ class Room(models.Model):
     currentOccupancy = models.IntegerField(default=0)
 
     class Meta:
-        app_label = "dormitories"
         db_table = "room"
         ordering = ['roomNumber']
-        unique_together = [['id', 'roomNumber']]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['dormitory', 'roomNumber'],
+                name='unique_room_number_per_dormitory',
+            )
+        ]
 
     def __str__(self):
         return f"Room {self.roomNumber} - Floor {self.floorNumber}"
@@ -84,10 +98,14 @@ class Bed(models.Model):
     updatedAt = models.DateTimeField(auto_now=True)
 
     class Meta:
-        app_label = 'dormitories'
         db_table = 'bed'
         ordering = ['createdAt']
-        unique_together = [['id', 'bedNumber']]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['room', 'bedNumber'],
+                name='unique_bed_number_per_room',
+            )
+        ]
 
     def __str__(self):
         return f"{self.room} - {self.bedNumber}"

@@ -57,7 +57,15 @@
           this.error = 'وارد کردن ایمیل یا شناسه کاربری الزامی است.';
           event.preventDefault();
           event.stopImmediatePropagation();
+          return;
         }
+
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        this.alert = {
+          type: 'danger',
+          message: 'سرویس بازیابی رمز ورود در بک‌اند فعلی پیاده‌سازی نشده است.'
+        };
       },
 
       isForgotRequest(event) {

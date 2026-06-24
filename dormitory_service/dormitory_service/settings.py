@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t^3qlyyo9ojz!w^a^j@31m3$+ox#+#w(e&y$50#7!55!u-7sg*'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'sarasystem-dormitory-development-secret-key-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'true').lower() == 'true'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
 
 
 # Application definition
@@ -38,10 +40,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'dormitory_service',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -75,20 +79,26 @@ WSGI_APPLICATION = 'dormitory_service.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
-    'dormitory_db': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dormitory_database',
-        'USER': 'dorm_user',
-        'PASSWORD': 'dorm_password',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    },
-}
+DATABASE_ENGINE = os.getenv('DORMITORY_DB_ENGINE', 'sqlite').lower()
+
+if DATABASE_ENGINE in {'mysql', 'django.db.backends.mysql'}:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': os.getenv('DORMITORY_DB_NAME', 'dormitory_database'),
+            'USER': os.getenv('DORMITORY_DB_USER', 'dorm_user'),
+            'PASSWORD': os.getenv('DORMITORY_DB_PASSWORD', ''),
+            'HOST': os.getenv('DORMITORY_DB_HOST', '127.0.0.1'),
+            'PORT': os.getenv('DORMITORY_DB_PORT', '3306'),
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': os.getenv('DORMITORY_SQLITE_PATH', str(BASE_DIR / 'db.sqlite3')),
+        }
+    }
 
 
 # Password validation
@@ -132,6 +142,22 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DATABASE_ROUTERS = [
-    'dormitory_service.Router.DormRouter.DormitoryRouter',
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
+    ),
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    # Must match accounts-service SARA_JWT_SIGNING_KEY.
+    'SIGNING_KEY': os.getenv('SARA_JWT_SIGNING_KEY', 'sarasystem-development-jwt-key-change-me'),
+}
+
+CORS_ALLOW_ALL_ORIGINS = os.getenv('CORS_ALLOW_ALL_ORIGINS', str(DEBUG)).lower() == 'true'
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+    if origin.strip()
 ]

@@ -77,6 +77,7 @@
 
   function room(item = {}, index = 0) {
     const dorm = item.dormitory || {};
+    const apiStatus = text(item.status, 'available');
     return {
       id: id(item.id, String(index + 1)),
       dormitory_id: id(dorm.id || item.dormitory_id || item.dormitory),
@@ -86,7 +87,13 @@
       capacity: text(item.capacity || 0),
       occupied: text(item.occupied || item.occupied_beds || item.currentOccupancy || 0),
       gender_type: text(item.gender_type || item.gender, ''),
-      status: text(item.status, 'active')
+      api_status: apiStatus,
+      status: {
+        available: 'active',
+        full: 'active',
+        maintenance: 'maintenance',
+        closed: 'inactive'
+      }[apiStatus] || apiStatus
     };
   }
 
