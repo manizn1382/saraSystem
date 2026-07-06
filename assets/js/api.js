@@ -5,8 +5,12 @@
   const DEFAULT_DORMITORY_BASE_URL = 'http://127.0.0.1:8000';
   const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
   const ACCOUNT_V1_PATHS = [
-    /^\/api\/v1\/users\/(?:create|login|changePassword|editProfile|list)\/?$/i,
-    /^\/api\/v1\/(?:role|permission|rolePermission|userRole)\/create\/?$/i
+    /^\/api\/v1\/users\/(?:create|login|token\/refresh|password\/change|changePassword|editProfile|list|current|status\/change)\/?$/i,
+    /^\/api\/v1\/users\/delete\/[^/]+\/?$/i,
+    /^\/api\/v1\/role\/(?:create|list)\/?$/i,
+    /^\/api\/v1\/role\/(?:delete|update)\/[^/]+\/?$/i,
+    /^\/api\/v1\/permission\/(?:create|list)\/?$/i,
+    /^\/api\/v1\/(?:rolePermission|userRole)\/create\/?$/i
   ];
 
   function configure(options = {}) {
@@ -20,14 +24,21 @@
     const requestMethod = String(method || 'GET').toUpperCase();
 
     if (/^\/api\/accounts\/getToken\/?$/i.test(value)) return '/api/v1/users/login';
+    if (/^\/api\/accounts\/refreshToken\/?$/i.test(value)) return '/api/v1/users/token/refresh';
+    if (/^\/api\/accounts\/me\/?$/i.test(value)) return '/api/v1/users/current';
     if (/^\/api\/accounts\/(?:users\/register|register)\/?$/i.test(value)) return '/api/v1/users/create';
     if (/^\/api\/accounts\/(?:update-profile|editProfile)\/?$/i.test(value)) return '/api/v1/users/editProfile';
-    if (/^\/api\/accounts\/(?:change-password|changePassword)\/?$/i.test(value)) return '/api/v1/users/changePassword';
+    if (/^\/api\/accounts\/(?:change-password|changePassword)\/?$/i.test(value)) return '/api/v1/users/password/change';
+    if (/^\/api\/v1\/users\/changePassword\/?$/i.test(value)) return '/api/v1/users/password/change';
     if (/^\/api\/accounts\/users\/?$/i.test(value)) {
       return requestMethod === 'POST' ? '/api/v1/users/create' : '/api/v1/users/list';
     }
-    if (/^\/api\/accounts\/roles\/?$/i.test(value)) return '/api/v1/role/create';
-    if (/^\/api\/accounts\/permissions\/?$/i.test(value)) return '/api/v1/permission/create';
+    if (/^\/api\/accounts\/roles\/?$/i.test(value)) {
+      return requestMethod === 'POST' ? '/api/v1/role/create' : '/api/v1/role/list';
+    }
+    if (/^\/api\/accounts\/permissions\/?$/i.test(value)) {
+      return requestMethod === 'POST' ? '/api/v1/permission/create' : '/api/v1/permission/list';
+    }
     if (/^\/api\/accounts\/role-permissions\/?$/i.test(value)) return '/api/v1/rolePermission/create';
     if (/^\/api\/accounts\/user-roles\/?$/i.test(value)) return '/api/v1/userRole/create';
 
@@ -46,7 +57,7 @@
 
   function isAnonymousAccountPath(path = '') {
     const value = normalizeAccountPath(path);
-    return /^\/api\/v1\/users\/(?:login|create)\/?$/i.test(value);
+    return /^\/api\/v1\/users\/(?:login|create|token\/refresh)\/?$/i.test(value);
   }
 
   function apiBaseUrl(path = '') {

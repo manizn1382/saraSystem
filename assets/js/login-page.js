@@ -293,11 +293,12 @@
             user: data?.user,
             demoMode: false
           }, { remember: this.remember });
+          const user = window.SaraAuth?.getStoredUser?.() || data?.user || null;
 
           this.showAlert("success", "ورود موفق بود. در حال انتقال به داشبورد...");
 
           window.setTimeout(() => {
-            window.location.assign(this.getDashboardPath(data?.user));
+            window.location.assign(this.getDashboardPath(user));
           }, 700);
         },
 
