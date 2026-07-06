@@ -8,6 +8,7 @@
     .split(/[ ,]+/)
     .map(normalizeRole)
     .filter(Boolean);
+  const UNAUTHORIZED = 'unauthorized';
 
   const TOKEN_KEYS = ['sarasystem.accessToken', 'sarasystem.refreshToken', 'sarasystem.user', 'sarasystem.demoMode'];
   const DEMO_ACCOUNTS = {
@@ -51,13 +52,54 @@
       || bootstrappedDemoSession?.demoMode === true;
   }
 
-  function getStoredUser() {
-    const raw = localStorage.getItem('sarasystem.user') || sessionStorage.getItem('sarasystem.user');
-    if (!raw) return bootstrappedDemoSession?.user || null;
+  function decodeJwtPayload(token) {
+    if (!token || typeof token !== 'string' || token.split('.').length < 2) return null;
 
     try {
-      return JSON.parse(raw);
+      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padded = payload.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), '=');
+      const decoded = window.atob(padded);
+      const json = decodeURIComponent(
+        Array.from(decoded, (char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join('')
+      );
+      return JSON.parse(json);
     } catch {
+      return null;
+    }
+  }
+
+  function normalizeAccountUser(user) {
+    if (!user || typeof user !== 'object') return user || null;
+    if (window.SaraAuth?.normalizeAccountUser) return window.SaraAuth.normalizeAccountUser(user);
+    return {
+      ...user,
+      id: user.id ?? user.user_id ?? user.pk,
+      user_id: user.user_id ?? user.id ?? user.pk
+    };
+  }
+
+  function storeHydratedUser(user) {
+    const normalized = normalizeAccountUser(user);
+    if (!normalized) return null;
+
+    const targetStorage = localStorage.getItem('sarasystem.accessToken') ? localStorage : sessionStorage;
+    targetStorage.setItem('sarasystem.user', JSON.stringify(normalized));
+    return normalized;
+  }
+
+  function getStoredUser() {
+    const raw = localStorage.getItem('sarasystem.user') || sessionStorage.getItem('sarasystem.user');
+    if (!raw) {
+      const decodedUser = decodeJwtPayload(getAccessToken());
+      if (decodedUser) return storeHydratedUser(decodedUser);
+      return bootstrappedDemoSession?.user || null;
+    }
+
+    try {
+      return normalizeAccountUser(JSON.parse(raw));
+    } catch {
+      const decodedUser = decodeJwtPayload(getAccessToken());
+      if (decodedUser) return storeHydratedUser(decodedUser);
       return bootstrappedDemoSession?.user || null;
     }
   }
@@ -90,19 +132,22 @@
   function getUserRoles(user) {
     if (!user) return [];
 
-    if (Array.isArray(user.roles)) return user.roles.map(normalizeRole).filter(Boolean);
-    if (Array.isArray(user.Roles)) return user.Roles.map(normalizeRole).filter(Boolean);
-    if (Array.isArray(user.user_roles)) return user.user_roles.map(normalizeRole).filter(Boolean);
-    if (user.role) return [normalizeRole(user.role)].filter(Boolean);
+    const roles = [];
+    if (Array.isArray(user.roles)) roles.push(...user.roles);
+    if (Array.isArray(user.Roles)) roles.push(...user.Roles);
+    if (Array.isArray(user.user_roles)) roles.push(...user.user_roles);
+    if (user.role) roles.push(user.role);
+    if (user.is_superuser === true) roles.push('system_admin', 'admin');
+    else if (user.is_staff === true) roles.push('admin');
 
-    return [];
+    return Array.from(new Set(roles.map(normalizeRole).filter(Boolean)));
   }
 
   function hasAllowedRole(user) {
     if (!allowedRoles.length) return true;
 
     const roles = getUserRoles(user);
-    if (!roles.length) return true; // Let the API response decide later if the role was not stored at login.
+    if (!roles.length) return false;
 
     return roles.some((role) => allowedRoles.includes(role));
   }
@@ -187,7 +232,7 @@
 
     if (!hasAllowedRole(getStoredUser())) {
       redirectToUnauthorized();
-      return false;
+      return UNAUTHORIZED;
     }
 
     return true;
@@ -278,6 +323,10 @@
     refreshThenRequireAuth().then((allowed) => {
       if (allowed) attachWhenReady();
     });
+    return;
+  }
+
+  if (authState === UNAUTHORIZED) {
     return;
   }
 

@@ -2,8 +2,14 @@
 (function () {
   const USER_LIST_ENDPOINT = '/api/v1/users/list';
   const USER_CREATE_ENDPOINT = '/api/v1/users/create';
+  const USER_DELETE_ENDPOINT = '/api/v1/users/delete';
+  const USER_STATUS_ENDPOINT = '/api/v1/users/status/change';
   const ROLE_CREATE_ENDPOINT = '/api/v1/role/create';
+  const ROLE_LIST_ENDPOINT = '/api/v1/role/list';
+  const ROLE_UPDATE_ENDPOINT = '/api/v1/role/update';
+  const ROLE_DELETE_ENDPOINT = '/api/v1/role/delete';
   const PERMISSION_CREATE_ENDPOINT = '/api/v1/permission/create';
+  const PERMISSION_LIST_ENDPOINT = '/api/v1/permission/list';
   const ROLE_PERMISSION_CREATE_ENDPOINT = '/api/v1/rolePermission/create';
   const USER_ROLE_CREATE_ENDPOINT = '/api/v1/userRole/create';
   const DORMITORY_ENDPOINT = '/api/dormitory/listAll/';
@@ -49,6 +55,16 @@
     };
   }
 
+  function normalizePermission(item = {}) {
+    if (typeof item === 'string') return { id: '', code: item, label: item, description: '' };
+    return {
+      id: item.id ?? item.permission_id ?? '',
+      code: item.code || item.name || '',
+      label: item.name || item.label || item.code || '',
+      description: item.description || ''
+    };
+  }
+
   function systemAdminPanel() {
     return {
       ...window.SaraPage.basePanelState(),
@@ -59,8 +75,8 @@
       users: [],
       roles: [],
       dormitories: [],
-      loading: { users: false, roles: false, dormitories: false, saving: false },
-      errors: { users: '', roles: '', dormitories: '' },
+      loading: { users: false, roles: false, dormitories: false, permissions: false, saving: false },
+      errors: { users: '', roles: '', dormitories: '', permissions: '' },
       filters: { query: '', role: 'all', status: 'all', page: 1, pageSize: 10 },
       dialog: { open: false, type: '', subject: null },
       userForm: {},
@@ -126,8 +142,9 @@
       },
 
       async loadAll() {
-        this.loadRoles();
-        await Promise.all([this.loadUsers(), this.loadDormitories()]);
+        await Promise.all([this.loadUsers(), this.loadRoles(), this.loadPermissions(), this.loadDormitories()]);
+        this.syncRolesFromUsers();
+        this.updateStats();
       },
 
       async loadUsers() {
@@ -144,18 +161,55 @@
         }
       },
 
-      loadRoles() {
+      async loadRoles() {
         this.loading.roles = true;
         this.errors.roles = '';
         try {
           const storedRoles = JSON.parse(localStorage.getItem('sarasystem.account.roles') || '[]');
-          this.roles = asArray(storedRoles).map(normalizeRole).filter((role) => role.name);
+          const remoteRoles = asArray(await window.SaraAPI.get(ROLE_LIST_ENDPOINT)).map(normalizeRole).filter((role) => role.name);
+          const rolesByName = new Map();
+          [...remoteRoles, ...asArray(storedRoles).map(normalizeRole)].forEach((role) => {
+            if (!role.name) return;
+            const current = rolesByName.get(role.name) || {};
+            rolesByName.set(role.name, {
+              ...current,
+              ...role,
+              id: role.id || current.id || ''
+            });
+          });
+          this.roles = Array.from(rolesByName.values());
           this.syncRolesFromUsers();
           this.updateStats();
         } catch (error) {
           this.errors.roles = this.apiMessage(error);
         } finally {
           this.loading.roles = false;
+        }
+      },
+
+      async loadPermissions() {
+        this.loading.permissions = true;
+        this.errors.permissions = '';
+        try {
+          const remotePermissions = asArray(await window.SaraAPI.get(PERMISSION_LIST_ENDPOINT))
+            .map(normalizePermission)
+            .filter((permission) => permission.code || permission.label);
+          const permissionsByCode = new Map();
+          [...this.permissionCatalog.map(normalizePermission), ...remotePermissions].forEach((permission) => {
+            const key = permission.code || permission.label || permission.id;
+            if (!key) return;
+            const current = permissionsByCode.get(key) || {};
+            permissionsByCode.set(key, {
+              ...current,
+              ...permission,
+              id: permission.id || current.id || ''
+            });
+          });
+          this.permissionCatalog = Array.from(permissionsByCode.values());
+        } catch (error) {
+          this.errors.permissions = this.apiMessage(error);
+        } finally {
+          this.loading.permissions = false;
         }
       },
 
@@ -252,24 +306,12 @@
         this.dialog = { open: true, type: 'details', subject: user };
       },
 
-      openUserForm(user = null) {
-        this.userForm = user ? {
-          id: user.id || user.row_id || '',
-          first_name: user.first_name || '',
-          last_name: user.last_name || '',
-          email: user.email || '',
-          national_id: user.national_id || '',
-          student_id: user.student_id || '',
-          phone: user.phone || '',
-          gender: window.SaraAuth?.normalizeGender?.(user.gender) || user.gender || '',
-          is_active: user.is_active !== false,
-          is_verified: Boolean(user.is_verified),
-          password: ''
-        } : {
+      openUserForm() {
+        this.userForm = {
           first_name: '', last_name: '', email: '', national_id: '', student_id: '', phone: '',
-          gender: 'm', is_active: true, is_verified: false, password: ''
+          gender: 'm', password: ''
         };
-        this.dialog = { open: true, type: 'user-form', subject: user };
+        this.dialog = { open: true, type: 'user-form', subject: null };
       },
 
       openRoleForm(role = null) {
@@ -344,12 +386,6 @@
         this.loading.saving = true;
         try {
           const payload = this.userPayload();
-          const existing = this.userForm.id;
-          if (existing) {
-            this.showAlert('danger', 'ویرایش کاربر در API فعلی account منتشر نشده است.');
-            return;
-          }
-
           const response = await window.SaraAPI.post(USER_CREATE_ENDPOINT, payload);
           const saved = normalizeUser(unwrap(response, 'user'));
           this.users.unshift(saved);
@@ -365,11 +401,48 @@
       },
 
       async toggleUserActivity(user) {
-        this.showAlert('danger', `تغییر وضعیت ${this.fullName(user)} در API فعلی account منتشر نشده است.`);
+        if (!user?.id) {
+          this.showAlert('danger', 'این کاربر در پاسخ API شناسه id ندارد و تغییر وضعیت ممکن نیست.');
+          return;
+        }
+
+        const nextStatus = user.is_active === false;
+        this.loading.saving = true;
+        try {
+          const response = await window.SaraAPI.patch(USER_STATUS_ENDPOINT, {
+            user_id: user.id,
+            status: nextStatus
+          });
+          user.is_active = nextStatus;
+          this.updateStats();
+          this.showAlert('success', response?.message || 'وضعیت کاربر به‌روزرسانی شد.');
+        } catch (error) {
+          this.showAlert('danger', this.apiMessage(error));
+        } finally {
+          this.loading.saving = false;
+        }
       },
 
       async deleteUser(user) {
-        this.showAlert('danger', `حذف ${this.fullName(user)} در API فعلی account منتشر نشده است.`);
+        if (!user?.id) {
+          this.showAlert('danger', 'این کاربر در پاسخ API شناسه id ندارد و حذف ممکن نیست.');
+          return;
+        }
+
+        if (!window.confirm(`کاربر ${this.fullName(user)} حذف شود؟`)) return;
+
+        this.loading.saving = true;
+        try {
+          const response = await window.SaraAPI.delete(`${USER_DELETE_ENDPOINT}/${encodeURIComponent(user.id)}`);
+          this.users = this.users.filter((item) => String(item.id) !== String(user.id));
+          this.updateStats();
+          this.dialog = { open: false, type: '', subject: null };
+          this.showAlert('success', response?.message || 'کاربر حذف شد.');
+        } catch (error) {
+          this.showAlert('danger', this.apiMessage(error));
+        } finally {
+          this.loading.saving = false;
+        }
       },
 
       async saveRole() {
@@ -378,7 +451,14 @@
           const existing = this.roleForm.id;
           const payload = { name: this.roleForm.name, description: this.roleForm.description };
           if (existing) {
-            this.showAlert('danger', 'ویرایش نقش در API فعلی account منتشر نشده است.');
+            const response = await window.SaraAPI.patch(`${ROLE_UPDATE_ENDPOINT}/${encodeURIComponent(existing)}`, payload);
+            const role = normalizeRole(unwrap(response, 'role'));
+            const index = this.roles.findIndex((item) => String(item.id) === String(existing));
+            if (index >= 0) this.roles.splice(index, 1, role);
+            this.persistRoles();
+            this.updateStats();
+            this.dialog = { open: false, type: '', subject: null };
+            this.showAlert('success', response?.message || 'نقش به‌روزرسانی شد.');
             return;
           }
 
@@ -399,7 +479,25 @@
       },
 
       async deleteRole(role) {
-        this.showAlert('danger', `حذف نقش ${role.name} در API فعلی account منتشر نشده است.`);
+        if (!role?.id) {
+          this.showAlert('danger', 'این نقش شناسه id ندارد و حذف آن از طریق API ممکن نیست.');
+          return;
+        }
+
+        if (!window.confirm(`نقش ${role.name} حذف شود؟`)) return;
+
+        this.loading.saving = true;
+        try {
+          const response = await window.SaraAPI.delete(`${ROLE_DELETE_ENDPOINT}/${encodeURIComponent(role.id)}`);
+          this.roles = this.roles.filter((item) => String(item.id) !== String(role.id));
+          this.persistRoles();
+          this.updateStats();
+          this.showAlert('success', response?.message || 'نقش حذف شد.');
+        } catch (error) {
+          this.showAlert('danger', this.apiMessage(error));
+        } finally {
+          this.loading.saving = false;
+        }
       },
 
       async createPermission() {
@@ -415,12 +513,17 @@
             code: this.permissionForm.code,
             description: this.permissionForm.description || ''
           });
-          const permission = response?.permission || {};
-          this.permissionCatalog.unshift({
-            code: permission.code || this.permissionForm.code,
-            label: permission.name || this.permissionForm.name,
-            id: permission.id || ''
+          const permission = normalizePermission(response?.permission || {
+            code: this.permissionForm.code,
+            name: this.permissionForm.name,
+            description: this.permissionForm.description || ''
           });
+          const permissionKey = permission.id || permission.code;
+          this.permissionCatalog = [
+            permission,
+            ...this.permissionCatalog.filter((item) => String(item.id || item.code) !== String(permissionKey))
+          ];
+          if (permission.id) this.permissionForm.permissionId = permission.id;
           this.permissionForm.notice = response?.message || 'مجوز جدید ثبت شد. اگر API شناسه برگرداند، برای اتصال به نقش استفاده می‌شود.';
           this.permissionForm.name = '';
           this.permissionForm.code = '';

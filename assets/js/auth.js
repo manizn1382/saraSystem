@@ -1,5 +1,6 @@
 /* SaraSystem session helper. */
 (function () {
+  const DEFAULT_ACCOUNTS_BASE_URL = 'http://127.0.0.1:8001';
   const STORAGE_KEYS = {
     accessToken: 'sarasystem.accessToken',
     refreshToken: 'sarasystem.refreshToken',
@@ -39,6 +40,32 @@
       return value ? JSON.parse(value) : fallback;
     } catch {
       return fallback;
+    }
+  }
+
+  function accountServiceUrl(endpoint) {
+    if (window.SaraAPI?.joinUrl) return window.SaraAPI.joinUrl(endpoint);
+    const value = String(endpoint || '');
+    if (/^https?:\/\//i.test(value)) return value;
+    const base = window.SARA_ACCOUNTS_API_BASE_URL
+      || localStorage.getItem('sarasystem.accountsApiBaseUrl')
+      || DEFAULT_ACCOUNTS_BASE_URL;
+    return `${String(base).replace(/\/+$/, '')}${value.startsWith('/') ? value : `/${value}`}`;
+  }
+
+  function decodeJwtPayload(token) {
+    if (!token || typeof token !== 'string' || token.split('.').length < 2) return null;
+
+    try {
+      const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padded = payload.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), '=');
+      const decoded = window.atob(padded);
+      const json = decodeURIComponent(
+        Array.from(decoded, (char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join('')
+      );
+      return JSON.parse(json);
+    } catch {
+      return null;
     }
   }
 
@@ -97,6 +124,8 @@
 
     return {
       ...user,
+      id: user.id ?? user.user_id ?? user.pk,
+      user_id: user.user_id ?? user.id ?? user.pk,
       profile: normalizedProfile,
       roles,
       permissions,
@@ -123,11 +152,14 @@
 
   function getRoles(user = getUser()) {
     if (!user) return [];
-    if (Array.isArray(user.roles)) return user.roles.map(normalizeRole).filter(Boolean);
-    if (Array.isArray(user.Roles)) return user.Roles.map(normalizeRole).filter(Boolean);
-    if (Array.isArray(user.user_roles)) return user.user_roles.map(normalizeRole).filter(Boolean);
-    if (user.role) return [normalizeRole(user.role)].filter(Boolean);
-    return [];
+    const roles = [];
+    if (Array.isArray(user.roles)) roles.push(...user.roles);
+    if (Array.isArray(user.Roles)) roles.push(...user.Roles);
+    if (Array.isArray(user.user_roles)) roles.push(...user.user_roles);
+    if (user.role) roles.push(user.role);
+    if (user.is_superuser === true) roles.push('system_admin', 'admin');
+    else if (user.is_staff === true) roles.push('admin');
+    return Array.from(new Set(roles.map(normalizeRole).filter(Boolean)));
   }
 
   function getPermissions(user = getUser()) {
@@ -140,9 +172,16 @@
 
   function setSession(session = {}, options = {}) {
     const remember = options.remember !== false;
-    const accessToken = session.access || session.access_token || session.token || session.accessToken;
-    const refreshToken = session.refresh || session.refresh_token || session.refreshToken;
-    const user = normalizeAccountUser(session.user || session.account || session.profile || null);
+    const accessToken = session.access || session.access_token || session.token || session.accessToken || session.tokens?.access || read(STORAGE_KEYS.accessToken);
+    const refreshToken = session.refresh || session.refresh_token || session.refreshToken || session.tokens?.refresh || read(STORAGE_KEYS.refreshToken);
+    const decodedUser = decodeJwtPayload(accessToken);
+    const explicitUser = session.user || session.account || session.profile || null;
+    const currentUser = getUser() || {};
+    const user = normalizeAccountUser(
+      explicitUser || decodedUser
+        ? { ...currentUser, ...(decodedUser || {}), ...(explicitUser || {}) }
+        : null
+    );
 
     write(STORAGE_KEYS.remember, String(remember), remember);
     write(STORAGE_KEYS.accessToken, accessToken, remember);
@@ -204,10 +243,9 @@
     const endpoint = options.endpoint
       || window.SARA_ACCOUNTS_TOKEN_REFRESH_ENDPOINT
       || localStorage.getItem('sarasystem.accountsTokenRefreshEndpoint')
-      || '';
-    if (!endpoint) return '';
+      || '/api/v1/users/token/refresh';
 
-    const response = await fetch(window.SaraAPI?.joinUrl?.(endpoint) || endpoint, {
+    const response = await fetch(accountServiceUrl(endpoint), {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -225,14 +263,14 @@
 
     if (!response.ok) return '';
 
-    const accessToken = data?.access || data?.access_token || data?.token;
-    const nextRefreshToken = data?.refresh || data?.refresh_token || refreshToken;
+    const accessToken = data?.access || data?.access_token || data?.token || data?.tokens?.access;
+    const nextRefreshToken = data?.refresh || data?.refresh_token || data?.tokens?.refresh || refreshToken;
     if (!accessToken) return '';
 
     setSession({
       accessToken,
       refreshToken: nextRefreshToken,
-      user: data?.user || getUser(),
+      user: data?.user || data?.account || null,
       demoMode: false
     }, { remember: getRememberPreference() });
 
@@ -245,14 +283,13 @@
     const endpoint = options.endpoint
       || window.SARA_ACCOUNTS_ME_ENDPOINT
       || localStorage.getItem('sarasystem.accountsMeEndpoint')
-      || '';
-    if (!endpoint) return getUser();
+      || '/api/v1/users/current';
 
     const retryOnUnauthorized = options.retryOnUnauthorized !== false;
     const token = read(STORAGE_KEYS.accessToken);
     if (!token) return null;
 
-    const response = await fetch(window.SaraAPI?.joinUrl?.(endpoint) || endpoint, {
+    const response = await fetch(accountServiceUrl(endpoint), {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${token}`
@@ -269,7 +306,20 @@
 
     if (!response.ok) return null;
 
-    const user = normalizeAccountUser(await response.json());
+    const data = await response.json();
+    const accessToken = data?.access || data?.access_token || data?.token || data?.tokens?.access;
+    const refreshToken = data?.refresh || data?.refresh_token || data?.tokens?.refresh;
+    if (accessToken || refreshToken) {
+      setSession({
+        accessToken: accessToken || token,
+        refreshToken,
+        user: data?.user || data?.account || null,
+        demoMode: false
+      }, { remember: getRememberPreference() });
+      return getUser();
+    }
+
+    const user = normalizeAccountUser(data?.user || data?.account || data?.profile || data);
     return updateStoredUser(user);
   }
 
@@ -315,6 +365,7 @@
     setSessionMessage,
     refreshAccessToken,
     loadCurrentUser,
+    decodeJwtPayload,
     defaultLoginUrl,
     handleExpiredSession,
     setSession,

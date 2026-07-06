@@ -69,7 +69,7 @@ function accountPage() {
               return;
             }
 
-            await window.SaraAPI.patch('/api/v1/users/changePassword', {
+            await window.SaraAPI.patch('/api/v1/users/password/change', {
               current_password: this.password.current_password,
               new_password: this.password.new_password,
               confirm_password: this.password.confirm_password
