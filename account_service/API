@@ -1,3 +1,15 @@
+
+POST api/v1/users/token/refresh -> get refresh token and refresh jwt access token
+
+requset:{
+"refresh": ...
+}
+
+response:{
+"refresh": ...
+"access": ...
+}
+-------------------------------------------------------------------
 POST api/v1/users/create -> register user with recieved data
 request:
 {
@@ -138,7 +150,7 @@ POST api/v1/userRole/create
                 }
     }
 -----------------------------------------------------------------------------------
-PUT/PATCH api/v1/users/changePassword
+PUT/PATCH api/v1/users/password/change
 
 ** jwt token required **
 
@@ -257,3 +269,32 @@ response:{
     }
 ]
 }
+------------------------------------------------------
+GET api/v1/users/current
+
+** get data from jwt token(user must login) and return values with new field in jwt**
+
+---------------------------------------------------------
+DELETE api/v1/users/delete/{user_id}
+
+get user_id and delete the user.
+
+------------------------------------------------------------
+PATCH api/v1/users/status/change
+
+get user_id and status from request and update user status
+
+---------------------------------------------------------------
+DELETE api/v1/role/delete/{role_id}
+
+get role_id and delete role from database.
+----------------------------------------------------------------
+PATCH api/v1/role/update/{role_id}
+
+get role_id as pk and name and description then update role.
+---------------------------------------------------------------
+GET api/v1/permission/list
+
+return list of all permissions
+---------------------------------------------------------------
+

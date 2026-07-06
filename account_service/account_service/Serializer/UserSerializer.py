@@ -47,6 +47,14 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return data
 
 
+
+class UserDeleteSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ["id"]
+
+
 class UserLoginSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -63,6 +71,12 @@ class UserRoleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserRole
         fields = ['role', 'user']
+
+
+class ChangeStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["status", "user_id"]
 
 
 class ChangePassSerializer(serializers.ModelSerializer):
@@ -129,8 +143,11 @@ class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
+            "id",
+            "username",
             "email",
             "first_name",
+            "last_name",
             "is_active",
             "profile",
             "roles",

@@ -4,11 +4,11 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, update_session_auth_hash
-from account_service.models import userProfile, UserRole, RolePermission
+from account_service.models import userProfile, UserRole
 from account_service.Serializer.UserSerializer import UserCreateSerializer, UserLoginSerializer, \
-    UserRoleCreateSerializer, ChangePassSerializer, EditProfSerializer, UserListSerializer
+    UserRoleCreateSerializer, ChangePassSerializer, EditProfSerializer, UserListSerializer, UserDeleteSerializer, ChangeStatusSerializer
+from account_service.Serializer.TokenSerializer import CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
-from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class UserCreateView(generics.CreateAPIView):
@@ -42,26 +42,49 @@ class UserCreateView(generics.CreateAPIView):
         )
 
 
+
+class UserDetailView(APIView):
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = User.objects.get(id=request.user.id)
+
+        if not user:
+            return Response({
+                'success': False,
+                'message': 'Invalid username or password'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_active:
+            return Response({
+                'success': False,
+                'message': 'User account is disabled'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        refresh = CustomTokenObtainPairSerializer.get_token(user)
+
+        return Response({
+            'success': True,
+            'message': 'Login successful',
+            'tokens': {
+                'refresh': str(refresh),
+                'access': str(refresh.access_token),
+            },
+        }, status=status.HTTP_200_OK)
+
+
+
 class UserLoginView(APIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = UserLoginSerializer
 
     def post(self, request):
+
         username = request.data.get('username')
         password = request.data.get('password')
 
         user = authenticate(username=username, password=password)
-        profile = userProfile.objects.get(user=user)
-        Roles = UserRole.objects.filter(user=user)
-
-        PermissionsName = []
-        RolesName = []
-
-        for item in Roles:
-            RolesName.append(item.role.name)
-            rolePermissions = RolePermission.objects.filter(role=item.role.id)
-            for item2 in rolePermissions:
-                PermissionsName.append(item2.permission.name)
 
         if not user:
             return Response({
@@ -78,7 +101,7 @@ class UserLoginView(APIView):
         user.last_login = timezone.now()
         user.save(update_fields=['last_login'])
 
-        refresh = RefreshToken.for_user(user)
+        refresh = CustomTokenObtainPairSerializer.get_token(user)
 
         return Response({
             'success': True,
@@ -87,24 +110,6 @@ class UserLoginView(APIView):
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
             },
-            'user': {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'is_superuser': user.is_superuser,
-                'is_staff': user.is_staff,
-                'is_active': user.is_active,
-                'profile': {
-                    'nationalId': profile.nationalId,
-                    'studentId': profile.studentId,
-                    'gender': profile.gender,
-                    'isVerified': profile.isVerified
-                },
-                'Roles': RolesName,
-                'Permission': PermissionsName,
-            }
         }, status=status.HTTP_200_OK)
 
 
@@ -184,3 +189,42 @@ class ListUserView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
     serializer_class = UserListSerializer
     queryset = User.objects.all()
+
+
+class UserDeleteView(generics.DestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserDeleteSerializer
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    def destroy(self, request, *args, **kwargs):
+
+        user_id = self.kwargs.get('pk')
+        user = User.objects.get(id=user_id)
+        user.delete()
+        return Response({
+            'success': True,
+            'message': 'user deleted successfully',
+            'deleted_by': {
+                'id': request.user.id,
+                'username': request.user.username,
+            }
+        }, status=status.HTTP_200_OK)
+
+
+class ChangeStatusView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    serializer_class = ChangeStatusSerializer
+
+    def patch(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.data.get('user_id'))
+        userStatus = request.data.get('status')
+        user.is_active = userStatus
+        user.save()
+        return Response({
+            'success': True,
+            'message': 'user status changed successfully',
+            'changed_by': {
+                'id': request.user.id,
+                'username': request.user.username,
+            }
+        }, status=status.HTTP_200_OK)

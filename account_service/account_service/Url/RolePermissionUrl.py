@@ -14,15 +14,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
+from account_service.View.RoleView import RolePermissionCreateView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/v1/users', include('account_service.Url.userUrl')),
-    path('api/v1/permission', include('account_service.Url.PermissionUrl')),
-    path('api/v1/role', include('account_service.Url.RoleUrl')),
-    path('api/v1/userRole', include('account_service.Url.userRoleUrl')),
-    path('api/v1/rolePermission', include('account_service.Url.RolePermissionUrl')),
-
+    path('/create', RolePermissionCreateView.as_view(), name="rolePermCreate"),
 ]
