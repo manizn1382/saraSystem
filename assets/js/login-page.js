@@ -161,19 +161,40 @@
           });
         },
 
-        validateBeforeSubmit(event) {
+        async submitLogin() {
+          if (!this.validateForm()) return;
+
+          const demoAccount = this.findDemoAccount(this.form.username, this.form.password);
+          if (demoAccount) {
+            this.loginAsDemo(demoAccount.key);
+            return;
+          }
+
+          this.loading = true;
           this.clearErrors();
           this.clearAlert();
 
-          if (!this.form.username) {
-            this.errors.username = "وارد کردن شناسه کاربری الزامی است.";
+          try {
+            const data = await window.SaraAPI.post('/api/v1/users/login', {
+              username: this.form.username,
+              password: this.form.password
+            }, {
+              auth: false,
+              retryOnUnauthorized: false,
+              redirectOnExpired: false
+            });
+            this.handleLoginSuccess(data);
+          } catch (error) {
+            this.handleLoginError(error.status || 0, error.data || { message: error.message });
+          } finally {
+            this.loading = false;
           }
+        },
 
-          if (!this.form.password) {
-            this.errors.password = "وارد کردن رمز ورود الزامی است.";
-          }
+        validateBeforeSubmit(event) {
+          const valid = this.validateForm();
 
-          if (this.errors.username || this.errors.password) {
+          if (!valid) {
             event.preventDefault();
             event.stopImmediatePropagation();
             return;
@@ -186,6 +207,25 @@
             event.stopImmediatePropagation();
             this.loginAsDemo(demoAccount.key);
           }
+        },
+
+        validateForm() {
+          this.clearErrors();
+          this.clearAlert();
+
+          if (!this.form.username) {
+            this.errors.username = "وارد کردن شناسه کاربری الزامی است.";
+          }
+
+          if (!this.form.password) {
+            this.errors.password = "وارد کردن رمز ورود الزامی است.";
+          }
+
+          if (this.errors.username || this.errors.password) {
+            return false;
+          }
+
+          return true;
         },
 
         findDemoAccount(username, password) {

@@ -1070,15 +1070,6 @@
     <!-- Hidden HTMX JSON requests. Alpine updates the UI after each response. -->
     <div class="d-none">
       <div
-        data-resource="me"
-        hx-get="/api/accounts/me/"
-        hx-trigger="load, click from:#refreshDashboard"
-        hx-swap="none"
-        hx-timeout="15000"
-        hx-headers='{"Accept": "application/json"}'
-      ></div>
-
-      <div
         data-resource="accommodationRequests"
         hx-get="/api/accommodation-requests/"
         hx-trigger="load, click from:#refreshDashboard"

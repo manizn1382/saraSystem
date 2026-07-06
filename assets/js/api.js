@@ -4,6 +4,10 @@
   const DEFAULT_ACCOUNTS_BASE_URL = 'http://127.0.0.1:8001';
   const DEFAULT_DORMITORY_BASE_URL = 'http://127.0.0.1:8000';
   const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
+  const ACCOUNT_V1_PATHS = [
+    /^\/api\/v1\/users\/(?:create|login|changePassword|editProfile|list)\/?$/i,
+    /^\/api\/v1\/(?:role|permission|rolePermission|userRole)\/create\/?$/i
+  ];
 
   function configure(options = {}) {
     if (options.baseUrl) window.SARA_API_BASE_URL = options.baseUrl;
@@ -11,9 +15,49 @@
     if (options.dormitoryBaseUrl) window.SARA_DORMITORY_API_BASE_URL = options.dormitoryBaseUrl;
   }
 
-  function apiBaseUrl(path = '') {
+  function normalizeAccountPath(path = '', method = 'GET') {
     const value = String(path || '');
+    const requestMethod = String(method || 'GET').toUpperCase();
+
+    if (/^\/api\/accounts\/getToken\/?$/i.test(value)) return '/api/v1/users/login';
+    if (/^\/api\/accounts\/(?:users\/register|register)\/?$/i.test(value)) return '/api/v1/users/create';
+    if (/^\/api\/accounts\/(?:update-profile|editProfile)\/?$/i.test(value)) return '/api/v1/users/editProfile';
+    if (/^\/api\/accounts\/(?:change-password|changePassword)\/?$/i.test(value)) return '/api/v1/users/changePassword';
+    if (/^\/api\/accounts\/users\/?$/i.test(value)) {
+      return requestMethod === 'POST' ? '/api/v1/users/create' : '/api/v1/users/list';
+    }
+    if (/^\/api\/accounts\/roles\/?$/i.test(value)) return '/api/v1/role/create';
+    if (/^\/api\/accounts\/permissions\/?$/i.test(value)) return '/api/v1/permission/create';
+    if (/^\/api\/accounts\/role-permissions\/?$/i.test(value)) return '/api/v1/rolePermission/create';
+    if (/^\/api\/accounts\/user-roles\/?$/i.test(value)) return '/api/v1/userRole/create';
+
+    if (ACCOUNT_V1_PATHS.some((pattern) => pattern.test(value))) {
+      return value.replace(/\/$/, '');
+    }
+
+    return value;
+  }
+
+  function isAccountPath(path = '') {
+    const value = String(path || '');
+    return /^\/api\/accounts(?:\/|$)/i.test(value)
+      || ACCOUNT_V1_PATHS.some((pattern) => pattern.test(value));
+  }
+
+  function isAnonymousAccountPath(path = '') {
+    const value = normalizeAccountPath(path);
+    return /^\/api\/v1\/users\/(?:login|create)\/?$/i.test(value);
+  }
+
+  function apiBaseUrl(path = '') {
+    const value = normalizeAccountPath(path);
     if (/^\/api\/accounts(?:\/|$)/i.test(value)) {
+      return window.SARA_ACCOUNTS_API_BASE_URL
+        || localStorage.getItem('sarasystem.accountsApiBaseUrl')
+        || DEFAULT_ACCOUNTS_BASE_URL;
+    }
+
+    if (isAccountPath(value)) {
       return window.SARA_ACCOUNTS_API_BASE_URL
         || localStorage.getItem('sarasystem.accountsApiBaseUrl')
         || DEFAULT_ACCOUNTS_BASE_URL;
@@ -30,8 +74,8 @@
       || DEFAULT_BASE_URL;
   }
 
-  function joinUrl(path, baseUrl) {
-    const value = String(path || '');
+  function joinUrl(path, baseUrl, method = 'GET') {
+    const value = normalizeAccountPath(path, method);
     if (/^https?:\/\//i.test(value)) return value;
 
     const resolvedBaseUrl = baseUrl || apiBaseUrl(value);
@@ -151,7 +195,7 @@
   async function request(path, options = {}) {
     const method = options.method || 'GET';
     const retryOnUnauthorized = options.retryOnUnauthorized !== false;
-    const url = joinUrl(path, options.baseUrl);
+    const url = joinUrl(path, options.baseUrl, method);
 
     let response;
     try {
@@ -207,7 +251,8 @@
 
         if (!/^\/api(\/|$)/i.test(requestPath)) return;
 
-        const resolvedPath = joinUrl(requestPath);
+        const normalizedPath = normalizeAccountPath(requestPath, event.detail?.verb || event.detail?.requestConfig?.verb || 'GET');
+        const resolvedPath = joinUrl(normalizedPath);
         if (resolvedPath !== requestPath) {
           event.detail.path = resolvedPath;
           if (event.detail.pathInfo) event.detail.pathInfo.requestPath = resolvedPath;
@@ -215,7 +260,7 @@
         }
 
         const token = window.SaraAuth?.getAccessToken?.();
-        if (token && !/^\/api\/accounts\/(?:getToken|register|refreshToken)\/?$/i.test(requestPath)) {
+        if (token && !isAnonymousAccountPath(normalizedPath)) {
           event.detail.headers = event.detail.headers || {};
           event.detail.headers.Authorization = `Bearer ${token}`;
         }
@@ -241,6 +286,8 @@
     configure,
     API_BASE_URL: DEFAULT_BASE_URL,
     apiBaseUrl,
+    normalizeAccountPath,
+    isAccountPath,
     joinUrl,
     normalizeEndpoint,
     buildHeaders,

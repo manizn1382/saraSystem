@@ -1,12 +1,52 @@
 /* System-admin dashboard controller. API authorization remains server-side. */
 (function () {
-  const USER_ENDPOINT = '/api/accounts/users/';
-  const ROLE_ENDPOINT = '/api/accounts/roles/';
-  const DORMITORY_ENDPOINT = '/api/dormitories/';
+  const USER_LIST_ENDPOINT = '/api/v1/users/list';
+  const USER_CREATE_ENDPOINT = '/api/v1/users/create';
+  const ROLE_CREATE_ENDPOINT = '/api/v1/role/create';
+  const PERMISSION_CREATE_ENDPOINT = '/api/v1/permission/create';
+  const ROLE_PERMISSION_CREATE_ENDPOINT = '/api/v1/rolePermission/create';
+  const USER_ROLE_CREATE_ENDPOINT = '/api/v1/userRole/create';
+  const DORMITORY_ENDPOINT = '/api/dormitory/listAll/';
 
   function asArray(data) {
     return window.SaraUI?.asList?.(data)
       || (Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : []);
+  }
+
+  function unwrap(data, key) {
+    return data?.[key] || data?.data?.[key] || data;
+  }
+
+  function normalizeUser(item = {}, index = 0) {
+    const profile = item.profile || item.userprofile || {};
+    const normalized = window.SaraAuth?.normalizeAccountUser?.({
+      ...item,
+      id: item.id ?? item.user_id ?? item.pk ?? '',
+      username: item.username || item.email || '',
+      first_name: item.first_name || '',
+      last_name: item.last_name || '',
+      profile
+    }) || item;
+
+    return {
+      ...normalized,
+      row_id: normalized.id || normalized.email || `user-${index + 1}`,
+      national_id: normalized.national_id || profile.nationalId || profile.national_id || '',
+      student_id: normalized.student_id || profile.studentId || profile.student_id || '',
+      phone: normalized.phone || profile.phone || '',
+      gender: normalized.gender || profile.gender || '',
+      is_active: normalized.is_active !== false,
+      is_verified: normalized.is_verified ?? normalized.isVerified ?? profile.isVerified ?? profile.is_verified
+    };
+  }
+
+  function normalizeRole(item = {}) {
+    if (typeof item === 'string') return { id: '', name: item, description: '' };
+    return {
+      id: item.id ?? item.role_id ?? '',
+      name: item.name || item.roleName || '',
+      description: item.description || ''
+    };
   }
 
   function systemAdminPanel() {
@@ -25,7 +65,8 @@
       dialog: { open: false, type: '', subject: null },
       userForm: {},
       roleForm: { name: '', description: '' },
-      accessControl: { userId: '', roleName: '', notice: '' },
+      accessControl: { userId: '', roleId: '', roleName: '', notice: '' },
+      permissionForm: { name: '', code: '', description: '', permissionId: '', roleId: '', notice: '', loading: false },
       permissionCatalog: [
         { code: 'users.manage', label: 'مدیریت کاربران' },
         { code: 'dormitories.manage', label: 'مدیریت خوابگاه‌ها' },
@@ -85,14 +126,16 @@
       },
 
       async loadAll() {
-        await Promise.all([this.loadUsers(), this.loadRoles(), this.loadDormitories()]);
+        this.loadRoles();
+        await Promise.all([this.loadUsers(), this.loadDormitories()]);
       },
 
       async loadUsers() {
         this.loading.users = true;
         this.errors.users = '';
         try {
-          this.users = asArray(await window.SaraAPI.get(USER_ENDPOINT));
+          this.users = asArray(await window.SaraAPI.get(USER_LIST_ENDPOINT)).map(normalizeUser);
+          this.syncRolesFromUsers();
           this.updateStats();
         } catch (error) {
           this.errors.users = this.apiMessage(error);
@@ -101,17 +144,33 @@
         }
       },
 
-      async loadRoles() {
+      loadRoles() {
         this.loading.roles = true;
         this.errors.roles = '';
         try {
-          this.roles = asArray(await window.SaraAPI.get(ROLE_ENDPOINT));
+          const storedRoles = JSON.parse(localStorage.getItem('sarasystem.account.roles') || '[]');
+          this.roles = asArray(storedRoles).map(normalizeRole).filter((role) => role.name);
+          this.syncRolesFromUsers();
           this.updateStats();
         } catch (error) {
           this.errors.roles = this.apiMessage(error);
         } finally {
           this.loading.roles = false;
         }
+      },
+
+      persistRoles() {
+        localStorage.setItem('sarasystem.account.roles', JSON.stringify(this.roles.filter((role) => role.id)));
+      },
+
+      syncRolesFromUsers() {
+        const existing = new Map(this.roles.map((role) => [role.name, role]));
+        this.users.forEach((user) => {
+          this.rolesFor(user).forEach((roleName) => {
+            if (!existing.has(roleName)) existing.set(roleName, normalizeRole(roleName));
+          });
+        });
+        this.roles = Array.from(existing.values()).filter((role) => role.name);
       },
 
       async loadDormitories() {
@@ -138,7 +197,7 @@
         const query = this.filters.query.trim().toLowerCase();
         return this.users.filter((item) => {
           const matchesQuery = !query || [
-            item.first_name, item.last_name, item.email, item.student_id, item.national_id, item.phone
+            item.first_name, item.last_name, item.username, item.email, item.student_id, item.national_id, item.phone
           ].join(' ').toLowerCase().includes(query);
           const userRoles = this.rolesFor(item);
           const matchesRole = this.filters.role === 'all' || userRoles.includes(this.filters.role);
@@ -195,25 +254,29 @@
 
       openUserForm(user = null) {
         this.userForm = user ? {
-          id: user.id,
+          id: user.id || user.row_id || '',
           first_name: user.first_name || '',
           last_name: user.last_name || '',
           email: user.email || '',
           national_id: user.national_id || '',
           student_id: user.student_id || '',
           phone: user.phone || '',
-          gender: user.gender || '',
+          gender: window.SaraAuth?.normalizeGender?.(user.gender) || user.gender || '',
           is_active: user.is_active !== false,
           is_verified: Boolean(user.is_verified),
           password: ''
         } : {
           first_name: '', last_name: '', email: '', national_id: '', student_id: '', phone: '',
-          gender: '', is_active: true, is_verified: false, password: ''
+          gender: 'm', is_active: true, is_verified: false, password: ''
         };
         this.dialog = { open: true, type: 'user-form', subject: user };
       },
 
       openRoleForm(role = null) {
+        if (role && !role.id) {
+          this.showAlert('danger', 'این نقش از فهرست کاربران استخراج شده و شناسه id برای ویرایش یا اتصال API ندارد.');
+          return;
+        }
         this.roleForm = role
           ? { id: role.id, name: role.name || '', description: role.description || '' }
           : { name: '', description: '' };
@@ -221,15 +284,36 @@
       },
 
       selectedAccessUser() {
-        return this.users.find((item) => String(item.id) === String(this.accessControl.userId)) || null;
+        return this.users.find((item) => String(item.id || item.row_id) === String(this.accessControl.userId)) || null;
       },
 
-      requestRoleAssignment() {
-        if (!this.accessControl.userId || !this.accessControl.roleName) {
+      async requestRoleAssignment() {
+        if (!this.accessControl.userId || !this.accessControl.roleId) {
           this.accessControl.notice = 'کاربر و نقش را انتخاب کنید.';
           return;
         }
-        this.accessControl.notice = 'برای ثبت تخصیص نقش، API اختصاصی UserRole باید توسط بک‌اند منتشر شود.';
+
+        const user = this.selectedAccessUser();
+        if (!user?.id) {
+          this.accessControl.notice = 'این کاربر در پاسخ API شناسه id ندارد و امکان ارسال به userRole/create نیست.';
+          return;
+        }
+
+        this.loading.saving = true;
+        try {
+          const data = await window.SaraAPI.post(USER_ROLE_CREATE_ENDPOINT, {
+            user: user.id,
+            role: this.accessControl.roleId
+          });
+          const role = this.roles.find((item) => String(item.id) === String(this.accessControl.roleId));
+          user.roles = Array.from(new Set([...(user.roles || []), role?.name || data?.userRole?.roleName].filter(Boolean)));
+          this.accessControl.notice = data?.message || 'نقش برای کاربر ثبت شد.';
+          this.updateStats();
+        } catch (error) {
+          this.accessControl.notice = this.apiMessage(error);
+        } finally {
+          this.loading.saving = false;
+        }
       },
 
       closeDialog() {
@@ -238,11 +322,22 @@
       },
 
       userPayload() {
-        const payload = { ...this.userForm };
-        delete payload.id;
-        if (!payload.student_id) delete payload.student_id;
-        if (!payload.password) delete payload.password;
-        return payload;
+        const password = this.userForm.password || '';
+        return {
+          username: this.userForm.email,
+          email: this.userForm.email,
+          password,
+          confirm_password: password,
+          first_name: this.userForm.first_name || '',
+          last_name: this.userForm.last_name || '',
+          profile: {
+            nationalId: this.userForm.national_id || '',
+            studentId: this.userForm.student_id || '',
+            phone: this.userForm.phone || '',
+            gender: window.SaraAuth?.normalizeGender?.(this.userForm.gender) || this.userForm.gender || 'm',
+            profileImage: ''
+          }
+        };
       },
 
       async saveUser() {
@@ -250,15 +345,18 @@
         try {
           const payload = this.userPayload();
           const existing = this.userForm.id;
-          const saved = existing
-            ? await window.SaraAPI.patch(`${USER_ENDPOINT}${existing}/`, payload)
-            : await window.SaraAPI.post(USER_ENDPOINT, payload);
-          const index = this.users.findIndex((item) => String(item.id) === String(saved.id));
-          if (index >= 0) this.users.splice(index, 1, saved);
-          else this.users.unshift(saved);
+          if (existing) {
+            this.showAlert('danger', 'ویرایش کاربر در API فعلی account منتشر نشده است.');
+            return;
+          }
+
+          const response = await window.SaraAPI.post(USER_CREATE_ENDPOINT, payload);
+          const saved = normalizeUser(unwrap(response, 'user'));
+          this.users.unshift(saved);
+          this.syncRolesFromUsers();
           this.updateStats();
           this.dialog = { open: false, type: '', subject: null };
-          this.showAlert('success', existing ? 'اطلاعات کاربر بروزرسانی شد.' : 'کاربر جدید ایجاد شد.');
+          this.showAlert('success', response?.message || 'کاربر جدید ایجاد شد.');
         } catch (error) {
           this.showAlert('danger', this.apiMessage(error));
         } finally {
@@ -267,33 +365,11 @@
       },
 
       async toggleUserActivity(user) {
-        const nextActive = user.is_active === false;
-        this.loading.saving = true;
-        try {
-          const saved = await window.SaraAPI.patch(`${USER_ENDPOINT}${user.id}/`, { is_active: nextActive });
-          Object.assign(user, saved);
-          this.updateStats();
-          this.showAlert('success', nextActive ? 'کاربر فعال شد.' : 'کاربر غیرفعال شد.');
-        } catch (error) {
-          this.showAlert('danger', this.apiMessage(error));
-        } finally {
-          this.loading.saving = false;
-        }
+        this.showAlert('danger', `تغییر وضعیت ${this.fullName(user)} در API فعلی account منتشر نشده است.`);
       },
 
       async deleteUser(user) {
-        if (!window.confirm(`حذف کاربر ${this.fullName(user)} انجام شود؟`)) return;
-        this.loading.saving = true;
-        try {
-          await window.SaraAPI.delete(`${USER_ENDPOINT}${user.id}/`);
-          this.users = this.users.filter((item) => String(item.id) !== String(user.id));
-          this.updateStats();
-          this.showAlert('success', 'کاربر حذف شد.');
-        } catch (error) {
-          this.showAlert('danger', this.apiMessage(error));
-        } finally {
-          this.loading.saving = false;
-        }
+        this.showAlert('danger', `حذف ${this.fullName(user)} در API فعلی account منتشر نشده است.`);
       },
 
       async saveRole() {
@@ -301,15 +377,20 @@
         try {
           const existing = this.roleForm.id;
           const payload = { name: this.roleForm.name, description: this.roleForm.description };
-          const role = existing
-            ? await window.SaraAPI.patch(`${ROLE_ENDPOINT}${existing}/`, payload)
-            : await window.SaraAPI.post(ROLE_ENDPOINT, payload);
+          if (existing) {
+            this.showAlert('danger', 'ویرایش نقش در API فعلی account منتشر نشده است.');
+            return;
+          }
+
+          const response = await window.SaraAPI.post(ROLE_CREATE_ENDPOINT, payload);
+          const role = normalizeRole(unwrap(response, 'role'));
           const index = this.roles.findIndex((item) => String(item.id) === String(role.id));
           if (index >= 0) this.roles.splice(index, 1, role);
           else this.roles.unshift(role);
+          this.persistRoles();
           this.updateStats();
           this.dialog = { open: false, type: '', subject: null };
-          this.showAlert('success', existing ? 'نقش بروزرسانی شد.' : 'نقش جدید ایجاد شد.');
+          this.showAlert('success', response?.message || 'نقش جدید ایجاد شد.');
         } catch (error) {
           this.showAlert('danger', this.apiMessage(error));
         } finally {
@@ -318,17 +399,56 @@
       },
 
       async deleteRole(role) {
-        if (!window.confirm(`حذف نقش ${role.name} انجام شود؟`)) return;
-        this.loading.saving = true;
+        this.showAlert('danger', `حذف نقش ${role.name} در API فعلی account منتشر نشده است.`);
+      },
+
+      async createPermission() {
+        if (!this.permissionForm.name || !this.permissionForm.code) {
+          this.permissionForm.notice = 'نام و کد مجوز الزامی است.';
+          return;
+        }
+
+        this.permissionForm.loading = true;
         try {
-          await window.SaraAPI.delete(`${ROLE_ENDPOINT}${role.id}/`);
-          this.roles = this.roles.filter((item) => String(item.id) !== String(role.id));
-          this.updateStats();
-          this.showAlert('success', 'نقش حذف شد.');
+          const response = await window.SaraAPI.post(PERMISSION_CREATE_ENDPOINT, {
+            name: this.permissionForm.name,
+            code: this.permissionForm.code,
+            description: this.permissionForm.description || ''
+          });
+          const permission = response?.permission || {};
+          this.permissionCatalog.unshift({
+            code: permission.code || this.permissionForm.code,
+            label: permission.name || this.permissionForm.name,
+            id: permission.id || ''
+          });
+          this.permissionForm.notice = response?.message || 'مجوز جدید ثبت شد. اگر API شناسه برگرداند، برای اتصال به نقش استفاده می‌شود.';
+          this.permissionForm.name = '';
+          this.permissionForm.code = '';
+          this.permissionForm.description = '';
         } catch (error) {
-          this.showAlert('danger', this.apiMessage(error));
+          this.permissionForm.notice = this.apiMessage(error);
         } finally {
-          this.loading.saving = false;
+          this.permissionForm.loading = false;
+        }
+      },
+
+      async assignPermissionToRole() {
+        if (!this.permissionForm.roleId || !this.permissionForm.permissionId) {
+          this.permissionForm.notice = 'شناسه نقش و شناسه مجوز برای RolePermission الزامی است.';
+          return;
+        }
+
+        this.permissionForm.loading = true;
+        try {
+          const response = await window.SaraAPI.post(ROLE_PERMISSION_CREATE_ENDPOINT, {
+            role: this.permissionForm.roleId,
+            permission: this.permissionForm.permissionId
+          });
+          this.permissionForm.notice = response?.message || 'مجوز به نقش متصل شد.';
+        } catch (error) {
+          this.permissionForm.notice = this.apiMessage(error);
+        } finally {
+          this.permissionForm.loading = false;
         }
       },
 

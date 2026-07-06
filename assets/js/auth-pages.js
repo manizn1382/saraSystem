@@ -60,6 +60,14 @@
         }
       },
 
+      showUnsupported() {
+        this.error = '';
+        this.alert = {
+          type: 'danger',
+          message: 'API فعلی account مسیر بازیابی رمز بدون ورود ندارد. پس از ورود از صفحه پروفایل رمز را تغییر دهید.'
+        };
+      },
+
       isForgotRequest(event) {
         return event?.detail?.elt?.id === 'forgotPasswordForm';
       },

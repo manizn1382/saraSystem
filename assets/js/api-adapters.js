@@ -6,7 +6,7 @@
    - Backend shape assumptions are intentionally centralized here so endpoint changes do not spread across pages.
 
    Expected endpoint families:
-   /api/accounts/users/ -> User[]
+   /api/v1/users/list -> User[]
    /api/dormitory/listAll/ -> Dormitory[]
    /api/rooms/listAllRoom/ -> Room[]
    /api/beds/listAll/ -> Bed[]

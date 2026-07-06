@@ -81,7 +81,34 @@ function registerPage() {
           });
         },
 
+        async submitRegister() {
+          if (!this.validateForm()) return;
+
+          this.loading = true;
+          this.clearAlert();
+
+          try {
+            const data = await window.SaraAPI.post("/api/v1/users/create", this.registrationPayload(), {
+              auth: false,
+              retryOnUnauthorized: false,
+              redirectOnExpired: false
+            });
+            this.handleRegisterSuccess(data);
+          } catch (error) {
+            this.handleRegisterError(error.status || 0, error.data || { message: error.message });
+          } finally {
+            this.loading = false;
+          }
+        },
+
         validateBeforeSubmit(event) {
+          if (!this.validateForm()) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+          }
+        },
+
+        validateForm() {
           this.clearErrors();
           this.clearAlert();
 
@@ -101,6 +128,8 @@ function registerPage() {
 
           if (this.form.student_id && !this.isDigits(this.form.student_id)) {
             this.errors.student_id = "شماره دانشجویی باید فقط شامل عدد باشد.";
+          } else if (!this.form.student_id) {
+            this.errors.student_id = "وارد کردن شماره دانشجویی الزامی است.";
           }
 
           if (!this.form.phone) {
@@ -136,9 +165,28 @@ function registerPage() {
           }
 
           if (this.hasErrors()) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
+            return false;
           }
+
+          return true;
+        },
+
+        registrationPayload() {
+          return {
+            username: this.form.email.trim(),
+            email: this.form.email.trim(),
+            password: this.form.password,
+            confirm_password: this.form.password_confirm,
+            first_name: this.form.first_name.trim(),
+            last_name: this.form.last_name.trim(),
+            profile: {
+              nationalId: this.toEnglishDigits(this.form.national_id),
+              studentId: this.toEnglishDigits(this.form.student_id),
+              phone: this.toEnglishDigits(this.form.phone),
+              gender: this.toApiGender(this.form.gender),
+              profileImage: ""
+            }
+          };
         },
 
         handleRegisterSuccess(data) {
@@ -193,12 +241,30 @@ function registerPage() {
             "email",
             "gender",
             "password",
-            "password_confirm"
+            "password_confirm",
+            "confirm_password"
           ];
 
           fields.forEach((field) => {
             if (data?.[field]) {
-              this.errors[field] = this.normalizeError(data[field]);
+              const target = field === "confirm_password" ? "password_confirm" : field;
+              this.errors[target] = this.normalizeError(data[field]);
+            }
+          });
+
+          const profileErrors = data?.profile || {};
+          const profileMap = {
+            nationalId: "national_id",
+            national_id: "national_id",
+            studentId: "student_id",
+            student_id: "student_id",
+            phone: "phone",
+            gender: "gender"
+          };
+
+          Object.entries(profileMap).forEach(([apiField, formField]) => {
+            if (profileErrors?.[apiField]) {
+              this.errors[formField] = this.normalizeError(profileErrors[apiField]);
             }
           });
         },
@@ -229,6 +295,13 @@ function registerPage() {
 
         isValidEmail(value) {
           return window.SaraValidate?.email?.(value) ?? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        },
+
+        toApiGender(value) {
+          const normalized = String(value || "").toLowerCase();
+          if (["male", "man", "m"].includes(normalized)) return "m";
+          if (["female", "woman", "f"].includes(normalized)) return "f";
+          return normalized;
         },
 
         hasErrors() {
