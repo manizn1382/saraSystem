@@ -14,7 +14,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         permissions = list(
             RolePermission.objects.filter(role__userrole__user=user)
-            .values_list("permission__name", flat=True)
+            .values_list("permission__code", flat=True)
             .distinct()
         )
         profile = userProfile.objects.get(user=user)
@@ -26,11 +26,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['permissions'] = permissions
         token['is_staff'] = user.is_staff
         token['is_superuser'] = user.is_superuser
+        token['first_name'] = user.first_name
+        token['last_name'] = user.last_name
+        token['is_active'] = user.is_active
+
         token['profile'] = {
             'nationalId': profile.nationalId,
             'studentId': profile.studentId,
             'gender': profile.gender,
-            'isVerified': profile.isVerified
+            'isVerified': profile.isVerified,
+            'phone': profile.phone,
+            'profileImage': profile.profileImage,
         }
 
         return token

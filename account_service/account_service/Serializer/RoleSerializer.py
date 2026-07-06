@@ -14,7 +14,7 @@ class ListRoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Role
-        fields = ['name', 'description']
+        fields = ['name', 'description', 'id']
 
 
 class RoleDeleteSerializer(serializers.ModelSerializer):

@@ -216,8 +216,8 @@ class ChangeStatusView(generics.UpdateAPIView):
     serializer_class = ChangeStatusSerializer
 
     def patch(self, request, *args, **kwargs):
-        user = User.objects.get(id=request.data.get('user_id'))
-        userStatus = request.data.get('status')
+        user = User.objects.get(id=request.data.get('id'))
+        userStatus = request.data.get('is_active')
         user.is_active = userStatus
         user.save()
         return Response({
@@ -228,3 +228,33 @@ class ChangeStatusView(generics.UpdateAPIView):
                 'username': request.user.username,
             }
         }, status=status.HTTP_200_OK)
+
+
+
+class AdminEditView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    serializer_class = EditProfSerializer
+
+    def put(self, request, *args, **kwargs):
+
+        profile_data = request.data.pop('profile', {})
+        user = User.objects.get(id=request.data.get('id'))
+
+        for field, value in request.data.items():
+            setattr(user, field, value)
+        user.save()
+
+        profile = userProfile.objects.get(user=user)
+
+        for field, value in profile_data.items():
+            setattr(profile, field, value)
+        profile.save()
+
+        return Response({
+            "success": True,
+            "message": "user profile updated successfully",
+            "update_By": {
+                "user_id": request.user.id,
+                "username": request.user.username,
+            }
+        })

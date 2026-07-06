@@ -76,7 +76,7 @@ class UserRoleCreateSerializer(serializers.ModelSerializer):
 class ChangeStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["status", "user_id"]
+        fields = ["is_active", "id"]
 
 
 class ChangePassSerializer(serializers.ModelSerializer):
@@ -130,7 +130,8 @@ class EditProfSerializer(serializers.ModelSerializer):
             'profile',
             'email',
             'first_name',
-            'last_name', ]
+            'last_name',
+            'id']
 
 
 class UserListSerializer(serializers.ModelSerializer):
