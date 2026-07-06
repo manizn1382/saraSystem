@@ -86,13 +86,7 @@
           <form
             id="loginForm"
             novalidate
-            hx-ext="json-enc"
-            hx-post="/api/accounts/getToken/"
-            hx-trigger="submit"
-            hx-swap="none"
-            hx-timeout="15000"
-            hx-headers='{"Accept": "application/json"}'
-            @submit.capture="validateBeforeSubmit($event)"
+            @submit.prevent="submitLogin()"
           >
             <div class="mb-3">
               <label for="username" class="form-label fw-semibold">
@@ -105,8 +99,8 @@
                 type="text"
                 class="form-control form-control-lg"
                 id="username"
-                name="email"
-                autocomplete="email"
+                name="username"
+                autocomplete="username"
                 inputmode="email"
                 required
                 aria-describedby="usernameError"

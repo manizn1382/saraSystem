@@ -138,7 +138,7 @@
         });
       },
       applyUsers(data) {
-        this.users = window.SaraAPI?.list?.(data) || [];
+        this.users = (window.SaraAPI?.list?.(data) || []).map((user) => window.SaraAuth?.normalizeAccountUser?.(user) || user);
         this.updateAccountStats();
       },
       applyRoles(data) {
@@ -175,10 +175,11 @@
 
         this.forms.role.loading = true;
         try {
-          const role = await window.SaraAPI.post('/api/accounts/roles/', {
+          const response = await window.SaraAPI.post('/api/v1/role/create', {
             name: this.forms.role.name.trim(),
             description: this.forms.role.description.trim()
           });
+          const role = response?.role || response;
           this.roles = [role, ...this.roles.filter((item) => item.id !== role?.id)];
           this.resetPage('roles');
           this.updateAccountStats();

@@ -34,8 +34,8 @@ function accountPage() {
             }
 
             const payload = this.profilePayload();
-            const updated = await window.SaraAPI.patch('/api/accounts/update-profile/', payload);
-            this.profile = window.SaraAuth?.updateStoredUser?.(updated || this.profile) || this.profile;
+            const updated = await window.SaraAPI.put('/api/v1/users/editProfile', payload);
+            this.profile = window.SaraAuth?.updateStoredUser?.(updated?.user || this.profile) || this.profile;
             this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
             this.showAlert('success', 'پروفایل با موفقیت ذخیره شد.');
           } catch (error) {
@@ -69,9 +69,10 @@ function accountPage() {
               return;
             }
 
-            await window.SaraAPI.post('/api/accounts/change-password/', {
-              old_password: this.password.current_password,
-              new_password: this.password.new_password
+            await window.SaraAPI.patch('/api/v1/users/changePassword', {
+              current_password: this.password.current_password,
+              new_password: this.password.new_password,
+              confirm_password: this.password.confirm_password
             });
             this.password = { current_password: '', new_password: '', confirm_password: '' };
             this.showAlert('success', 'رمز ورود با موفقیت تغییر کرد.');
@@ -83,8 +84,18 @@ function accountPage() {
         },
 
         profilePayload() {
-          const fields = ['first_name', 'last_name', 'phone', 'gender'];
-          return Object.fromEntries(fields.map((field) => [field, this.profile[field] || '']));
+          return {
+            email: this.profile.email || '',
+            first_name: this.profile.first_name || '',
+            last_name: this.profile.last_name || '',
+            profile: {
+              nationalId: this.profile.national_id || this.profile.nationalId || this.profile.profile?.nationalId || '',
+              studentId: this.profile.student_id || this.profile.studentId || this.profile.profile?.studentId || '',
+              phone: this.profile.phone || this.profile.profile?.phone || '',
+              gender: this.toApiGender(this.profile.gender || this.profile.profile?.gender || ''),
+              profileImage: this.profile.profile_image || this.profile.profileImage || this.profile.profile?.profileImage || ''
+            }
+          };
         },
 
         toFormData() {
@@ -130,6 +141,10 @@ function accountPage() {
         permissionsText() {
           const permissions = window.SaraAuth?.getPermissions?.(this.profile) || [];
           return permissions.length ? permissions.join('، ') : '—';
+        },
+
+        toApiGender(value) {
+          return window.SaraAuth?.normalizeGender?.(value) || String(value || '').toLowerCase();
         },
 
         showAlert(type, message) {

@@ -79,13 +79,7 @@
           <form
             id="registerForm"
             novalidate
-            hx-ext="json-enc"
-            hx-post="http://127.0.0.1:8001/api/accounts/users/register/"
-            hx-trigger="submit"
-            hx-swap="none"
-            hx-timeout="15000"
-            hx-headers='{"Accept": "application/json"}'
-            @submit.capture="validateBeforeSubmit($event)"
+            @submit.prevent="submitRegister()"
           >
             <div class="row g-3">
               <div class="col-12 col-md-6">
@@ -160,7 +154,7 @@
 
               <div class="col-12 col-md-6">
                 <label for="studentId" class="form-label fw-semibold">
-                  شماره دانشجویی <span class="text-secondary fw-normal small">(اختیاری)</span>
+                  شماره دانشجویی
                 </label>
                 <input
                   x-model.trim="form.student_id"
@@ -171,6 +165,7 @@
                   name="student_id"
                   inputmode="numeric"
                   autocomplete="off"
+                  required
                   aria-describedby="studentIdError studentIdHelp"
                   placeholder="شماره دانشجویی"
                 />
@@ -179,7 +174,7 @@
                   class="invalid-feedback"
                   x-text="errors.student_id"
                 ></div>
-                <div id="studentIdHelp" class="form-text">در API فعلی ثبت‌نام ارسال نمی‌شود و پس از تایید حساب قابل نمایش است.</div>
+                <div id="studentIdHelp" class="form-text">این مقدار در پروفایل حساب سرویس account ذخیره می‌شود.</div>
               </div>
 
               <div class="col-12 col-md-6">
@@ -220,8 +215,8 @@
                   aria-describedby="genderError"
                 >
                   <option value="">انتخاب کنید</option>
-                  <option value="male">مرد</option>
-                  <option value="female">زن</option>
+                  <option value="m">مرد</option>
+                  <option value="f">زن</option>
                 </select>
                 <div
                   id="genderError"

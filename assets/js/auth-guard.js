@@ -91,6 +91,7 @@
     if (!user) return [];
 
     if (Array.isArray(user.roles)) return user.roles.map(normalizeRole).filter(Boolean);
+    if (Array.isArray(user.Roles)) return user.Roles.map(normalizeRole).filter(Boolean);
     if (Array.isArray(user.user_roles)) return user.user_roles.map(normalizeRole).filter(Boolean);
     if (user.role) return [normalizeRole(user.role)].filter(Boolean);
 
