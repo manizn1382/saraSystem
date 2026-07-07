@@ -136,6 +136,7 @@
                     <td><span class="ss-status-badge" :class="statusClass(item)" x-text="statusLabel(item)"></span></td>
                     <td><div class="admin-table-actions">
                       <button class="admin-action-button" type="button" title="جزئیات" @click="openUserDetails(item)">جزئیات</button>
+                      <button class="admin-action-button" type="button" title="ویرایش" :disabled="loading.saving || !item.id" @click="openUserForm(item)">ویرایش</button>
                       <button class="admin-action-button" type="button" title="تغییر وضعیت" :disabled="loading.saving" @click="toggleUserActivity(item)" x-text="item.is_active === false ? 'فعال‌سازی' : 'غیرفعال‌سازی'"></button>
                       <button class="admin-action-button danger" type="button" title="حذف" :disabled="loading.saving" @click="deleteUser(item)">حذف</button>
                     </div></td>
@@ -206,12 +207,12 @@
       </section>
 
       <section class="admin-dialog admin-dialog-wide" x-show="dialog.type === 'user-form'" role="dialog" aria-modal="true" aria-labelledby="userFormTitle">
-        <form @submit.prevent="saveUser()"><header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3"><h3 id="userFormTitle" class="h5 fw-bold mb-0">ایجاد کاربر</h3><button class="admin-action-button" type="button" @click="closeDialog()">بستن</button></header>
+        <form @submit.prevent="saveUser()"><header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3"><h3 id="userFormTitle" class="h5 fw-bold mb-0" x-text="userForm.id ? 'ویرایش کاربر' : 'ایجاد کاربر'"></h3><button class="admin-action-button" type="button" @click="closeDialog()">بستن</button></header>
           <div class="p-3"><div class="row g-3"><template x-for="field in [{key:'first_name',label:'نام',type:'text',required:true},{key:'last_name',label:'نام خانوادگی',type:'text',required:true},{key:'email',label:'ایمیل',type:'email',required:true},{key:'national_id',label:'کد ملی',type:'text',required:true},{key:'student_id',label:'شماره دانشجویی',type:'text',required:true},{key:'phone',label:'شماره تماس',type:'tel',required:true}]" :key="field.key"><div class="col-md-6"><label class="form-label" :for="`user-${field.key}`" x-text="field.label"></label><input class="form-control" :id="`user-${field.key}`" :type="field.type" x-model.trim="userForm[field.key]" :required="field.required" :dir="field.key === 'email' ? 'ltr' : 'rtl'" /></div></template>
             <div class="col-md-6"><label class="form-label" for="user-gender">جنسیت</label><select id="user-gender" class="form-select" x-model="userForm.gender"><option value="">انتخاب نشده</option><option value="m">مرد</option><option value="f">زن</option></select></div>
-            <div class="col-md-6"><label class="form-label" for="user-password">رمز ورود</label><input id="user-password" class="form-control" type="password" x-model="userForm.password" required autocomplete="new-password" /></div>
+            <div class="col-md-6" x-show="!userForm.id"><label class="form-label" for="user-password">رمز ورود</label><input id="user-password" class="form-control" type="password" x-model="userForm.password" :required="!userForm.id" autocomplete="new-password" /></div>
           </div></div>
-          <footer class="d-flex justify-content-end gap-2 border-top p-3"><button class="btn ss-btn ss-btn-outline" type="button" @click="closeDialog()">انصراف</button><button class="btn ss-btn ss-btn-primary" type="submit" :disabled="loading.saving" x-text="loading.saving ? 'در حال ثبت...' : 'ثبت تغییرات'"></button></footer>
+          <footer class="d-flex justify-content-end gap-2 border-top p-3"><button class="btn ss-btn ss-btn-outline" type="button" @click="closeDialog()">انصراف</button><button class="btn ss-btn ss-btn-primary" type="submit" :disabled="loading.saving" x-text="loading.saving ? 'در حال ثبت...' : (userForm.id ? 'ثبت ویرایش' : 'ایجاد کاربر')"></button></footer>
         </form>
       </section>
 

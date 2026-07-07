@@ -5,7 +5,7 @@
   const DEFAULT_DORMITORY_BASE_URL = 'http://127.0.0.1:8000';
   const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
   const ACCOUNT_V1_PATHS = [
-    /^\/api\/v1\/users\/(?:create|login|token\/refresh|password\/change|changePassword|editProfile|list|current|status\/change)\/?$/i,
+    /^\/api\/v1\/users\/(?:create|login|token\/refresh|password\/change|changePassword|editProfile|adminUpdate|list|current|status\/change)\/?$/i,
     /^\/api\/v1\/users\/delete\/[^/]+\/?$/i,
     /^\/api\/v1\/role\/(?:create|list)\/?$/i,
     /^\/api\/v1\/role\/(?:delete|update)\/[^/]+\/?$/i,
@@ -28,6 +28,7 @@
     if (/^\/api\/accounts\/me\/?$/i.test(value)) return '/api/v1/users/current';
     if (/^\/api\/accounts\/(?:users\/register|register)\/?$/i.test(value)) return '/api/v1/users/create';
     if (/^\/api\/accounts\/(?:update-profile|editProfile)\/?$/i.test(value)) return '/api/v1/users/editProfile';
+    if (/^\/api\/accounts\/(?:users\/admin-update|users\/update|adminUpdate)\/?$/i.test(value)) return '/api/v1/users/adminUpdate';
     if (/^\/api\/accounts\/(?:change-password|changePassword)\/?$/i.test(value)) return '/api/v1/users/password/change';
     if (/^\/api\/v1\/users\/changePassword\/?$/i.test(value)) return '/api/v1/users/password/change';
     if (/^\/api\/accounts\/users\/?$/i.test(value)) {

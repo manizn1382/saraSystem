@@ -2,6 +2,7 @@
 (function () {
   const USER_LIST_ENDPOINT = '/api/v1/users/list';
   const USER_CREATE_ENDPOINT = '/api/v1/users/create';
+  const USER_ADMIN_UPDATE_ENDPOINT = '/api/v1/users/adminUpdate';
   const USER_DELETE_ENDPOINT = '/api/v1/users/delete';
   const USER_STATUS_ENDPOINT = '/api/v1/users/status/change';
   const ROLE_CREATE_ENDPOINT = '/api/v1/role/create';
@@ -306,12 +307,24 @@
         this.dialog = { open: true, type: 'details', subject: user };
       },
 
-      openUserForm() {
-        this.userForm = {
-          first_name: '', last_name: '', email: '', national_id: '', student_id: '', phone: '',
-          gender: 'm', password: ''
-        };
-        this.dialog = { open: true, type: 'user-form', subject: null };
+      openUserForm(user = null) {
+        this.userForm = user
+          ? {
+              id: user.id || '',
+              first_name: user.first_name || '',
+              last_name: user.last_name || '',
+              email: user.email || '',
+              national_id: user.national_id || user.nationalId || user.profile?.nationalId || '',
+              student_id: user.student_id || user.studentId || user.profile?.studentId || '',
+              phone: user.phone || user.profile?.phone || '',
+              gender: window.SaraAuth?.normalizeGender?.(user.gender || user.profile?.gender || '') || 'm',
+              password: ''
+            }
+          : {
+              first_name: '', last_name: '', email: '', national_id: '', student_id: '', phone: '',
+              gender: 'm', password: ''
+            };
+        this.dialog = { open: true, type: 'user-form', subject: user };
       },
 
       openRoleForm(role = null) {
@@ -365,11 +378,8 @@
 
       userPayload() {
         const password = this.userForm.password || '';
-        return {
-          username: this.userForm.email,
+        const payload = {
           email: this.userForm.email,
-          password,
-          confirm_password: password,
           first_name: this.userForm.first_name || '',
           last_name: this.userForm.last_name || '',
           profile: {
@@ -380,12 +390,38 @@
             profileImage: ''
           }
         };
+
+        if (this.userForm.id) {
+          payload.id = this.userForm.id;
+          return payload;
+        }
+
+        return {
+          ...payload,
+          username: this.userForm.email,
+          password,
+          confirm_password: password
+        };
       },
 
       async saveUser() {
         this.loading.saving = true;
         try {
           const payload = this.userPayload();
+          if (this.userForm.id) {
+            const response = await window.SaraAPI.put(USER_ADMIN_UPDATE_ENDPOINT, payload);
+            const index = this.users.findIndex((item) => String(item.id) === String(this.userForm.id));
+            const current = index >= 0 ? this.users[index] : {};
+            const saved = normalizeUser({ ...current, ...payload, profile: { ...(current.profile || {}), ...(payload.profile || {}) } });
+            if (index >= 0) this.users.splice(index, 1, saved);
+            else this.users.unshift(saved);
+            this.syncRolesFromUsers();
+            this.updateStats();
+            this.dialog = { open: false, type: '', subject: null };
+            this.showAlert('success', response?.message || 'اطلاعات کاربر به‌روزرسانی شد.');
+            return;
+          }
+
           const response = await window.SaraAPI.post(USER_CREATE_ENDPOINT, payload);
           const saved = normalizeUser(unwrap(response, 'user'));
           this.users.unshift(saved);
@@ -410,8 +446,8 @@
         this.loading.saving = true;
         try {
           const response = await window.SaraAPI.patch(USER_STATUS_ENDPOINT, {
-            user_id: user.id,
-            status: nextStatus
+            id: user.id,
+            is_active: nextStatus
           });
           user.is_active = nextStatus;
           this.updateStats();
