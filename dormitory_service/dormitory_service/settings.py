@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-t^3qlyyo9ojz!w^a^j@31m3$+ox#+#w(e&y$50#7!55!u-7sg*'
+SECRET_KEY = 'django-insecure-5_ddyj*=)byvh(keo=0h#1_6-)bndg^f6cen$y^o4o&5-9+y9q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -77,10 +77,6 @@ WSGI_APPLICATION = 'dormitory_service.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    },
-    'dormitory_db': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'dormitory_database',
         'USER': 'dorm_user',
@@ -132,6 +128,6 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-DATABASE_ROUTERS = [
-    'dormitory_service.Router.DormRouter.DormitoryRouter',
-]
+# DATABASE_ROUTERS = [
+#     'dormitory_service.Router.DormRouter.DormitoryRouter',
+# ]

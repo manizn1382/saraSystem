@@ -4,7 +4,7 @@ from dormitory_service.view.BedViews import RoomBedsListView
 
 urlpatterns = [
 
-    path('listAllRoom/<str:status>', RoomListView.as_view(), name='Room-list-by-status'),
+    #path('listAllRoom/', RoomListView.as_view(), name='Room-list-by-status'),
     path('listAllRoom/', RoomListView.as_view(), name='list-all-rooms'),
     path('listAllRoomBeds/<int:room_id>', RoomBedsListView.as_view(), name='Room-list'),
     path('createRoom/', RoomCreateView.as_view(), name='Room-Add'),

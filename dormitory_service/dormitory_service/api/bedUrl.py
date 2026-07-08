@@ -9,5 +9,4 @@ urlpatterns = [
     path('getBedById/<int:id>', BedDetailView.as_view(), name="get-Bed"),
     path('updateBed/<int:id>', BedUpdateView.as_view(), name="update-bed"),
 
-
 ]

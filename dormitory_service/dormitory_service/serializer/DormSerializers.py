@@ -4,7 +4,6 @@ from dormitory_service.serializer.RoomSerializers import RoomsDormDropDownSerial
 
 
 class DormitoriesInfoSerializer(serializers.ModelSerializer):
-    # gender_display = serializers.CharField(source='get_gender_display')
     available_capacity = serializers.ReadOnlyField()
     occupancy_percentage = serializers.ReadOnlyField()
 
@@ -12,7 +11,7 @@ class DormitoriesInfoSerializer(serializers.ModelSerializer):
         model = Dormitory
         fields = [
             'id', 'name', 'address', 'totalRoom',
-            'gender', 'occupancy_percentage', 'available_capacity'
+            'gender', 'occupancy_percentage', 'available_capacity', 'currentOccupancy'
         ]
         read_only_fields = ['occupancy_percentage', 'available_capacity']
 

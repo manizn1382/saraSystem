@@ -31,7 +31,7 @@ class BedListView(APIView):
 
         serializer = BedSerializer(queryset, many=True)
         return Response({
-            'status': 'success',
+            'success': True,
             'count': queryset.count(),
             'data': serializer.data
         })
@@ -45,16 +45,12 @@ class BedCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
 
-
-        response = requests.get(
-            f"http://127.0.0.1:8001/api/accounts/users/me/",
-            headers={"Authorization": request.headers.get("Authorization")},
-            timeout=3
-        )
-
-        if not response.json().get('is_staff', False):
+        if not self.request.user.is_staff:
             return Response(
-                {'detail': 'Only admins can create beds'},
+                {
+                    'success': False,
+                    'detail': 'Only admins can create beds'
+                },
                 status=status.HTTP_403_FORBIDDEN
             )
 
@@ -63,7 +59,7 @@ class BedCreateView(generics.CreateAPIView):
         self.perform_create(serializer)
 
         return Response({
-            'status': 'success',
+            'success': True,
             'message': 'Bed created successfully',
             'data': serializer.data
         }, status=status.HTTP_201_CREATED)
@@ -86,15 +82,12 @@ class BedUpdateView(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
 
-        response = requests.get(
-            f"http://127.0.0.1:8001/api/accounts/users/me/",
-            headers={"Authorization": request.headers.get("Authorization")},
-            timeout=3
-        )
-
-        if not response.json().get('is_staff', False):
+        if not self.request.user.is_staff:
             return Response(
-                {'detail': 'Only admins can update beds'},
+                {
+                    'success': True,
+                    'detail': 'Only admins can update beds'
+                },
                 status=status.HTTP_403_FORBIDDEN
             )
 

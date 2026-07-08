@@ -5,14 +5,13 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
-import requests
 
 
 class DormitoryListView(generics.ListAPIView):
     queryset = Dormitory.objects.all()
     serializer_class = DormitoriesInfoSerializer
     authentication_classes = [JWTStatelessUserAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
 
 class DormitoryWithRoomsView(generics.ListAPIView):
@@ -30,20 +29,7 @@ class DormCreateView(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
 
-        try:
-            response = requests.get(
-                f"http://127.0.0.1:8001/api/accounts/users/me/",
-                headers={"Authorization": request.headers.get("Authorization")},
-                timeout=3
-            )
-            print(response.json())
-        except requests.exceptions.RequestException as e:
-            print(e)
-            return Response({
-                'message': 'request error',
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        if not response.json().get("is_staff"):
+        if not self.request.user.is_staff:
             return Response(
                 {'detail': 'Only admins can create dormitories'},
                 status=status.HTTP_403_FORBIDDEN
@@ -69,19 +55,7 @@ class DormUpdateView(generics.UpdateAPIView):
 
     def update(self, request, *args, **kwargs):
 
-        try:
-            response = requests.get(
-                f"http://127.0.0.1:8001/api/accounts/users/me/",
-                headers={"Authorization": request.headers.get("Authorization")},
-                timeout=3
-            )
-        except requests.exceptions.RequestException as e:
-            print(e)
-            return Response({
-                'message': 'request error',
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-        if not response.json().get("is_staff"):
+        if not self.request.user.is_staff:
             return Response(
                 {'detail': 'Only admins can update dormitories'},
                 status=status.HTTP_403_FORBIDDEN
