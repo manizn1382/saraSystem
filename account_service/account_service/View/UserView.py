@@ -188,7 +188,34 @@ class EditProfileView(generics.UpdateAPIView):
 class ListUserView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
     serializer_class = UserListSerializer
-    queryset = User.objects.all()
+
+    def get_queryset(self):
+        queryset = User.objects.all()
+        print(self.request.query_params)
+
+        username = self.request.query_params.get("username")
+        email = self.request.query_params.get("email")
+        is_active = self.request.query_params.get("is_active")
+        studentId = self.request.query_params.get("studentId")
+        nationalId = self.request.query_params.get("nationalId")
+
+        if username:
+            queryset = queryset.filter(username__icontains=username)
+
+        if email:
+            queryset = queryset.filter(email__icontains=email)
+
+        if studentId:
+            queryset = queryset.filter(userprofile__studentId__exact=studentId)
+
+        if nationalId:
+            queryset = queryset.filter(userprofile__nationalId__exact=nationalId)
+
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active)
+
+        return queryset
+
 
 
 class UserDeleteView(generics.DestroyAPIView):

@@ -193,7 +193,7 @@ response:{
             "message": "profile updated successfully"
 }
 ---------------------------------------------------------------
-GET api/v1/users/list
+GET api/v1/users/list?{query_params=specific value}
 
 ** jwt token required **
 
