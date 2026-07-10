@@ -45,10 +45,19 @@ def save_to_database(img_path , id):
     return True
 
 
-def verify(img_path_1 , img_path_2):
-    return DeepFace.verify(img1_path = img_path_1, img2_path = img_path_2)["verified"]
+def verify(img_path_1 , id):
+
+    if not face_check(img_path_1):
+        return False
+    
+    if not os.path.isdir(f"database/{id}"):
+        print("id not exists!")
+        return False
+
+
+    return DeepFace.verify(img1_path = img_path_1, img2_path = f"database/{id}/img.jpg")["verified"]
 
 
 # save_to_database("elon.jpg" , 11)
 
-print(verify("elon.jpg" , "elon2.jpg"))
+print(verify("elon.jpg" , 11))
