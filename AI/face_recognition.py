@@ -33,7 +33,12 @@ def save_to_database(img_path , id):
     if not face_check(img_path):
         return False
 
-    os.mkdir(f"database/{id}")
+    try:
+        os.mkdir(f"database/{id}")
+
+    except Exception:
+        print("user already exists!")
+        return False
 
     # Source path
     source = img_path
@@ -58,6 +63,6 @@ def verify(img_path_1 , id):
     return DeepFace.verify(img1_path = img_path_1, img2_path = f"database/{id}/img.jpg")["verified"]
 
 
-# save_to_database("steve.jpg" , 22)
+save_to_database("steve.jpg" , 22)
 
-print(verify("steve2.jpg" , 11))
+# print(verify("steve2.jpg" , 11))
