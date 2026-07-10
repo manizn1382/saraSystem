@@ -58,6 +58,6 @@ def verify(img_path_1 , id):
     return DeepFace.verify(img1_path = img_path_1, img2_path = f"database/{id}/img.jpg")["verified"]
 
 
-# save_to_database("elon.jpg" , 11)
+# save_to_database("steve.jpg" , 22)
 
-print(verify("elon.jpg" , 11))
+print(verify("steve2.jpg" , 11))
