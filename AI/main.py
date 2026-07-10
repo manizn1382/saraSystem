@@ -45,24 +45,10 @@ def save_to_database(img_path , id):
     return True
 
 
-save_to_database("elon.jpg" , 11)
+def verify(img_path_1 , img_path_2):
+    return DeepFace.verify(img1_path = img_path_1, img2_path = img_path_2)["verified"]
 
-# result: dict = DeepFace.verify(img1_path = "img1.jpg", img2_path = "img2.jpg")
 
-# print(result)
+# save_to_database("elon.jpg" , 11)
 
-# print('*' * 40)
-
-# print(DeepFace.find(
-#     img_path="img1.jpg",
-#     db_path="database/"
-# ))
-
-# print('*' * 40)
-
-# DeepFace.register(img = "img1.jpg")
-
-# # perform exact search
-# dfs = DeepFace.search(img = "img2.jpg")
-
-# print(dfs)
+print(verify("elon.jpg" , "elon2.jpg"))
