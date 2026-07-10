@@ -1,4 +1,6 @@
 from deepface import DeepFace
+import os
+import shutil
 
 def face_check(img_path):
 
@@ -26,8 +28,24 @@ def face_check(img_path):
         return False
 
 
+def save_to_database(img_path , id):
+
+    if not face_check(img_path):
+        return False
+
+    os.mkdir(f"database/{id}")
+
+    # Source path
+    source = img_path
+
+    # Destination path
+    destination = f"database/{id}/img.jpg"
+
+    dest = shutil.copyfile(source, destination)
+    return True
 
 
+save_to_database("elon.jpg" , 11)
 
 # result: dict = DeepFace.verify(img1_path = "img1.jpg", img2_path = "img2.jpg")
 
