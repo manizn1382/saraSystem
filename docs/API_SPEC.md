@@ -1071,9 +1071,19 @@ These are required to make the account/RBAC module complete and easier to consum
 
 ### `GET /api/v1/users/{id}`
 
-Status: Planned  
+Status: implemented
 Auth: admin, or current user for own record  
 Purpose: get one user with profile, roles, and permissions.
+
+Response if request.id doesn't fit user id that requester wants to see:
+
+```json
+{
+  "success": "False",
+  "message": "only admins can see other users data"
+}
+"status":"403(forbidden)"
+```
 
 ### `PATCH /api/v1/users/{id}`
 
