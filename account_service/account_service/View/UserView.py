@@ -4,13 +4,37 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, update_session_auth_hash
+from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+
 from account_service.models import userProfile, UserRole, Role
-from account_service.Serializer.UserSerializer import UserProfileInfoSerializer, UserCreateSerializer, UserLoginSerializer, \
+from account_service.Serializer.UserSerializer import UserCreateSerializer, UserLoginSerializer, \
     UserRoleCreateSerializer, ChangePassSerializer, EditProfSerializer, UserListSerializer, UserDeleteSerializer, ChangeStatusSerializer
 from account_service.Serializer.TokenSerializer import CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
 from account_service.models.Permission import Permission
 from account_service.Serializer.RoleSerializer import ListRoleSerializer, ListPermissionSerializer
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh_token')
+
+        if refresh_token:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+
+        return Response({
+                "success": True,
+                "message": "User logged out successfully"
+        }, status=status.HTTP_200_OK)
 
 
 class UserCreateView(generics.CreateAPIView):
@@ -117,11 +141,8 @@ class UserLoginView(APIView):
 
         username = request.data.get('username')
         password = request.data.get('password')
-        print(username)
-        print(password)
 
         user = authenticate(username=username, password=password)
-        print(user)
 
         if not user:
             return Response({

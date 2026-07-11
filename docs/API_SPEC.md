@@ -1085,15 +1085,33 @@ Response if request.id doesn't fit user id that requester wants to see:
 "status":"403(forbidden)"
 ```
 
-### `PATCH /api/v1/users/{id}`
+### `PUT /api/v1/users/editProfile`
 
-Status: Planned  
+Status: Implemented  
 Auth: admin, or current user for limited own fields  
-Purpose: canonical partial update alternative to `adminUpdate` and `editProfile`.
+notice: if you want to send patch request, you can use put without occure problem.
+
+request:
+
+```json
+{
+  "user":{},
+  "profile":{},
+}
+```
+
+response in 200 scenario:
+
+```json
+{
+  "success": "True",
+  "message": "profile updated successfully"
+}
+```
 
 ### `POST /api/v1/users/logout`
 
-Status: Planned  
+Status: implemented
 Auth: authenticated  
 Purpose: optional refresh-token blacklist endpoint.
 
