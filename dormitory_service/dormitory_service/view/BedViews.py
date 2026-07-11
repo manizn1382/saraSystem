@@ -1,4 +1,3 @@
-import requests
 from rest_framework import generics, permissions, status
 from dormitory_service.models import Bed
 from dormitory_service.serializer.BedSerializers import BedSerializer
@@ -41,18 +40,9 @@ class BedListView(APIView):
 class BedCreateView(generics.CreateAPIView):
     serializer_class = BedSerializer
     authentication_classes = [JWTStatelessUserAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-
-        if not self.request.user.is_staff:
-            return Response(
-                {
-                    'success': False,
-                    'detail': 'Only admins can create beds'
-                },
-                status=status.HTTP_403_FORBIDDEN
-            )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -75,20 +65,11 @@ class BedDetailView(generics.RetrieveAPIView):
 
 class BedUpdateView(generics.UpdateAPIView):
     authentication_classes = [JWTStatelessUserAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
     queryset = Bed.objects.all()
     serializer_class = BedSerializer
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-
-        if not self.request.user.is_staff:
-            return Response(
-                {
-                    'success': True,
-                    'detail': 'Only admins can update beds'
-                },
-                status=status.HTTP_403_FORBIDDEN
-            )
 
         return super().update(request, *args, **kwargs)

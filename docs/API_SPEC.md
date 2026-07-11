@@ -279,25 +279,11 @@ The front end also sends `refresh_token` for tolerance, but SimpleJWT requires `
 
 ### `GET /api/v1/users/current`
 
-Status: Implemented with caveat  
+Status: Implemented  
 Auth: authenticated  
 View: `UserDetailView`  
-Purpose: current implementation returns a new token pair for the authenticated user.
 
 Current response `200`:
-
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "tokens": {
-    "refresh": "<refresh-token>",
-    "access": "<access-token>"
-  }
-}
-```
-
-Recommended future response:
 
 ```json
 {
@@ -894,8 +880,7 @@ Response item:
 
 ### `POST /api/rooms/createRoom/`
 
-Status: Implemented with caveat  
-Auth: authenticated; code requires `request.user.is_staff`  
+Status: Implemented
 View: `RoomCreateView`  
 Purpose: create room.
 
@@ -941,8 +926,7 @@ Response:
 
 ### `PUT /api/rooms/updateRoom/{id}`
 
-Status: Implemented with caveat  
-Auth: intended admin; current view uses `AllowAny` and then checks `request.user.is_staff`  
+Status: Implemented 
 View: `RoomUpdateView`  
 Purpose: replace room fields.
 
@@ -950,8 +934,7 @@ Fix recommendation: add JWT authentication and `IsAuthenticated`.
 
 ### `PATCH /api/rooms/updateRoom/{id}`
 
-Status: Implemented with caveat  
-Auth: intended admin; current view uses `AllowAny` and then checks `request.user.is_staff`  
+Status: Implemented
 View: `RoomUpdateView`  
 Purpose: partially update room fields.
 
@@ -1045,19 +1028,15 @@ Response:
 
 ### `PUT /api/beds/updateBed/{id}`
 
-Status: Implemented with caveat  
-Auth: authenticated; code requires `request.user.is_staff`  
+Status: Implemented   
 View: `BedUpdateView`  
 Purpose: replace bed fields.
 
 ### `PATCH /api/beds/updateBed/{id}`
 
-Status: Implemented with caveat  
-Auth: authenticated; code requires `request.user.is_staff`  
+Status: Implemented  
 View: `BedUpdateView`  
 Purpose: partially update bed fields.
-
-Implementation caveat: non-admin update currently returns `success: true` with a `403` detail. That should be `success: false`.
 
 ## Front-End Alias Paths
 
@@ -1096,19 +1075,47 @@ These are required to make the account/RBAC module complete and easier to consum
 
 ### `GET /api/v1/users/{id}`
 
-Status: Planned  
+Status: implemented
 Auth: admin, or current user for own record  
 Purpose: get one user with profile, roles, and permissions.
 
-### `PATCH /api/v1/users/{id}`
+Response if request.id doesn't fit user id that requester wants to see:
 
-Status: Planned  
+```json
+{
+  "success": "False",
+  "message": "only admins can see other users data"
+}
+"status":"403(forbidden)"
+```
+
+### `PUT /api/v1/users/editProfile`
+
+Status: Implemented  
 Auth: admin, or current user for limited own fields  
-Purpose: canonical partial update alternative to `adminUpdate` and `editProfile`.
+notice: if you want to send patch request, you can use put without occure problem.
+
+request:
+
+```json
+{
+  "user":{},
+  "profile":{},
+}
+```
+
+response in 200 scenario:
+
+```json
+{
+  "success": "True",
+  "message": "profile updated successfully"
+}
+```
 
 ### `POST /api/v1/users/logout`
 
-Status: Planned  
+Status: implemented
 Auth: authenticated  
 Purpose: optional refresh-token blacklist endpoint.
 

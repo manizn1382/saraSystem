@@ -25,15 +25,9 @@ class DormitoryWithRoomsView(generics.ListAPIView):
 class DormCreateView(generics.CreateAPIView):
     serializer_class = DormitoriesInfoSerializer
     authentication_classes = [JWTStatelessUserAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
     def create(self, request, *args, **kwargs):
-
-        if not self.request.user.is_staff:
-            return Response(
-                {'detail': 'Only admins can create dormitories'},
-                status=status.HTTP_403_FORBIDDEN
-            )
 
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -48,17 +42,10 @@ class DormCreateView(generics.CreateAPIView):
 
 class DormUpdateView(generics.UpdateAPIView):
     authentication_classes = [JWTStatelessUserAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
     queryset = Dormitory.objects.all()
     serializer_class = DormitoriesInfoSerializer
     lookup_field = 'id'
 
     def update(self, request, *args, **kwargs):
-
-        if not self.request.user.is_staff:
-            return Response(
-                {'detail': 'Only admins can update dormitories'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
         return super().update(request, *args, **kwargs)
