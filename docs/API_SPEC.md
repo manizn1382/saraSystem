@@ -879,8 +879,7 @@ Response item:
 
 ### `POST /api/rooms/createRoom/`
 
-Status: Implemented with caveat  
-Auth: authenticated; code requires `request.user.is_staff`  
+Status: Implemented
 View: `RoomCreateView`  
 Purpose: create room.
 
@@ -926,8 +925,7 @@ Response:
 
 ### `PUT /api/rooms/updateRoom/{id}`
 
-Status: Implemented with caveat  
-Auth: intended admin; current view uses `AllowAny` and then checks `request.user.is_staff`  
+Status: Implemented 
 View: `RoomUpdateView`  
 Purpose: replace room fields.
 
@@ -935,8 +933,7 @@ Fix recommendation: add JWT authentication and `IsAuthenticated`.
 
 ### `PATCH /api/rooms/updateRoom/{id}`
 
-Status: Implemented with caveat  
-Auth: intended admin; current view uses `AllowAny` and then checks `request.user.is_staff`  
+Status: Implemented
 View: `RoomUpdateView`  
 Purpose: partially update room fields.
 
@@ -1030,19 +1027,15 @@ Response:
 
 ### `PUT /api/beds/updateBed/{id}`
 
-Status: Implemented with caveat  
-Auth: authenticated; code requires `request.user.is_staff`  
+Status: Implemented   
 View: `BedUpdateView`  
 Purpose: replace bed fields.
 
 ### `PATCH /api/beds/updateBed/{id}`
 
-Status: Implemented with caveat  
-Auth: authenticated; code requires `request.user.is_staff`  
+Status: Implemented  
 View: `BedUpdateView`  
 Purpose: partially update bed fields.
-
-Implementation caveat: non-admin update currently returns `success: true` with a `403` detail. That should be `success: false`.
 
 ## Front-End Alias Paths
 

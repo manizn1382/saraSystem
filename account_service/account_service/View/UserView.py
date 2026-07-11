@@ -106,8 +106,11 @@ class UserLoginView(APIView):
 
         username = request.data.get('username')
         password = request.data.get('password')
+        print(username)
+        print(password)
 
         user = authenticate(username=username, password=password)
+        print(user)
 
         if not user:
             return Response({
