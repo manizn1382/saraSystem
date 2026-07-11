@@ -50,7 +50,18 @@ class UserDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+
+        userId = self.request.query_params.get("userId")
+
         user = User.objects.get(id=request.user.id)
+
+        if userId:
+            user = User.objects.get(id=userId)
+            if request.user.id != userId and not request.user.is_staff:
+                return Response({
+                    'success': False,
+                    'message': 'only admins can see other users data'
+                }, status=status.HTTP_403_FORBIDDEN)
 
         if not user:
             return Response({
