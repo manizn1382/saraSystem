@@ -1,6 +1,6 @@
 # SaraSystem API Catalog and Specification
 
-Last reviewed: 2026-07-10  
+Last reviewed: 2026-07-11  
 Scope: complete API inventory for the current SaraSystem repository, including implemented Django routes, front-end expected routes, and required planned routes for the full dormitory management system.
 
 ## Status Legend
@@ -44,6 +44,7 @@ Anonymous endpoints:
 - `POST /api/v1/users/create`
 - `POST /api/v1/users/login`
 - `POST /api/v1/users/token/refresh`
+- `POST /api/v1/users/password/reset/username`
 - `GET /api/public/stats/`
 - `GET /api/announcements/public/`
 
@@ -1078,6 +1079,9 @@ These paths are normalized in `assets/js/api.js` before being sent. They are ali
 | `/api/accounts/adminUpdate/` | `/api/v1/users/adminUpdate` |
 | `/api/accounts/change-password/` | `/api/v1/users/password/change` |
 | `/api/accounts/changePassword/` | `/api/v1/users/password/change` |
+| `/api/accounts/reset-password/` | `/api/v1/users/password/reset/username` |
+| `/api/accounts/forgot-password/` | `/api/v1/users/password/reset/username` |
+| `/api/accounts/password/reset/username/` | `/api/v1/users/password/reset/username` |
 | `/api/v1/users/changePassword` | `/api/v1/users/password/change` |
 | `GET /api/accounts/roles/` | `/api/v1/role/list` |
 | `POST /api/accounts/roles/` | `/api/v1/role/create` |
@@ -1116,35 +1120,41 @@ Request:
 }
 ```
 
-### `POST /api/v1/users/password/reset/request`
+### `POST /api/v1/users/password/reset/username`
 
-Status: Planned  
+Status: Planned front-end contract  
 Auth: anonymous  
-Purpose: request password reset. The current `forgot-password.html` explicitly says the service does not support this yet.
+Purpose: change a user's password by username only, without current password, reset token, email, SMS, or any external verification channel.
+
+This endpoint is intentionally weak and should be treated as a prototype/version-limited fallback only. Anyone who knows a username can set a new password for that account. Do not use this flow in production without adding an additional verification factor or restricting it to an administrator-assisted workflow.
 
 Request:
 
 ```json
 {
-  "identifier": "student@example.com"
-}
-```
-
-### `POST /api/v1/users/password/reset/confirm`
-
-Status: Planned  
-Auth: anonymous  
-Purpose: confirm password reset with token/code.
-
-Request:
-
-```json
-{
-  "token": "reset-token",
+  "username": "student@example.com",
   "new_password": "new-password",
   "confirm_password": "new-password"
 }
 ```
+
+Response `200`:
+
+```json
+{
+  "success": true,
+  "message": "Password changed successfully."
+}
+```
+
+Validation and handling notes:
+
+- `username`, `new_password`, and `confirm_password` are required.
+- `new_password` and `confirm_password` must match.
+- The backend should apply the same password-strength rules used during registration.
+- The backend should rate-limit this endpoint and log every attempt.
+- The backend should invalidate existing refresh/access tokens for the user after a successful change, if token blacklisting/session invalidation is available.
+- Because this flow allows account takeover by username, it should be removed or replaced once email/SMS/admin verification becomes viable.
 
 ### `GET /api/v1/userRole/list`
 
@@ -2177,15 +2187,16 @@ The front end already checks several permission names. The API should treat thes
 5. `BedUpdateView` returns `success: true` in a `403` response for non-admin updates.
 6. There are no list/delete endpoints for `UserRole` and `RolePermission`.
 7. There are no update/delete endpoints for `Permission`.
-8. There is no implemented backend for accommodation requests, bed assignments, payments, maintenance requests, announcements, announcement reads, public stats, public announcements, or reports.
-9. Dormitory/room/bed endpoints use action-style names; RESTful aliases are recommended for long-term consistency.
-10. Current serializers omit some model fields such as dormitory `dorm_type`, `description`, `createdAt`, `updatedAt`, room/bed `description`, and timestamps. Add them if the UI/reporting needs them.
+8. There is no implemented backend for username-only anonymous password reset.
+9. There is no implemented backend for accommodation requests, bed assignments, payments, maintenance requests, announcements, announcement reads, public stats, public announcements, or reports.
+10. Dormitory/room/bed endpoints use action-style names; RESTful aliases are recommended for long-term consistency.
+11. Current serializers omit some model fields such as dormitory `dorm_type`, `description`, `createdAt`, `updatedAt`, room/bed `description`, and timestamps. Add them if the UI/reporting needs them.
 
 ## Minimum API Set Needed for Full Product
 
 For a complete SaraSystem release, implement at least these endpoint families:
 
-- Account/RBAC: all implemented endpoints plus missing current-user profile, password reset, user-role list/delete, role-permission list/delete, permission update/delete.
+- Account/RBAC: all implemented endpoints plus missing current-user profile, username-only password reset for this version, user-role list/delete, role-permission list/delete, permission update/delete.
 - Dormitory capacity: implemented dormitory/room/bed endpoints plus REST aliases, delete dormitory, bed delete, capacity summary.
 - Accommodation: list, create, detail, update/cancel, review, history.
 - Bed assignment: list, create, detail, update/end/cancel, current assignment.

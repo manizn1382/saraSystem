@@ -2,78 +2,85 @@
 (function () {
   function forgotPasswordPage() {
     return {
-      identifier: '',
-      error: '',
+      endpoint: '/api/v1/users/password/reset/username',
+      form: {
+        username: '',
+        new_password: '',
+        confirm_password: ''
+      },
+      errors: {
+        username: '',
+        new_password: '',
+        confirm_password: ''
+      },
       loading: false,
       alert: { type: 'danger', message: '' },
 
-      init() {
-        document.body.addEventListener('htmx:beforeRequest', (event) => {
-          if (!this.isForgotRequest(event)) return;
-          this.loading = true;
-          this.error = '';
-          this.alert.message = '';
-        });
+      init() {},
 
-        document.body.addEventListener('htmx:afterRequest', (event) => {
-          if (!this.isForgotRequest(event)) return;
-          this.loading = false;
-          const xhr = event.detail.xhr;
-          const data = this.parseJson(xhr.responseText);
-
-          if (xhr.status >= 200 && xhr.status < 300) {
-            this.alert = {
-              type: 'success',
-              message: data?.message || 'درخواست بازیابی ثبت شد. در صورت معتبر بودن اطلاعات، راهنمای ادامه ارسال می‌شود.'
-            };
-            return;
-          }
-
-          this.error = window.SaraUI?.normalizeError?.(data?.identifier || data?.email || data?.username || '') || '';
-          this.alert = {
-            type: 'danger',
-            message: data?.detail || data?.message || window.SaraUI?.apiErrorMessage?.(xhr.status, data) || 'ثبت درخواست بازیابی ناموفق بود.'
-          };
-        });
-
-        document.body.addEventListener('htmx:sendError', (event) => {
-          if (!this.isForgotRequest(event)) return;
-          this.loading = false;
-          this.alert = { type: 'danger', message: 'ارتباط با سرور برقرار نشد. آدرس API یا اتصال شبکه را بررسی کنید.' };
-        });
-
-        document.body.addEventListener('htmx:timeout', (event) => {
-          if (!this.isForgotRequest(event)) return;
-          this.loading = false;
-          this.alert = { type: 'danger', message: 'زمان پاسخ‌گویی سرور به پایان رسید. دوباره تلاش کنید.' };
-        });
-      },
-
-      validateBeforeSubmit(event) {
-        this.error = '';
+      validate() {
+        this.errors = {
+          username: '',
+          new_password: '',
+          confirm_password: ''
+        };
         this.alert.message = '';
 
-        if (!this.identifier) {
-          this.error = 'وارد کردن ایمیل یا شناسه کاربری الزامی است.';
-          event.preventDefault();
-          event.stopImmediatePropagation();
+        if (!this.form.username) {
+          this.errors.username = 'وارد کردن نام کاربری الزامی است.';
+        }
+
+        if (!this.form.new_password) {
+          this.errors.new_password = 'وارد کردن رمز عبور جدید الزامی است.';
+        }
+
+        if (!this.form.confirm_password) {
+          this.errors.confirm_password = 'تکرار رمز عبور جدید الزامی است.';
+        }
+
+        if (this.form.new_password && this.form.confirm_password && this.form.new_password !== this.form.confirm_password) {
+          this.errors.confirm_password = 'رمز عبور جدید و تکرار آن یکسان نیستند.';
+        }
+
+        return !Object.values(this.errors).some(Boolean);
+      },
+
+      async submitUsernameReset() {
+        if (!this.validate()) return;
+
+        this.loading = true;
+        try {
+          const response = await window.SaraAPI.post(this.endpoint, {
+            username: this.form.username,
+            new_password: this.form.new_password,
+            confirm_password: this.form.confirm_password
+          }, { auth: false });
+
+          this.alert = {
+            type: 'success',
+            message: response?.message || 'رمز عبور با موفقیت تغییر کرد. اکنون می‌توانید وارد شوید.'
+          };
+          this.form.new_password = '';
+          this.form.confirm_password = '';
+        } catch (error) {
+          this.applyErrors(error);
+          this.alert = {
+            type: 'danger',
+            message: error?.message || 'تغییر رمز عبور ناموفق بود.'
+          };
+        } finally {
+          this.loading = false;
         }
       },
 
-      showUnsupported() {
-        this.error = '';
-        this.alert = {
-          type: 'danger',
-          message: 'API فعلی account مسیر بازیابی رمز بدون ورود ندارد. پس از ورود از صفحه پروفایل رمز را تغییر دهید.'
-        };
-      },
-
-      isForgotRequest(event) {
-        return event?.detail?.elt?.id === 'forgotPasswordForm';
-      },
-
-      parseJson(value) {
-        return window.SaraPage?.parseJson?.(value, {}) || {};
+      applyErrors(error) {
+        const fields = error?.fields || error?.data?.errors || error?.data?.field_errors || {};
+        ['username', 'new_password', 'confirm_password'].forEach((field) => {
+          const value = fields?.[field] || error?.data?.[field];
+          if (value) {
+            this.errors[field] = window.SaraUI?.normalizeError?.(value) || String(value);
+          }
+        });
       }
     };
   }
