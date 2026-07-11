@@ -1129,7 +1129,7 @@ Request:
 
 ### `POST /api/v1/users/password/reset/username`
 
-Status: Planned front-end contract  
+Status: implemented 
 Auth: anonymous  
 Purpose: change a user's password by username only, without current password, reset token, email, SMS, or any external verification channel.
 

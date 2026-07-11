@@ -4,12 +4,12 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, update_session_auth_hash
-from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from account_service.models import userProfile, UserRole, Role
-from account_service.Serializer.UserSerializer import UserCreateSerializer, UserLoginSerializer, \
-    UserRoleCreateSerializer, ChangePassSerializer, EditProfSerializer, UserListSerializer, UserDeleteSerializer, ChangeStatusSerializer
+from account_service.Serializer.UserSerializer import ResetPassSerializer, UserCreateSerializer, UserLoginSerializer, \
+    UserRoleCreateSerializer, ChangePassSerializer, EditProfSerializer, UserListSerializer, UserDeleteSerializer, \
+    ChangeStatusSerializer
 from account_service.Serializer.TokenSerializer import CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
 from account_service.models.Permission import Permission
@@ -32,8 +32,8 @@ class LogoutView(APIView):
             token.blacklist()
 
         return Response({
-                "success": True,
-                "message": "User logged out successfully"
+            "success": True,
+            "message": "User logged out successfully"
         }, status=status.HTTP_200_OK)
 
 
@@ -68,9 +68,7 @@ class UserCreateView(generics.CreateAPIView):
         )
 
 
-
 class UserDetailView(APIView):
-
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
@@ -98,7 +96,6 @@ class UserDetailView(APIView):
                 'success': False,
                 'message': 'User account is disabled'
             }, status=status.HTTP_403_FORBIDDEN)
-
 
         roles = Role.objects.filter(userrole__user=user).distinct()
         profile = userProfile.objects.get(user=user)
@@ -130,7 +127,6 @@ class UserDetailView(APIView):
                 }
             }
         }, status=status.HTTP_200_OK)
-
 
 
 class UserLoginView(APIView):
@@ -275,14 +271,12 @@ class ListUserView(generics.ListAPIView):
         return queryset
 
 
-
 class UserDeleteView(generics.DestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserDeleteSerializer
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
     def destroy(self, request, *args, **kwargs):
-
         user_id = self.kwargs.get('pk')
         user = User.objects.get(id=user_id)
         user.delete()
@@ -315,7 +309,6 @@ class ChangeStatusView(generics.UpdateAPIView):
         }, status=status.HTTP_200_OK)
 
 
-
 class AdminEditView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
     serializer_class = EditProfSerializer
@@ -343,3 +336,38 @@ class AdminEditView(generics.UpdateAPIView):
                 "username": request.user.username,
             }
         })
+
+
+class ResetPasswordView(APIView):
+
+    permission_classes = [permissions.AllowAny]
+    serializer_class = ResetPassSerializer
+
+    def put(self, request):
+
+        serializer = ResetPassSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        username = serializer.validated_data['username']
+
+        try:
+            user = User.objects.get(username=username)
+
+        except User.DoesNotExist:
+            return Response({
+                "success": False,
+                "message": "User with this username doesn't exist"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+        user.set_password(
+            serializer.validated_data['new_password']
+        )
+
+        user.save()
+
+
+        return Response({
+            "success": True,
+            "message": "Password updated successfully",
+        }, status=status.HTTP_200_OK)

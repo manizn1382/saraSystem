@@ -47,9 +47,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         return data
 
 
-
 class UserDeleteSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ["id"]
@@ -135,11 +133,9 @@ class EditProfSerializer(serializers.ModelSerializer):
 
 
 class UserListSerializer(serializers.ModelSerializer):
-
     profile = UserProfileInfoSerializer(source="userprofile")
     roles = serializers.SerializerMethodField()
     permissions = serializers.SerializerMethodField()
-
 
     class Meta:
         model = User
@@ -159,10 +155,43 @@ class UserListSerializer(serializers.ModelSerializer):
         roles = Role.objects.filter(userrole__user=obj).distinct()
         return [r.name for r in roles]
 
-
     def get_permissions(self, obj):
         permissions = Permission.objects.filter(
             rolepermission__role__userrole__user=obj
         ).distinct()
 
         return [p.name for p in permissions]
+
+
+class ResetPassSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        required=True
+    )
+
+    confirm_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
+
+    new_password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={'input_type': 'password'}
+    )
+
+    class Meta:
+        model = User
+        fields = ['confirm_password', 'new_password', 'username']
+
+    def validate(self, data):
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+
+        if new_password != confirm_password:
+            raise serializers.ValidationError({
+                'error': 'new_password and confirm_password does not equal'
+            })
+
+        data.pop('confirm_password', None)
+        return data
