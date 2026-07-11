@@ -278,25 +278,11 @@ The front end also sends `refresh_token` for tolerance, but SimpleJWT requires `
 
 ### `GET /api/v1/users/current`
 
-Status: Implemented with caveat  
+Status: Implemented  
 Auth: authenticated  
 View: `UserDetailView`  
-Purpose: current implementation returns a new token pair for the authenticated user.
 
 Current response `200`:
-
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "tokens": {
-    "refresh": "<refresh-token>",
-    "access": "<access-token>"
-  }
-}
-```
-
-Recommended future response:
 
 ```json
 {
