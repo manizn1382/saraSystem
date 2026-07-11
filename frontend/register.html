@@ -225,7 +225,32 @@
                 ></div>
               </div>
 
-              <div class="col-12">
+              <div class="col-12 col-md-6">
+                <label for="username" class="form-label fw-semibold">
+                  نام کاربری
+                </label>
+                <input
+                  x-model.trim="form.username"
+                  :class="{ 'is-invalid': errors.username }"
+                  type="text"
+                  class="form-control form-control-lg"
+                  id="username"
+                  name="username"
+                  autocomplete="username"
+                  required
+                  aria-describedby="usernameError usernameHelp"
+                  placeholder="student001"
+                  dir="ltr"
+                />
+                <div
+                  id="usernameError"
+                  class="invalid-feedback"
+                  x-text="errors.username"
+                ></div>
+                <div id="usernameHelp" class="form-text">برای ورود و بازیابی رمز عبور استفاده می‌شود.</div>
+              </div>
+
+              <div class="col-12 col-md-6">
                 <label for="email" class="form-label fw-semibold">
                   ایمیل
                 </label>

@@ -22,7 +22,7 @@
 
   const rules = {
     login: (data) => collect(data, {
-      username: [(value) => (required(value) ? '' : 'نام کاربری، ایمیل یا شماره دانشجویی الزامی است.')],
+      username: [(value) => (required(value) ? '' : 'نام کاربری الزامی است.')],
       password: [(value) => (required(value) ? '' : 'رمز عبور الزامی است.')]
     }),
     register: (data) => collect(data, {

@@ -214,7 +214,7 @@
           this.clearAlert();
 
           if (!this.form.username) {
-            this.errors.username = "وارد کردن شناسه کاربری الزامی است.";
+            this.errors.username = "وارد کردن نام کاربری الزامی است.";
           }
 
           if (!this.form.password) {
@@ -236,7 +236,7 @@
 
           return this.demoAccounts.find((account) => {
             return normalizedPassword === account.password &&
-              [account.key, account.username, account.email].includes(normalizedUsername);
+              [account.key, account.username].includes(normalizedUsername);
           });
         },
 
@@ -318,7 +318,7 @@
 
           const messages = {
             400: "اطلاعات واردشده معتبر نیست. لطفاً فیلدها را بررسی کنید.",
-            401: "شناسه کاربری یا رمز ورود اشتباه است.",
+            401: "نام کاربری یا رمز ورود اشتباه است.",
             403: "حساب شما مجوز ورود به این بخش را ندارد یا غیرفعال شده است.",
             404: "آدرس API ورود پیدا نشد.",
             429: "تعداد تلاش‌های ورود زیاد است. کمی بعد دوباره تلاش کنید.",

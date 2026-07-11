@@ -1,6 +1,7 @@
 function registerPage() {
       return {
         form: {
+          username: "",
           first_name: "",
           last_name: "",
           national_id: "",
@@ -13,6 +14,7 @@ function registerPage() {
         },
 
         errors: {
+          username: "",
           first_name: "",
           last_name: "",
           national_id: "",
@@ -142,6 +144,12 @@ function registerPage() {
             this.errors.gender = "انتخاب جنسیت الزامی است.";
           }
 
+          if (!this.form.username) {
+            this.errors.username = "وارد کردن نام کاربری الزامی است.";
+          } else if (!this.isValidUsername(this.form.username)) {
+            this.errors.username = "نام کاربری باید ۳ تا ۳۰ کاراکتر و شامل حروف انگلیسی، عدد، خط تیره، نقطه یا زیرخط باشد.";
+          }
+
           if (!this.form.email) {
             this.errors.email = "وارد کردن ایمیل الزامی است.";
           } else if (!this.isValidEmail(this.form.email)) {
@@ -173,7 +181,7 @@ function registerPage() {
 
         registrationPayload() {
           return {
-            username: this.form.email.trim(),
+            username: this.form.username.trim(),
             email: this.form.email.trim(),
             password: this.form.password,
             confirm_password: this.form.password_confirm,
@@ -219,7 +227,7 @@ function registerPage() {
             401: "برای انجام این عملیات باید دوباره وارد سامانه شوید.",
             403: "شما مجوز ثبت‌نام از این مسیر را ندارید.",
             404: "آدرس API ثبت‌نام پیدا نشد.",
-            409: "حسابی با این ایمیل، کد ملی یا شماره دانشجویی قبلاً ثبت شده است.",
+            409: "حسابی با این نام کاربری، ایمیل، کد ملی یا شماره دانشجویی قبلاً ثبت شده است.",
             422: "برخی اطلاعات فرم قابل پذیرش نیست. لطفاً دوباره بررسی کنید.",
             429: "تعداد تلاش‌های ثبت‌نام زیاد است. کمی بعد دوباره تلاش کنید.",
             500: "خطای داخلی سرور رخ داده است. لطفاً بعداً دوباره تلاش کنید."
@@ -233,6 +241,7 @@ function registerPage() {
 
         applyServerFieldErrors(data) {
           const fields = [
+            "username",
             "first_name",
             "last_name",
             "national_id",
@@ -295,6 +304,10 @@ function registerPage() {
 
         isValidEmail(value) {
           return window.SaraValidate?.email?.(value) ?? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+        },
+
+        isValidUsername(value) {
+          return /^[A-Za-z0-9_.-]{3,30}$/.test(String(value || "").trim());
         },
 
         toApiGender(value) {

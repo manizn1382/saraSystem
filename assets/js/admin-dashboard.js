@@ -29,7 +29,7 @@
     const normalized = window.SaraAuth?.normalizeAccountUser?.({
       ...item,
       id: item.id ?? item.user_id ?? item.pk ?? '',
-      username: item.username || item.email || '',
+      username: item.username || '',
       first_name: item.first_name || '',
       last_name: item.last_name || '',
       profile
@@ -37,7 +37,7 @@
 
     return {
       ...normalized,
-      row_id: normalized.id || normalized.email || `user-${index + 1}`,
+      row_id: normalized.id || normalized.username || normalized.email || `user-${index + 1}`,
       national_id: normalized.national_id || profile.nationalId || profile.national_id || '',
       student_id: normalized.student_id || profile.studentId || profile.student_id || '',
       phone: normalized.phone || profile.phone || '',
@@ -311,6 +311,7 @@
         this.userForm = user
           ? {
               id: user.id || '',
+              username: user.username || '',
               first_name: user.first_name || '',
               last_name: user.last_name || '',
               email: user.email || '',
@@ -321,7 +322,7 @@
               password: ''
             }
           : {
-              first_name: '', last_name: '', email: '', national_id: '', student_id: '', phone: '',
+              username: '', first_name: '', last_name: '', email: '', national_id: '', student_id: '', phone: '',
               gender: 'm', password: ''
             };
         this.dialog = { open: true, type: 'user-form', subject: user };
@@ -379,6 +380,7 @@
       userPayload() {
         const password = this.userForm.password || '';
         const payload = {
+          username: this.userForm.username,
           email: this.userForm.email,
           first_name: this.userForm.first_name || '',
           last_name: this.userForm.last_name || '',
@@ -398,7 +400,6 @@
 
         return {
           ...payload,
-          username: this.userForm.email,
           password,
           confirm_password: password
         };

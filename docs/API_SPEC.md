@@ -57,7 +57,7 @@ The current account service adds these custom claims to the access token:
 ```json
 {
   "user_id": 1,
-  "username": "student@example.com",
+  "username": "student001",
   "email": "student@example.com",
   "roles": ["student"],
   "permissions": ["accommodation.request.view"],
@@ -180,7 +180,7 @@ Request:
 
 ```json
 {
-  "username": "student@example.com",
+  "username": "student001",
   "email": "student@example.com",
   "password": "strong-password",
   "confirm_password": "strong-password",
@@ -204,7 +204,7 @@ Response `201`:
   "message": "User created successfully",
   "user": {
     "id": 1,
-    "username": "student@example.com",
+    "username": "student001",
     "email": "student@example.com",
     "first_name": "Sara",
     "last_name": "Ahmadi"
@@ -229,7 +229,7 @@ Request:
 
 ```json
 {
-  "username": "student@example.com",
+  "username": "student001",
   "password": "strong-password"
 }
 ```
@@ -290,7 +290,7 @@ Current response `200`:
   "success": true,
   "user": {
     "id": 1,
-    "username": "student@example.com",
+    "username": "student001",
     "email": "student@example.com",
     "first_name": "Sara",
     "last_name": "Ahmadi",
@@ -334,7 +334,7 @@ Response:
   "message": "Password updated successfully",
   "data": {
     "user_id": 1,
-    "username": "student@example.com"
+    "username": "student001"
   }
 }
 ```
@@ -399,7 +399,7 @@ Response item:
 ```json
 {
   "id": 1,
-  "username": "student@example.com",
+  "username": "student001",
   "email": "student@example.com",
   "first_name": "Sara",
   "last_name": "Ahmadi",
@@ -433,7 +433,7 @@ Response:
   "message": "user deleted successfully",
   "deleted_by": {
     "id": 10,
-    "username": "admin@example.com"
+    "username": "admin001"
   }
 }
 ```
@@ -462,7 +462,7 @@ Response:
   "message": "user status changed successfully",
   "changed_by": {
     "id": 10,
-    "username": "admin@example.com"
+    "username": "admin001"
   }
 }
 ```
@@ -500,7 +500,7 @@ Response:
   "message": "user profile updated successfully",
   "update_By": {
     "user_id": 10,
-    "username": "admin@example.com"
+    "username": "admin001"
   }
 }
 ```
@@ -602,7 +602,7 @@ Response:
   "message": "role deleted successfully",
   "deleted_by": {
     "id": 10,
-    "username": "admin@example.com"
+    "username": "admin001"
   }
 }
 ```
@@ -680,7 +680,7 @@ Response `201`:
   "success": true,
   "message": "userRole created successfully",
   "userRole": {
-    "userName": "student@example.com",
+    "userName": "student001",
     "roleName": "student"
   }
 }
@@ -1139,7 +1139,7 @@ Request:
 
 ```json
 {
-  "username": "student@example.com",
+  "username": "student001",
   "new_password": "new-password",
   "confirm_password": "new-password"
 }
