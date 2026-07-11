@@ -4,11 +4,13 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, update_session_auth_hash
-from account_service.models import userProfile, UserRole
-from account_service.Serializer.UserSerializer import UserCreateSerializer, UserLoginSerializer, \
+from account_service.models import userProfile, UserRole, Role
+from account_service.Serializer.UserSerializer import UserProfileInfoSerializer, UserCreateSerializer, UserLoginSerializer, \
     UserRoleCreateSerializer, ChangePassSerializer, EditProfSerializer, UserListSerializer, UserDeleteSerializer, ChangeStatusSerializer
 from account_service.Serializer.TokenSerializer import CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
+from account_service.models.Permission import Permission
+from account_service.Serializer.RoleSerializer import ListRoleSerializer, ListPermissionSerializer
 
 
 class UserCreateView(generics.CreateAPIView):
@@ -62,15 +64,36 @@ class UserDetailView(APIView):
                 'message': 'User account is disabled'
             }, status=status.HTTP_403_FORBIDDEN)
 
-        refresh = CustomTokenObtainPairSerializer.get_token(user)
+
+        roles = Role.objects.filter(userrole__user=user).distinct()
+        profile = userProfile.objects.get(user=user)
+        userPermission = Permission.objects.filter(
+            rolepermission__role__userrole__user=user
+        ).distinct()
+
+        roles_info = ListRoleSerializer(roles, many=True).data
+        permissions_info = ListPermissionSerializer(userPermission, many=True).data
 
         return Response({
             'success': True,
-            'message': 'Login successful',
-            'tokens': {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            },
+            'message': 'user info fetched successfully',
+            'user': {
+                "username": user.username,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "is_active": user.is_active,
+                "roles": roles_info,
+                "permissions": permissions_info,
+                "profile": {
+                    "nationalId": profile.nationalId,
+                    "studentId": profile.studentId,
+                    "phone": profile.phone,
+                    "gender": profile.gender,
+                    "profileImage": profile.profileImage,
+                    "isVerified": profile.isVerified
+                }
+            }
         }, status=status.HTTP_200_OK)
 
 
