@@ -1348,7 +1348,7 @@ Recommended fields:
 
 ### `GET /api/accommodation-requests/`
 
-Status: Front-end contract  
+Status: implemented
 Auth: authenticated  
 Roles: student sees own requests; dormitory admin sees assigned dormitory requests; system admin sees all.
 
@@ -1367,7 +1367,7 @@ Query params:
 
 ### `POST /api/accommodation-requests/`
 
-Status: Front-end contract  
+Status: implemented
 Auth: student/resident  
 Used by: student dashboard accommodation form.
 
@@ -1391,13 +1391,13 @@ Server rules:
 
 ### `GET /api/accommodation-requests/{id}/`
 
-Status: Planned  
+Status: implemented 
 Auth: owner, dormitory admin, or system admin  
 Purpose: retrieve one request and review history.
 
-### `PATCH /api/accommodation-requests/{id}/`
+### `PUT /api/accommodation-requests/{id}/`
 
-Status: Front-end contract  
+Status: implemented
 Auth: owner for pending request edits/cancel; admin for controlled fields  
 Used by: student edit/cancel actions.
 
@@ -1426,9 +1426,9 @@ Server rules:
 - Student may edit or cancel only `pending` requests.
 - Admin review should use the review endpoint below.
 
-### `PATCH /api/accommodation-requests/review/`
+### `PUT /api/accommodation-requests/review/`
 
-Status: Front-end contract  
+Status: implemented
 Auth: dormitory admin or system admin  
 Used by: dormitory admin review modal.
 

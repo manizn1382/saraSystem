@@ -21,6 +21,7 @@ class Accommodation(models.Model):
     reviewed_by = models.IntegerField(null=True)
     reviewed_at = models.DateTimeField(null=True)
     description = models.TextField(default="desc")
+    review_note = models.TextField(default="no-desc")
 
     class Meta:
         db_table = "accommodation"

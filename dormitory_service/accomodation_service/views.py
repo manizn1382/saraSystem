@@ -4,10 +4,11 @@ from rest_framework.response import Response
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework_simplejwt.authentication import JWTStatelessUserAuthentication
-from .Serializer import AccommodationCreate, AccommodationList
+from .Serializer import AccommodationCreate, AccommodationList, UpdateAccommodation, UpdateReview
 from .models import Accommodation
 from dormitory_service.models.DormModel import Dormitory
 import requests
+from django.utils import timezone
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
@@ -108,12 +109,100 @@ class ListAccommodationView(generics.ListAPIView):
                 verify=False,
                 timeout=5
             )
-            print(response.json())
             if response.status_code == 200:
-                print(response.json())
                 userId = response.json()["userId"]
                 queryset = queryset.filter(user_id=userId)
             else:
                 queryset = None
 
         return queryset
+
+
+class UpdateAccInfo(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = UpdateAccommodation
+    authentication_classes = [JWTStatelessUserAuthentication]
+
+    def put(self, request, *args, **kwargs):
+
+        try:
+            accommodation = Accommodation.objects.get(id=self.request.query_params.get("id"))
+        except Accommodation.DoesNotExist:
+            return Response({
+                "success": False,
+                "message": "can't find accommodation with this id"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if accommodation.user_id != request.user.id:
+            return Response({
+                "success": False,
+                "message": "you can only edit your accommodation info"
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        if accommodation.status != "pending":
+            return Response({
+                "success": False,
+                "message": "you can only edit pending accommodations"
+            }, status=status.HTTP_403_FORBIDDEN)
+
+
+
+        for field, value in request.data.items():
+            setattr(accommodation, field, value)
+        accommodation.save()
+
+        return Response({
+            "success": True,
+            "message": "accommodation updated successfully",
+            "update_By": {
+                "user_id": request.user.id,
+                "username": request.user.username,
+            }
+        })
+
+
+
+class UpdateReviewInfo(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    serializer_class = UpdateReview
+    authentication_classes = [JWTStatelessUserAuthentication]
+
+    def put(self, request, *args, **kwargs):
+
+        try:
+            accommodation = Accommodation.objects.get(id=self.request.query_params.get("id"))
+        except Accommodation.DoesNotExist:
+            return Response({
+                "success": False,
+                "message": "can't find accommodation with this id"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        if not request.user.is_staff:
+            return Response({
+                "success": False,
+                "message": "only admins can edit accommodation info"
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        if accommodation.status == "pending":
+            return Response({
+                "success": False,
+                "message": "you can't edit pending accommodations"
+            }, status=status.HTTP_403_FORBIDDEN)
+
+
+
+        for field, value in request.data.items():
+            setattr(accommodation, field, value)
+
+        accommodation.reviewed_by = request.user.id
+        accommodation.reviewed_at = timezone.now()
+        accommodation.save()
+
+        return Response({
+            "success": True,
+            "message": "accommodation updated successfully",
+            "update_By": {
+                "user_id": request.user.id,
+                "username": request.user.username,
+            }
+        })
