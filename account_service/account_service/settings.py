@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'account_service',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    "announcements",
 ]
 
 MIDDLEWARE = [
@@ -83,13 +84,13 @@ WSGI_APPLICATION = 'account_service.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'account_db',
-        'USER': 'mani',
-        'PASSWORD': 'Zameni82#',
-        'HOST': 'localhost',
-        'PORT': '3306',
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "account_db",
+        "USER": "Seyed",
+        "PASSWORD": "1qaz@WSX",
+        "HOST": "127.0.0.1",
+        "PORT": "3306",
     }
 }
 

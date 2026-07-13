@@ -24,5 +24,6 @@ urlpatterns = [
     path('api/v1/role', include('account_service.Url.RoleUrl')),
     path('api/v1/userRole', include('account_service.Url.userRoleUrl')),
     path('api/v1/rolePermission', include('account_service.Url.RolePermissionUrl')),
+    path("api/announcements/", include("announcements.urls")),
 
 ]
