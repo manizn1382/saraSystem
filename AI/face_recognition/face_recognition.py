@@ -31,14 +31,13 @@ def face_check(img_path):
 def save_to_database(img_path , id):
 
     if not face_check(img_path):
-        return False
+        return False , "no face recognized in picture or more than 1 face recognized in picture."
 
     try:
         os.mkdir(f"database/{id}")
 
     except Exception:
-        print("user already exists!")
-        return False
+        return False , "user with this id already exists!"
 
     # Source path
     source = img_path
@@ -47,20 +46,19 @@ def save_to_database(img_path , id):
     destination = f"database/{id}/img.jpg"
 
     dest = shutil.copyfile(source, destination)
-    return True
+    return True , "saved successfully."
 
 
 def verify(img_path_1 , id):
 
     if not face_check(img_path_1):
-        return False
+        return False , "no face recognized in picture or more than 1 face recognized in picture."
     
     if not os.path.isdir(f"database/{id}"):
-        print("id not exists!")
-        return False
+        return False , "id not found"
 
 
-    return DeepFace.verify(img1_path = img_path_1, img2_path = f"database/{id}/img.jpg")["verified"]
+    return DeepFace.verify(img1_path = img_path_1, img2_path = f"database/{id}/img.jpg")["verified"] , "operation done."
 
 
 save_to_database("steve.jpg" , 22)

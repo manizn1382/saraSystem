@@ -12,7 +12,10 @@ def register():
     path = "temp.jpg"
     image.save(path)
 
-    return {"success": save_to_database(path, user_id)}
+    success , log = save_to_database(path , user_id)
+
+    return {"success" : success,
+            "log" : log}
 
 
 @app.post("/verify")
@@ -23,13 +26,23 @@ def verify_route():
     path = "temp.jpg"
     image.save(path)
 
-    return {"success": verify(path, user_id)}
+    success , log = verify(path, user_id)
+
+    return {"success" : success, 
+            "log" : log}
+
 
 @app.post("/delete")
 def delete():
     user_id = request.form["id"]
-    os.remove("database/" + str(user_id) + "/img.jpg")
-    os.rmdir("database/" + str(user_id))
-    return {"success" : True}
+    try:
+        os.remove("database/" + str(user_id) + "/img.jpg")
+        os.rmdir("database/" + str(user_id))
+        return {"success" : True,
+                "log" : "deleted successfully."}
+    except Exception :
+        return {"success" : False,
+                "log" : "id not exists"}
+        
 
 app.run(host="0.0.0.0", port=5000)
