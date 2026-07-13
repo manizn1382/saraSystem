@@ -25,5 +25,11 @@ def verify_route():
 
     return {"success": verify(path, user_id)}
 
+@app.post("/delete")
+def delete():
+    user_id = request.form["id"]
+    os.remove("database/" + str(user_id) + "/img.jpg")
+    os.rmdir("database/" + str(user_id))
+    return {"success" : True}
 
 app.run(host="0.0.0.0", port=5000)
