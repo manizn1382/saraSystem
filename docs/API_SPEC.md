@@ -1293,7 +1293,7 @@ Response:
 
 ### `GET /api/announcements/public/`
 
-Status: Front-end contract  
+Status: implemented  
 Auth: anonymous  
 Used by: `frontend/index.html`  
 Purpose: public active announcements visible before login.
