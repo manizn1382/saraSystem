@@ -2,7 +2,7 @@
 (function () {
   function forgotPasswordPage() {
     return {
-      endpoint: '/api/v1/users/password/reset/username',
+      endpoint: '/api/v1/users/password/reset',
       form: {
         username: '',
         new_password: '',
@@ -50,7 +50,7 @@
 
         this.loading = true;
         try {
-          const response = await window.SaraAPI.post(this.endpoint, {
+          const response = await window.SaraAPI.put(this.endpoint, {
             username: this.form.username,
             new_password: this.form.new_password,
             confirm_password: this.form.confirm_password

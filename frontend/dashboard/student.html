@@ -1071,7 +1071,7 @@
     <div class="d-none">
       <div
         data-resource="accommodationRequests"
-        hx-get="/api/accommodation-requests/"
+        hx-get="/api/accommodation/detail"
         hx-trigger="load, click from:#refreshDashboard"
         hx-swap="none"
         hx-timeout="15000"
@@ -1140,7 +1140,7 @@
             id="accommodationForm"
             novalidate
             hx-ext="json-enc"
-            hx-post="/api/accommodation-requests/"
+            hx-post="/api/accommodation/create"
             hx-trigger="submit"
             hx-swap="none"
             hx-timeout="15000"
@@ -1182,10 +1182,11 @@
                     :class="{ 'is-invalid': forms.accommodation.errors.requested_dormitory_id }"
                     class="form-select form-select-lg"
                     id="requestedDormitory"
-                    name="requested_dormitory_id"
+                    name="requested_dorm"
+                    required
                     aria-describedby="requestedDormitoryError"
                   >
-                    <option value="">بدون ترجیح</option>
+                    <option value="">انتخاب کنید</option>
                     <template
                       x-for="dormitory in dormitories"
                       :key="dormitory.id"
@@ -1212,7 +1213,7 @@
                     :class="{ 'is-invalid': forms.accommodation.errors.preferred_room_type }"
                     class="form-select form-select-lg"
                     id="preferredRoomType"
-                    name="preferred_room_type"
+                    name="preferred_room"
                     required
                     aria-describedby="preferredRoomTypeError"
                   >
@@ -1257,7 +1258,7 @@
                     type="text"
                     class="form-control form-control-lg"
                     id="requestDate"
-                    name="request_date"
+                    name="req_date"
                     placeholder="۱۴۰۴/۰۶/۱۵"
                   />
                 </div>

@@ -10,7 +10,7 @@
    /api/dormitory/listAll/ -> Dormitory[]
    /api/rooms/listAllRoom/ -> Room[]
    /api/beds/listAll/ -> Bed[]
-   /api/accommodation-requests/ -> AccommodationRequest[]
+   /api/accommodation/detail -> AccommodationRequest[]
    /api/bed-assignments/ -> BedAssignment[]
    /api/payments/ -> Payment[]
    /api/maintenance-requests/ -> MaintenanceRequest[]
@@ -40,20 +40,21 @@
 
   function accommodationRequest(item = {}, index = 0) {
     const user = item.user || item.student || {};
-    const dormitory = item.requested_dormitory || item.dormitory || {};
+    const dormitory = item.requested_dormitory || item.requested_dorm || item.dormitory || {};
+    const preferredRoom = item.preferred_room_type || item.preferred_room;
     return {
       id: id(item.id, String(index + 1)),
       code: text(item.code || item.request_code || `REQ-${item.id || index + 1}`),
       user_id: id(user.id || item.user_id || item.student_id),
-      student_name: fullName(user, item.student_name || 'دانشجو'),
+      student_name: fullName(user, item.student_name || (item.user_id ? `کاربر ${item.user_id}` : 'دانشجو')),
       student_id: text(user.student_id || item.student_number || item.student_id, ''),
       semester: text(item.semester || item.term),
       dormitory: text(dormitory.name || item.requested_dormitory_name || item.dormitory_name || item.dormitory),
-      requested_dormitory_id: id(dormitory.id || item.requested_dormitory_id || item.dormitory_id),
-      preferred_room_type: roomType(item.preferred_room_type),
-      preferred_room_type_value: text(item.preferred_room_type, ''),
+      requested_dormitory_id: id(dormitory.id || item.requested_dormitory_id || item.requested_dorm || item.dormitory_id),
+      preferred_room_type: roomType(preferredRoom),
+      preferred_room_type_value: text(preferredRoom, ''),
       status: text(item.status, 'pending'),
-      request_date: text(item.request_date || item.created_at),
+      request_date: text(item.request_date || item.req_date || item.created_at),
       description: text(item.description || item.notes, ''),
       notes: text(item.notes || item.description, ''),
       previous_requests: text(item.previous_requests || item.previous_request_summary, ''),
