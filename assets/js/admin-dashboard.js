@@ -99,7 +99,7 @@
         { label: 'خوابگاه‌ها', value: '—', icon: 'خوابگاه' }
       ],
       operations: [
-        { title: 'درخواست‌های اسکان', anchor: '#operations', endpoint: '/api/accommodation-requests/' },
+        { title: 'درخواست‌های اسکان', anchor: '#operations', endpoint: '/api/accommodation/detail' },
         { title: 'تخصیص تخت', anchor: '#operations', endpoint: '/api/bed-assignments/' },
         { title: 'پرداخت‌ها', anchor: '#operations', endpoint: '/api/payments/' },
         { title: 'تعمیرات', anchor: '#operations', endpoint: '/api/maintenance-requests/' },

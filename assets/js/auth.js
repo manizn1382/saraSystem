@@ -337,7 +337,31 @@
     Object.values(STORAGE_KEYS).forEach(clearKey);
   }
 
+  function revokeRefreshToken() {
+    if (read(STORAGE_KEYS.demoMode) === 'true') return;
+
+    const refreshToken = read(STORAGE_KEYS.refreshToken);
+    const accessToken = read(STORAGE_KEYS.accessToken);
+    if (!refreshToken || !accessToken) return;
+
+    const endpoint = window.SARA_ACCOUNTS_LOGOUT_ENDPOINT
+      || localStorage.getItem('sarasystem.accountsLogoutEndpoint')
+      || '/api/v1/users/logout';
+
+    fetch(accountServiceUrl(endpoint), {
+      method: 'POST',
+      keepalive: true,
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ refresh_token: refreshToken, refresh: refreshToken })
+    }).catch(() => {});
+  }
+
   function logout(redirectUrl = '../login.html') {
+    revokeRefreshToken();
     clearSession();
     window.location.assign(redirectUrl);
   }
@@ -370,6 +394,7 @@
     handleExpiredSession,
     setSession,
     clearSession,
+    revokeRefreshToken,
     logout,
     normalizeRole,
     normalizePermission

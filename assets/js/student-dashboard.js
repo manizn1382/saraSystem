@@ -327,11 +327,28 @@
           return this.loadResource("accommodationRequests", options);
         },
 
+        accommodationListEndpoint() {
+          const userId = this.user?.id || this.user?.user_id;
+          return userId
+            ? window.SaraAPI.withQuery("/api/accommodation/detail", { user_id: userId })
+            : "/api/accommodation/detail";
+        },
+
+        accommodationPayload(data = {}) {
+          return {
+            requested_dorm: data.requested_dormitory_id || data.requested_dorm || "",
+            preferred_room: data.preferred_room_type || data.preferred_room || "",
+            semester: data.semester || "",
+            req_date: data.request_date || data.req_date || "",
+            description: data.description || ""
+          };
+        },
+
         async loadResource(resource, options = {}) {
           if (this.isDemoMode()) return;
 
           const endpoints = {
-            accommodationRequests: "/api/accommodation-requests/",
+            accommodationRequests: this.accommodationListEndpoint(),
             payments: "/api/payments/",
             maintenanceRequests: "/api/maintenance-requests/",
             announcements: "/api/announcements/"
@@ -467,7 +484,8 @@
         },
 
         applyAccommodationRequests(data) {
-          this.accommodationRequests = window.SaraAdapters
+          const currentUserId = String(this.user?.id || this.user?.user_id || "");
+          this.accommodationRequests = (window.SaraAdapters
             ? window.SaraAdapters.adaptList(data, window.SaraAdapters.accommodationRequest).map((request) => ({
               ...request,
               display_id: this.toPersianNumber(request.id),
@@ -477,15 +495,16 @@
               id: String(item.id || index + 1),
               display_id: this.toPersianNumber(item.id || index + 1),
               semester: item.semester || "—",
-              requested_dormitory_id: item.requested_dormitory?.id || item.requested_dormitory_id || "",
-              dormitory: item.requested_dormitory?.name || item.dormitory || item.requested_dormitory_name || "بدون ترجیح",
-              preferred_room_type: this.roomTypeText(item.preferred_room_type),
-              preferred_room_type_value: item.preferred_room_type || "",
+              user_id: String(item.user_id || item.user?.id || ""),
+              requested_dormitory_id: item.requested_dormitory?.id || item.requested_dormitory_id || item.requested_dorm || "",
+              dormitory: item.requested_dormitory?.name || item.requested_dorm?.name || item.dormitory || item.requested_dormitory_name || "بدون ترجیح",
+              preferred_room_type: this.roomTypeText(item.preferred_room_type || item.preferred_room),
+              preferred_room_type_value: item.preferred_room_type || item.preferred_room || "",
               status: item.status || "pending",
-              request_date: item.request_date || item.created_at || "—",
+              request_date: item.request_date || item.req_date || item.created_at || "—",
               rejection_reason: item.rejection_reason || item.review_note || "",
               description: item.description || item.review_note || ""
-            }));
+            }))).filter((request) => !currentUserId || !request.user_id || String(request.user_id) === currentUserId);
 
           const latest = this.accommodationRequests[0];
           if (latest) {
@@ -714,15 +733,16 @@
           this.forms.accommodation.message = data?.message || "درخواست اسکان با موفقیت ثبت شد.";
           this.showAlert("success", "درخواست اسکان ثبت شد و پس از بررسی وضعیت آن بروزرسانی می‌شود.");
 
+          const saved = data?.data || data || {};
           const newRequest = {
-            id: String(data?.id || this.accommodationRequests.length + 1),
-            display_id: this.toPersianNumber(data?.id || this.accommodationRequests.length + 1),
+            id: String(saved.id || data?.id || this.accommodationRequests.length + 1),
+            display_id: this.toPersianNumber(saved.id || data?.id || this.accommodationRequests.length + 1),
             semester: this.forms.accommodation.data.semester,
             requested_dormitory_id: this.forms.accommodation.data.requested_dormitory_id,
             dormitory: this.selectedDormitoryName(this.forms.accommodation.data.requested_dormitory_id),
             preferred_room_type: this.roomTypeText(this.forms.accommodation.data.preferred_room_type),
             preferred_room_type_value: this.forms.accommodation.data.preferred_room_type,
-            status: data?.status || "pending",
+            status: saved.status || data?.request_status || "pending",
             request_date: this.forms.accommodation.data.request_date || "امروز",
             description: this.forms.accommodation.data.description
           };
@@ -764,6 +784,10 @@
         validateAccommodation(event) {
           this.clearFormErrors("accommodation");
           const form = this.forms.accommodation;
+
+          if (!form.data.requested_dormitory_id) {
+            form.errors.requested_dormitory_id = "انتخاب خوابگاه الزامی است.";
+          }
 
           if (!form.data.preferred_room_type) {
             form.errors.preferred_room_type = "انتخاب نوع اتاق الزامی است.";
@@ -918,22 +942,22 @@
           form.message = "";
 
           try {
-            const payload = { ...form.data };
+            const payload = this.accommodationPayload(form.data);
             if (!window.SaraAuth?.isDemoMode?.()) {
-              await window.SaraAPI.patch(`/api/accommodation-requests/${form.editingId}/`, payload);
+              await window.SaraAPI.put(`/api/accommodation/update?id=${encodeURIComponent(form.editingId)}`, payload);
             }
 
             this.accommodationRequests = this.accommodationRequests.map((request) => {
               if (request.id !== form.editingId) return request;
               return {
                 ...request,
-                semester: payload.semester,
-                requested_dormitory_id: payload.requested_dormitory_id,
-                dormitory: this.selectedDormitoryName(payload.requested_dormitory_id),
-                preferred_room_type: this.roomTypeText(payload.preferred_room_type),
-                preferred_room_type_value: payload.preferred_room_type,
-                request_date: payload.request_date,
-                description: payload.description
+                semester: form.data.semester,
+                requested_dormitory_id: form.data.requested_dormitory_id,
+                dormitory: this.selectedDormitoryName(form.data.requested_dormitory_id),
+                preferred_room_type: this.roomTypeText(form.data.preferred_room_type),
+                preferred_room_type_value: form.data.preferred_room_type,
+                request_date: form.data.request_date,
+                description: form.data.description
               };
             });
 
@@ -957,7 +981,7 @@
 
           try {
             if (!window.SaraAuth?.isDemoMode?.()) {
-              await window.SaraAPI.patch(`/api/accommodation-requests/${request.id}/`, { status: "cancelled" });
+              await window.SaraAPI.put(`/api/accommodation/update?id=${encodeURIComponent(request.id)}`, { status: "cancelled" });
             }
             request.status = "cancelled";
             request.description = request.description || "درخواست توسط دانشجو لغو شد.";
