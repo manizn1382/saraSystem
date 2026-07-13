@@ -10,6 +10,8 @@ class Dormitory(models.Model):
     GENDER_CHOICES = (
         ('m', 'male'),
         ('f', 'female'),
+        ('s', 'shared'),
+
     )
 
     name = models.CharField(max_length=200)

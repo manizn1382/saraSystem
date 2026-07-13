@@ -5,7 +5,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, update_session_auth_hash
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from django.db.models import Q
 from account_service.models import userProfile, UserRole, Role
 from account_service.Serializer.UserSerializer import ResetPassSerializer, UserCreateSerializer, UserLoginSerializer, \
     UserRoleCreateSerializer, ChangePassSerializer, EditProfSerializer, UserListSerializer, UserDeleteSerializer, \
@@ -68,12 +68,43 @@ class UserCreateView(generics.CreateAPIView):
         )
 
 
+class UserByStudentId(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+
+        studentId = self.request.query_params.get("studentId")
+
+        if not studentId:
+            return Response({
+                'success': False,
+                'message': "studentId is mandatory"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(userprofile__studentId__exact=studentId)
+        except User.DoesNotExist:
+            return Response({
+                'success': False,
+                'message': "can't found user with this student id"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+        return Response({
+            'success': True,
+            'userId': user.id,
+        }, status=status.HTTP_200_OK)
+
+
+
+
 class UserDetailView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
 
         userId = self.request.query_params.get("userId")
+
 
         user = User.objects.get(id=request.user.id)
 
@@ -97,6 +128,8 @@ class UserDetailView(APIView):
                 'message': 'User account is disabled'
             }, status=status.HTTP_403_FORBIDDEN)
 
+
+
         roles = Role.objects.filter(userrole__user=user).distinct()
         profile = userProfile.objects.get(user=user)
         userPermission = Permission.objects.filter(
@@ -110,6 +143,7 @@ class UserDetailView(APIView):
             'success': True,
             'message': 'user info fetched successfully',
             'user': {
+                "id": user.id,
                 "username": user.username,
                 "email": user.email,
                 "first_name": user.first_name,
