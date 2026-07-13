@@ -39,7 +39,6 @@ class AccommodationCreateView(generics.CreateAPIView):
             }, status.HTTP_404_NOT_FOUND)
 
         semester = request.data.get("semester")
-        print(request.user.id)
 
         accommodation = Accommodation.objects.filter(user_id=request.user.id, semester=semester).first()
 
@@ -206,3 +205,53 @@ class UpdateReviewInfo(generics.UpdateAPIView):
                 "username": request.user.username,
             }
         })
+
+    class ListAccommodationView(generics.ListAPIView):
+        permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+        serializer_class = AccommodationList
+        authentication_classes = [JWTStatelessUserAuthentication]
+
+        def get_queryset(self):
+            queryset = Accommodation.objects.all()
+
+            status = self.request.query_params.get("status")
+            semester = self.request.query_params.get("semester")
+            requested_dorm = self.request.query_params.get("requested_dorm")
+            userId = self.request.query_params.get("user_id")
+            studentId = self.request.query_params.get("studentId")
+
+            if status:
+                queryset = queryset.filter(status__exact=status)
+
+            if semester:
+                queryset = queryset.filter(semester__exact=semester)
+
+            if requested_dorm:
+                queryset = queryset.filter(requested_dorm_id=requested_dorm)
+
+            if userId:
+                queryset = queryset.filter(user_id=userId)
+
+            if studentId:
+
+                token = self.request.headers.get("Authorization")
+
+                response = requests.get(
+                    "http://127.0.0.1:8001/api/v1/users/current/studentId",
+                    headers={
+                        'Authorization': token,
+                        'Content-Type': 'application/json'
+                    },
+                    params={
+                        "studentId": studentId
+                    },
+                    verify=False,
+                    timeout=5
+                )
+                if response.status_code == 200:
+                    userId = response.json()["userId"]
+                    queryset = queryset.filter(user_id=userId)
+                else:
+                    queryset = None
+
+            return queryset

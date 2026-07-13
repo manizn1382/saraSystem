@@ -1468,9 +1468,10 @@ Recommended REST alias: `PATCH /api/accommodation-requests/{id}/review/`.
 
 ### `GET /api/accommodation-requests/{id}/history/`
 
-Status: Planned  
+Status: implemented  
 Auth: owner, dormitory admin, or system admin  
 Purpose: show status/review/assignment history.
+- you can use GET /api/accommodation-requests/{id}/ to get history of user accommodation request by giving user_id to service
 
 ## Front-End Contract: Bed Assignment APIs
 
