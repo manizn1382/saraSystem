@@ -115,6 +115,11 @@
     return /^\/api\/face\/(?:register|verify|delete)\/?$/i.test(value);
   }
 
+  function isAnnouncementPath(path = '') {
+    const value = String(path || '');
+    return /^\/api\/announcements(?:\/|$)/i.test(value);
+  }
+
   function apiBaseUrl(path = '') {
     const originalValue = String(path || '');
     const value = normalizeApiPath(path);
@@ -122,6 +127,12 @@
       return window.SARA_AI_API_BASE_URL
         || localStorage.getItem('sarasystem.aiApiBaseUrl')
         || DEFAULT_AI_BASE_URL;
+    }
+
+    if (isAnnouncementPath(originalValue) || isAnnouncementPath(value)) {
+      return window.SARA_ACCOUNTS_API_BASE_URL
+        || localStorage.getItem('sarasystem.accountsApiBaseUrl')
+        || DEFAULT_ACCOUNTS_BASE_URL;
     }
 
     if (/^\/api\/accounts(?:\/|$)/i.test(value)) {
@@ -365,6 +376,7 @@
     normalizeApiPath,
     isAccountPath,
     isAiPath,
+    isAnnouncementPath,
     joinUrl,
     normalizeEndpoint,
     buildHeaders,

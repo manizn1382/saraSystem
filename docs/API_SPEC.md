@@ -17,7 +17,7 @@ Scope: complete API inventory for the current SaraSystem repository, including i
 
 | Service | Current local base | Current route family | Notes |
 | --- | --- | --- | --- |
-| Account service | `http://127.0.0.1:8001` | `/api/v1/...` | Handles users, JWT login/refresh, roles, permissions, user-role, role-permission. |
+| Account service | `http://127.0.0.1:8001` | `/api/v1/...`, `/api/announcements/...` | Handles users, JWT login/refresh, roles, permissions, user-role, role-permission, and the current announcements app once mounted. |
 | Dormitory service | `http://127.0.0.1:8000` | `/api/dormitory/`, `/api/rooms/`, `/api/beds/` | Handles dormitories, rooms, beds. |
 | AI service | `http://127.0.0.1:5000` | `/register`, `/verify`, `/delete` | Flask face-image service. Front-end aliases use `/api/face/...` and route to this base. |
 | Application API | same origin `/api` or gateway | `/api/...` | Planned unified API surface for accommodation, assignments, payments, maintenance, announcements, reports, public data. |
@@ -1897,6 +1897,10 @@ Purpose: list comments/status changes.
 
 Entity: `Announcement`
 
+Current backend implementation: `account_service/announcements` defines list/create, detail/update/delete, mark-read, and current-user read-list views. However, `account_service/account_service/urls.py` does not currently include `announcements.urls`, so these endpoints will 404 until the backend mounts the app, for example at `path('api/announcements/', include('announcements.urls'))`.
+
+Current front-end routing sends `/api/announcements/...` to the account service base because the implemented app lives in `account_service`.
+
 Recommended fields:
 
 ```json
@@ -1925,7 +1929,7 @@ Recommended fields:
 
 ### `GET /api/announcements/`
 
-Status: Front-end contract  
+Status: implemented app, backend URL mount pending
 Auth: authenticated  
 Roles: students see active targeted/public announcements; admins see manageable announcements.
 
@@ -1933,17 +1937,13 @@ Query params:
 
 | Param | Description |
 | --- | --- |
-| `target_role_id` | Role target filter. |
-| `target_dormitory_id` | Dormitory target filter. |
-| `is_active` | Boolean. |
-| `read` | Boolean for current user. |
-| `include_expired` | Boolean for admins. |
-| `q` | Search title/content. |
-| `page`, `page_size` | Pagination. |
+| `dormitory_id` | Current implemented dormitory filter. Returns public dormitory announcements plus matching dormitory target. |
+
+Current serializer fields include `target_role`, `target_role_name`, `target_dormitory_id`, `created_by`, `created_by_username`, `is_active`, and `is_expired`.
 
 ### `POST /api/announcements/`
 
-Status: Front-end contract  
+Status: implemented app, backend URL mount pending
 Auth: dormitory admin or system admin  
 Used by: dormitory admin announcement modal.
 
@@ -1953,7 +1953,7 @@ Request:
 {
   "title": "Payment schedule",
   "content": "Students should pay before the due date.",
-  "target_role_id": "student",
+  "target_role": 1,
   "target_dormitory_id": 1,
   "expires_at": "2026-10-01",
   "is_active": true
@@ -1965,27 +1965,29 @@ Rules:
 - Empty `target_role_id` and empty `target_dormitory_id` means public/authenticated-wide announcement.
 - Dormitory admin may only target allowed dormitories.
 
+Frontend note: dormitory-admin announcement targeting now loads role IDs from `/api/v1/role/list` and submits the backend serializer field `target_role`.
+
 ### `GET /api/announcements/{id}/`
 
-Status: Planned  
+Status: implemented app, backend URL mount pending
 Auth: visible announcement or admin  
 Purpose: announcement detail.
 
 ### `PATCH /api/announcements/{id}/`
 
-Status: Planned  
+Status: implemented app, backend URL mount pending
 Auth: creator/admin  
 Purpose: edit content, target, expiration, or active flag.
 
 ### `DELETE /api/announcements/{id}/`
 
-Status: Planned  
+Status: implemented app, backend URL mount pending
 Auth: creator/admin  
 Purpose: delete announcement or perform soft delete.
 
 ### `POST /api/announcements/{id}/read/`
 
-Status: Front-end contract  
+Status: implemented app, backend URL mount pending
 Auth: authenticated  
 Used by: student mark-as-read action.
 
@@ -1999,12 +2001,20 @@ Response:
 
 ```json
 {
-  "success": true,
-  "message": "Announcement marked as read.",
-  "announcement_id": 21,
+  "id": 1,
+  "announcement": 21,
+  "announcement_title": "Payment schedule",
+  "user": 13,
+  "username": "student001",
   "read_at": "2026-07-10T12:05:00Z"
 }
 ```
+
+### `GET /api/announcements/reads/me/`
+
+Status: implemented app, backend URL mount pending
+Auth: authenticated
+Purpose: list current user's `AnnouncementRead` records.
 
 ### `GET /api/announcements/{id}/reads/`
 
@@ -2274,14 +2284,14 @@ The front end already checks several permission names. The API should treat thes
 ## Known Gaps and Fixes
 
 1. Account child URL routes use leading slash strings. Normalize URL patterns to avoid routing surprises.
-2. `GET /api/v1/users/current` currently returns a token pair, not a user object. Either document that as token refresh or return current user data.
+2. `GET /api/v1/users/current` now returns a user object, but the optional `userId` permission check compares `request.user.id` to the raw query-string value; normalize types before comparing.
 3. `RoomCreateView` returns `success: false` on successful create.
 4. `RoomUpdateView` uses `AllowAny` while relying on `request.user.is_staff`; add JWT authentication and `IsAuthenticated`.
 5. `BedUpdateView` returns `success: true` in a `403` response for non-admin updates.
 6. There are no list/delete endpoints for `UserRole` and `RolePermission`.
 7. There are no update/delete endpoints for `Permission`.
-8. There is no implemented backend for username-only anonymous password reset.
-9. There is no implemented backend for accommodation requests, bed assignments, payments, maintenance requests, announcements, announcement reads, public stats, public announcements, or reports.
+8. Username-only anonymous password reset is implemented at `/api/v1/users/password/reset`; older `/password/reset/username` aliases should normalize to that route.
+9. Accommodation requests and the announcements app now have partial backend implementations. Remaining missing or unmounted areas include bed assignments, payments, maintenance requests, public stats, public announcements, reports, and the `announcements.urls` include in the account service root URL config.
 10. Dormitory/room/bed endpoints use action-style names; RESTful aliases are recommended for long-term consistency.
 11. Current serializers omit some model fields such as dormitory `dorm_type`, `description`, `createdAt`, `updatedAt`, room/bed `description`, and timestamps. Add them if the UI/reporting needs them.
 
