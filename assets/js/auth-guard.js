@@ -259,16 +259,95 @@
   }
 
   function attachHtmxAuthHeader() {
+    function requestPath(event) {
+      return event.detail?.path
+        || event.detail?.pathInfo?.requestPath
+        || event.detail?.requestConfig?.path
+        || '';
+    }
+
+    function requestVerb(event) {
+      return event.detail?.verb
+        || event.detail?.requestConfig?.verb
+        || 'GET';
+    }
+
+    function splitPath(value = '') {
+      const raw = String(value || '');
+      try {
+        return new URL(raw, window.location?.href || 'http://localhost/').pathname;
+      } catch {
+        const [, path = raw] = raw.match(/^([^?#]*)/) || [];
+        return path;
+      }
+    }
+
+    function origin(value = '') {
+      try {
+        return new URL(String(value || ''), window.location?.href || 'http://localhost/').origin;
+      } catch {
+        return '';
+      }
+    }
+
+    function isResolvedAiRequest(path) {
+      const aiBase = window.SARA_AI_API_BASE_URL
+        || localStorage.getItem('sarasystem.aiApiBaseUrl')
+        || 'http://127.0.0.1:5000';
+      const pathOrigin = origin(path);
+      if (!pathOrigin || pathOrigin !== origin(aiBase)) return false;
+      const value = splitPath(path);
+      return /^\/(?:register|verify|delete)\/?$/i.test(value);
+    }
+
+    function isAiRequest(path, normalized) {
+      const value = splitPath(path);
+      const normalizedValue = splitPath(normalized);
+      return window.SaraAPI?.isAiPath?.(path)
+        || window.SaraAPI?.isAiPath?.(normalized)
+        || /^\/api\/face\/(?:register|verify|delete)\/?$/i.test(value)
+        || /^\/(?:register|verify|delete)\/?$/i.test(normalizedValue)
+        || isResolvedAiRequest(path)
+        || isResolvedAiRequest(normalized);
+    }
+
+    function isPublicRequest(path, normalized) {
+      const value = splitPath(path);
+      const normalizedValue = splitPath(normalized);
+      return window.SaraAPI?.isPublicApiPath?.(path)
+        || window.SaraAPI?.isPublicApiPath?.(normalized)
+        || /^\/api\/public(?:\/|$)/i.test(value)
+        || /^\/api\/public(?:\/|$)/i.test(normalizedValue)
+        || /^\/api\/announcements\/public\/?$/i.test(value)
+        || /^\/api\/announcements\/public\/?$/i.test(normalizedValue);
+    }
+
+    function isAnonymousAccountRequest(path, verb) {
+      const normalized = window.SaraAPI?.normalizeApiPath?.(path, verb) || path;
+      const value = splitPath(normalized);
+      return /^\/api\/v1\/users\/(?:login|create|token\/refresh|password\/reset)\/?$/i.test(value)
+        || /^\/api\/accounts\/(?:getToken|refreshToken|register|users\/register|reset-password|forgot-password|password\/reset|password\/reset\/username)\/?$/i.test(splitPath(path));
+    }
+
+    function shouldAttachAuthorization(path, verb) {
+      const normalized = window.SaraAPI?.normalizeApiPath?.(path, verb) || path;
+
+      return !isPublicRequest(path, normalized) && !isAiRequest(path, normalized) && !isAnonymousAccountRequest(path, verb);
+    }
+
     document.body.addEventListener('htmx:beforeRequest', function (event) {
-      const path = event.detail?.pathInfo?.requestPath || event.detail?.requestConfig?.path || '';
+      const path = requestPath(event);
       if (isDemoMode() && /^\/api(\/|$)/i.test(path)) {
         event.preventDefault();
       }
     });
 
     document.body.addEventListener('htmx:configRequest', function (event) {
+      const path = requestPath(event);
+      const verb = requestVerb(event);
       const token = getAccessToken();
-      if (token) {
+      event.detail.headers = event.detail.headers || {};
+      if (token && shouldAttachAuthorization(path, verb)) {
         event.detail.headers.Authorization = `Bearer ${token}`;
       }
       event.detail.headers.Accept = 'application/json';
