@@ -831,11 +831,15 @@
             return;
           }
 
+          event.preventDefault();
+          event.stopImmediatePropagation();
+
           if (form.editingId) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
             this.saveAccommodationEdit();
+            return;
           }
+
+          this.submitAccommodationRequest();
         },
 
         validateMaintenance(event) {
@@ -877,11 +881,24 @@
 
         applyFormErrors(formName, data) {
           const errors = this.forms[formName].errors;
+          const fieldMap = formName === "accommodation"
+            ? {
+                requested_dorm: "requested_dormitory_id",
+                requested_dormitory_id: "requested_dormitory_id",
+                preferred_room: "preferred_room_type",
+                preferred_room_type: "preferred_room_type",
+                semester: "semester"
+              }
+            : {};
+
+          Object.entries(fieldMap).forEach(([apiField, formField]) => {
+            if (errors[formField] !== undefined && data?.[apiField]) {
+              errors[formField] = this.normalizeError(data[apiField]);
+            }
+          });
 
           Object.keys(errors).forEach((key) => {
-            if (data?.[key]) {
-              errors[key] = this.normalizeError(data[key]);
-            }
+            if (data?.[key]) errors[key] = this.normalizeError(data[key]);
           });
         },
 
@@ -962,6 +979,29 @@
           this.forms.accommodation.message = "";
           this.forms.accommodation.success = false;
           new bootstrap.Modal(document.getElementById("accommodationModal")).show();
+        },
+
+        async submitAccommodationRequest() {
+          const form = this.forms.accommodation;
+          form.loading = true;
+          form.message = "";
+
+          try {
+            const payload = this.accommodationPayload(form.data);
+            let data = { data: payload };
+
+            if (!window.SaraAuth?.isDemoMode?.()) {
+              data = await window.SaraAPI.post("/api/accommodation-requests/", payload);
+            }
+
+            this.handleAccommodationSuccess(data);
+          } catch (error) {
+            form.success = false;
+            this.applyFormErrors("accommodation", error?.data || {});
+            form.message = error.message || "ثبت درخواست اسکان ناموفق بود.";
+          } finally {
+            form.loading = false;
+          }
         },
 
         async saveAccommodationEdit() {

@@ -1394,13 +1394,15 @@ Request:
 
 ```json
 {
-  "requested_dormitory_id": 1,
-  "preferred_room_type": "shared",
+  "requested_dorm": 1,
+  "preferred_room": "shared",
   "semester": "1404-1405-1",
-  "request_date": "2026-07-10",
+  "req_date": "2026-07-10",
   "description": "I prefer a shared room near faculty."
 }
 ```
+
+Frontend note: the student form keeps UI state as `requested_dormitory_id`, `preferred_room_type`, and `request_date`, then submits the current backend serializer fields `requested_dorm`, `preferred_room`, and `req_date` through `assets/js/student-dashboard.js`.
 
 Server rules:
 
@@ -1428,10 +1430,10 @@ Edit request:
 
 ```json
 {
-  "requested_dormitory_id": 1,
-  "preferred_room_type": "double",
+  "requested_dorm": 1,
+  "preferred_room": "double",
   "semester": "1404-1405-1",
-  "request_date": "2026-07-10",
+  "req_date": "2026-07-10",
   "description": "Updated notes"
 }
 ```
