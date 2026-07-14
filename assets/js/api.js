@@ -22,116 +22,122 @@
     if (options.aiBaseUrl) window.SARA_AI_API_BASE_URL = options.aiBaseUrl;
   }
 
+  function splitUrlPath(value = '') {
+    const original = String(value || '');
+    const [, path = original, tail = ''] = original.match(/^([^?#]*)(.*)$/) || [];
+    return { original, path, tail };
+  }
+
+  function appendUrlTail(target, tail = '') {
+    if (!tail) return target;
+    if (tail.startsWith('?') && String(target).includes('?')) return `${target}&${tail.slice(1)}`;
+    return `${target}${tail}`;
+  }
+
   function normalizeAccountPath(path = '', method = 'GET') {
-    const value = String(path || '');
+    const { original, path: value, tail } = splitUrlPath(path);
     const requestMethod = String(method || 'GET').toUpperCase();
 
-    if (/^\/api\/accounts\/getToken\/?$/i.test(value)) return '/api/v1/users/login';
-    if (/^\/api\/accounts\/refreshToken\/?$/i.test(value)) return '/api/v1/users/token/refresh';
-    if (/^\/api\/accounts\/me\/?$/i.test(value)) return '/api/v1/users/current';
-    if (/^\/api\/accounts\/(?:users\/register|register)\/?$/i.test(value)) return '/api/v1/users/create';
-    if (/^\/api\/accounts\/(?:update-profile|editProfile)\/?$/i.test(value)) return '/api/v1/users/editProfile';
-    if (/^\/api\/accounts\/(?:users\/admin-update|users\/update|adminUpdate)\/?$/i.test(value)) return '/api/v1/users/adminUpdate';
-    if (/^\/api\/accounts\/(?:change-password|changePassword)\/?$/i.test(value)) return '/api/v1/users/password/change';
-    if (/^\/api\/accounts\/(?:reset-password|forgot-password|password\/reset|password\/reset\/username)\/?$/i.test(value)) return '/api/v1/users/password/reset';
-    if (/^\/api\/accounts\/logout\/?$/i.test(value)) return '/api/v1/users/logout';
-    if (/^\/api\/v1\/users\/changePassword\/?$/i.test(value)) return '/api/v1/users/password/change';
-    if (/^\/api\/v1\/users\/password\/reset\/username\/?$/i.test(value)) return '/api/v1/users/password/reset';
+    if (/^\/api\/accounts\/getToken\/?$/i.test(value)) return appendUrlTail('/api/v1/users/login', tail);
+    if (/^\/api\/accounts\/refreshToken\/?$/i.test(value)) return appendUrlTail('/api/v1/users/token/refresh', tail);
+    if (/^\/api\/accounts\/me\/?$/i.test(value)) return appendUrlTail('/api/v1/users/current', tail);
+    if (/^\/api\/accounts\/(?:users\/register|register)\/?$/i.test(value)) return appendUrlTail('/api/v1/users/create', tail);
+    if (/^\/api\/accounts\/(?:update-profile|editProfile)\/?$/i.test(value)) return appendUrlTail('/api/v1/users/editProfile', tail);
+    if (/^\/api\/accounts\/(?:users\/admin-update|users\/update|adminUpdate)\/?$/i.test(value)) return appendUrlTail('/api/v1/users/adminUpdate', tail);
+    if (/^\/api\/accounts\/(?:change-password|changePassword)\/?$/i.test(value)) return appendUrlTail('/api/v1/users/password/change', tail);
+    if (/^\/api\/accounts\/(?:reset-password|forgot-password|password\/reset|password\/reset\/username)\/?$/i.test(value)) return appendUrlTail('/api/v1/users/password/reset', tail);
+    if (/^\/api\/accounts\/logout\/?$/i.test(value)) return appendUrlTail('/api/v1/users/logout', tail);
+    if (/^\/api\/v1\/users\/changePassword\/?$/i.test(value)) return appendUrlTail('/api/v1/users/password/change', tail);
+    if (/^\/api\/v1\/users\/password\/reset\/username\/?$/i.test(value)) return appendUrlTail('/api/v1/users/password/reset', tail);
     if (/^\/api\/accounts\/users\/?$/i.test(value)) {
-      return requestMethod === 'POST' ? '/api/v1/users/create' : '/api/v1/users/list';
+      return appendUrlTail(requestMethod === 'POST' ? '/api/v1/users/create' : '/api/v1/users/list', tail);
     }
     if (/^\/api\/accounts\/roles\/?$/i.test(value)) {
-      return requestMethod === 'POST' ? '/api/v1/role/create' : '/api/v1/role/list';
+      return appendUrlTail(requestMethod === 'POST' ? '/api/v1/role/create' : '/api/v1/role/list', tail);
     }
     if (/^\/api\/accounts\/permissions\/?$/i.test(value)) {
-      return requestMethod === 'POST' ? '/api/v1/permission/create' : '/api/v1/permission/list';
+      return appendUrlTail(requestMethod === 'POST' ? '/api/v1/permission/create' : '/api/v1/permission/list', tail);
     }
-    if (/^\/api\/accounts\/role-permissions\/?$/i.test(value)) return '/api/v1/rolePermission/create';
-    if (/^\/api\/accounts\/user-roles\/?$/i.test(value)) return '/api/v1/userRole/create';
+    if (/^\/api\/accounts\/role-permissions\/?$/i.test(value)) return appendUrlTail('/api/v1/rolePermission/create', tail);
+    if (/^\/api\/accounts\/user-roles\/?$/i.test(value)) return appendUrlTail('/api/v1/userRole/create', tail);
 
     if (ACCOUNT_V1_PATHS.some((pattern) => pattern.test(value))) {
-      return value.replace(/\/$/, '');
+      return appendUrlTail(value.replace(/\/$/, ''), tail);
     }
 
-    return value;
+    return original;
   }
 
   function normalizeDormitoryPath(path = '', method = 'GET') {
-    const originalValue = String(path || '');
-    const [, value = originalValue, tail = ''] = originalValue.match(/^([^?#]*)(.*)$/) || [];
+    const { original, path: value, tail } = splitUrlPath(path);
     const requestMethod = String(method || 'GET').toUpperCase();
-    const appendTail = (target) => {
-      if (!tail) return target;
-      if (tail.startsWith('?') && target.includes('?')) return `${target}&${tail.slice(1)}`;
-      return `${target}${tail}`;
-    };
 
     if (/^\/api\/accommodation-requests\/?$/i.test(value)) {
-      return appendTail(requestMethod === 'POST' ? '/api/accommodation/create' : '/api/accommodation/detail');
+      return appendUrlTail(requestMethod === 'POST' ? '/api/accommodation/create' : '/api/accommodation/detail', tail);
     }
 
     if (/^\/api\/accommodation-requests\/review\/?$/i.test(value)) {
-      return appendTail('/api/accommodation/review');
+      return appendUrlTail('/api/accommodation/review', tail);
     }
 
     if (/^\/api\/accommodation-requests\/history\/?$/i.test(value)) {
-      return appendTail('/api/accommodation/history');
+      return appendUrlTail('/api/accommodation/history', tail);
     }
 
     const historyMatch = value.match(/^\/api\/accommodation-requests\/([^/?#]+)\/history\/?$/i);
     if (historyMatch) {
-      return appendTail(`/api/accommodation/history?id=${encodeURIComponent(historyMatch[1])}`);
+      return appendUrlTail(`/api/accommodation/history?id=${encodeURIComponent(historyMatch[1])}`, tail);
     }
 
     const detailMatch = value.match(/^\/api\/accommodation-requests\/([^/?#]+)\/?$/i);
     if (detailMatch) {
-      return appendTail(`/api/accommodation/update?id=${encodeURIComponent(detailMatch[1])}`);
+      return appendUrlTail(`/api/accommodation/update?id=${encodeURIComponent(detailMatch[1])}`, tail);
     }
 
     if (/^\/api\/dormitories\/?$/i.test(value)) {
-      return appendTail(requestMethod === 'POST' ? '/api/dormitory/createDorm/' : '/api/dormitory/listAll/');
+      return appendUrlTail(requestMethod === 'POST' ? '/api/dormitory/createDorm/' : '/api/dormitory/listAll/', tail);
     }
 
     const dormRoomsMatch = value.match(/^\/api\/dormitories\/([^/?#]+)\/rooms\/?$/i);
     if (dormRoomsMatch) {
-      return appendTail(`/api/rooms/listAllRoom/?dormId=${encodeURIComponent(dormRoomsMatch[1])}`);
+      return appendUrlTail(`/api/rooms/listAllRoom/?dormId=${encodeURIComponent(dormRoomsMatch[1])}`, tail);
     }
 
     const dormMatch = value.match(/^\/api\/dormitories\/([^/?#]+)\/?$/i);
     if (dormMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
-      return appendTail(`/api/dormitory/updateDorm/${encodeURIComponent(dormMatch[1])}`);
+      return appendUrlTail(`/api/dormitory/updateDorm/${encodeURIComponent(dormMatch[1])}`, tail);
     }
 
     if (/^\/api\/rooms\/?$/i.test(value)) {
-      return appendTail(requestMethod === 'POST' ? '/api/rooms/createRoom/' : '/api/rooms/listAllRoom/');
+      return appendUrlTail(requestMethod === 'POST' ? '/api/rooms/createRoom/' : '/api/rooms/listAllRoom/', tail);
     }
 
     const roomBedsMatch = value.match(/^\/api\/rooms\/([^/?#]+)\/beds\/?$/i);
     if (roomBedsMatch) {
-      return appendTail(`/api/rooms/listAllRoomBeds/${encodeURIComponent(roomBedsMatch[1])}`);
+      return appendUrlTail(`/api/rooms/listAllRoomBeds/${encodeURIComponent(roomBedsMatch[1])}`, tail);
     }
 
     const roomMatch = value.match(/^\/api\/rooms\/([^/?#]+)\/?$/i);
     if (roomMatch && requestMethod === 'DELETE') {
-      return appendTail(`/api/rooms/deleteRoom/${encodeURIComponent(roomMatch[1])}`);
+      return appendUrlTail(`/api/rooms/deleteRoom/${encodeURIComponent(roomMatch[1])}`, tail);
     }
     if (roomMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
-      return appendTail(`/api/rooms/updateRoom/${encodeURIComponent(roomMatch[1])}`);
+      return appendUrlTail(`/api/rooms/updateRoom/${encodeURIComponent(roomMatch[1])}`, tail);
     }
 
     if (/^\/api\/beds\/?$/i.test(value)) {
-      return appendTail(requestMethod === 'POST' ? '/api/beds/createBed/' : '/api/beds/listAll/');
+      return appendUrlTail(requestMethod === 'POST' ? '/api/beds/createBed/' : '/api/beds/listAll/', tail);
     }
 
     const bedMatch = value.match(/^\/api\/beds\/([^/?#]+)\/?$/i);
     if (bedMatch && requestMethod === 'GET') {
-      return appendTail(`/api/beds/getBedById/${encodeURIComponent(bedMatch[1])}`);
+      return appendUrlTail(`/api/beds/getBedById/${encodeURIComponent(bedMatch[1])}`, tail);
     }
     if (bedMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
-      return appendTail(`/api/beds/updateBed/${encodeURIComponent(bedMatch[1])}`);
+      return appendUrlTail(`/api/beds/updateBed/${encodeURIComponent(bedMatch[1])}`, tail);
     }
 
-    return originalValue;
+    return original;
   }
 
   function normalizeAiPath(path = '') {
@@ -149,23 +155,23 @@
   }
 
   function isAccountPath(path = '') {
-    const value = String(path || '');
+    const { path: value } = splitUrlPath(path);
     return /^\/api\/accounts(?:\/|$)/i.test(value)
       || ACCOUNT_V1_PATHS.some((pattern) => pattern.test(value));
   }
 
   function isAnonymousAccountPath(path = '') {
-    const value = normalizeAccountPath(path);
+    const { path: value } = splitUrlPath(normalizeAccountPath(path));
     return /^\/api\/v1\/users\/(?:login|create|token\/refresh|password\/reset)\/?$/i.test(value);
   }
 
   function isAiPath(path = '') {
-    const value = String(path || '');
+    const { path: value } = splitUrlPath(path);
     return /^\/api\/face\/(?:register|verify|delete)\/?$/i.test(value);
   }
 
   function isAnnouncementPath(path = '') {
-    const value = String(path || '');
+    const { path: value } = splitUrlPath(path);
     return /^\/api\/announcements(?:\/|$)/i.test(value);
   }
 

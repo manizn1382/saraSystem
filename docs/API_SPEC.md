@@ -1042,6 +1042,7 @@ Purpose: partially update bed fields.
 ## Front-End Alias Paths
 
 These paths are normalized in `assets/js/api.js` before being sent. They are aliases, not separate back-end implementations.
+Query strings and hash fragments are preserved during normalization, so filtered requests such as `/api/accounts/users/?username=ali` still reach the account service as `/api/v1/users/list?username=ali`.
 
 | Alias path | Normalized path |
 | --- | --- |
