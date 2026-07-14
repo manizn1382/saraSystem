@@ -38,6 +38,15 @@
     }[value] || text(value);
   }
 
+  function roomStatus(value) {
+    const normalized = String(value || '').toLowerCase();
+    return {
+      available: 'active',
+      full: 'inactive',
+      closed: 'inactive'
+    }[normalized] || text(value, 'active');
+  }
+
   function accommodationRequest(item = {}, index = 0) {
     const user = item.user || item.student || {};
     const dormitory = item.requested_dormitory || item.requested_dorm || item.dormitory || {};
@@ -87,7 +96,7 @@
       capacity: text(item.capacity || 0),
       occupied: text(item.occupied || item.occupied_beds || item.currentOccupancy || 0),
       gender_type: text(item.gender_type || item.gender, ''),
-      status: text(item.status, 'active')
+      status: roomStatus(item.status)
     };
   }
 
