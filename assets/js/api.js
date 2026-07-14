@@ -53,9 +53,17 @@
       return appendUrlTail(requestMethod === 'POST' ? '/api/v1/users/create' : '/api/v1/users/list', tail);
     }
 
+    const accountUserStatusMatch = value.match(/^\/api\/accounts\/users\/([^/?#]+)\/status\/?$/i);
+    if (accountUserStatusMatch && requestMethod === 'PATCH') {
+      return appendUrlTail('/api/v1/users/status/change', tail);
+    }
+
     const accountUserMatch = value.match(/^\/api\/accounts\/users\/([^/?#]+)\/?$/i);
     if (accountUserMatch && requestMethod === 'GET') {
       return appendUrlTail(`/api/v1/users/current?userId=${encodeURIComponent(accountUserMatch[1])}`, tail);
+    }
+    if (accountUserMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
+      return appendUrlTail('/api/v1/users/adminUpdate', tail);
     }
     if (accountUserMatch && requestMethod === 'DELETE') {
       return appendUrlTail(`/api/v1/users/delete/${encodeURIComponent(accountUserMatch[1])}`, tail);
@@ -279,6 +287,24 @@
     return JSON.stringify(body);
   }
 
+  function normalizeRequestBody(path = '', method = 'GET', body) {
+    if (!body || body instanceof FormData || typeof body !== 'object' || Array.isArray(body)) return body;
+
+    const { path: value } = splitUrlPath(path);
+    const requestMethod = String(method || 'GET').toUpperCase();
+    const statusMatch = value.match(/^\/api\/accounts\/users\/([^/?#]+)\/status\/?$/i);
+    if (statusMatch && requestMethod === 'PATCH') {
+      return { ...body, id: body.id ?? statusMatch[1] };
+    }
+
+    const userMatch = value.match(/^\/api\/accounts\/users\/([^/?#]+)\/?$/i);
+    if (userMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
+      return { ...body, id: body.id ?? userMatch[1] };
+    }
+
+    return body;
+  }
+
   async function parseResponse(response) {
     const text = await response.text();
     if (!text) return null;
@@ -362,14 +388,15 @@
     const method = options.method || 'GET';
     const retryOnUnauthorized = options.retryOnUnauthorized !== false;
     const url = joinUrl(path, options.baseUrl, method);
+    const body = normalizeRequestBody(path, method, options.body);
 
     let response;
     try {
       response = await fetch(url, {
         ...options,
         method,
-        headers: buildHeaders(options),
-        body: serializeBody(options.body)
+        headers: buildHeaders({ ...options, body }),
+        body: serializeBody(body)
       });
     } catch (networkError) {
       const error = new Error('ارتباط با سرور برقرار نشد. اتصال اینترنت یا آدرس API را بررسی کنید.');
@@ -456,6 +483,7 @@
     normalizeDormitoryPath,
     normalizeAiPath,
     normalizeApiPath,
+    normalizeRequestBody,
     isAccountPath,
     isAiPath,
     isAnnouncementPath,

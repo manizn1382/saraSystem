@@ -1056,6 +1056,8 @@ Query strings and hash fragments are preserved during normalization, so filtered
 | `GET /api/accounts/users/` | `/api/v1/users/list` |
 | `POST /api/accounts/users/` | `/api/v1/users/create` |
 | `GET /api/accounts/users/{id}/` | `/api/v1/users/current?userId={id}` |
+| `PUT/PATCH /api/accounts/users/{id}/` | `/api/v1/users/adminUpdate` |
+| `PATCH /api/accounts/users/{id}/status/` | `/api/v1/users/status/change` |
 | `DELETE /api/accounts/users/{id}/` | `/api/v1/users/delete/{id}` |
 | `/api/accounts/update-profile/` | `/api/v1/users/editProfile` |
 | `/api/accounts/editProfile/` | `/api/v1/users/editProfile` |
@@ -1077,7 +1079,7 @@ Query strings and hash fragments are preserved during normalization, so filtered
 | `/api/accounts/role-permissions/` | `/api/v1/rolePermission/create` |
 | `/api/accounts/user-roles/` | `/api/v1/userRole/create` |
 
-User update/status aliases with `{id}` are not enabled yet because the current backend expects the user `id` inside the JSON request body for `/api/v1/users/adminUpdate` and `/api/v1/users/status/change`.
+For `PUT/PATCH /api/accounts/users/{id}/` and `PATCH /api/accounts/users/{id}/status/`, `assets/js/api.js` injects the path `{id}` into plain JSON request bodies because the current backend expects `id` in the body for `/api/v1/users/adminUpdate` and `/api/v1/users/status/change`. FormData and string bodies are not modified.
 
 ## Planned Account and RBAC APIs
 
