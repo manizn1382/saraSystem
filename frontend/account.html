@@ -252,6 +252,78 @@
             </div>
           </article>
 
+          <article class="panel glass p-3 p-md-4 mb-3">
+            <h2 class="h5 fw-bold mb-3">تأیید هویت تصویری</h2>
+
+            <div
+              x-cloak
+              x-show="identityStatus.message"
+              class="alert py-2 small"
+              :class="identityAlertClass()"
+              role="status"
+              aria-live="polite"
+            >
+              <span x-text="identityStatus.message"></span>
+            </div>
+
+            <label class="form-label" for="identityImage">تصویر چهره</label>
+            <input
+              class="form-control form-control-lg"
+              id="identityImage"
+              type="file"
+              accept="image/*"
+              @change="handleIdentityImage($event)"
+            />
+
+            <div class="d-grid gap-2 mt-3">
+              <button
+                class="btn btn-ss btn-ss-primary"
+                type="button"
+                :disabled="identityLoading"
+                @click="registerIdentityFace()"
+              >
+                <span
+                  x-cloak
+                  x-show="identityButtonLoading('register')"
+                  class="spinner-border spinner-border-sm"
+                ></span>
+                <span
+                  x-text="identityButtonLoading('register') ? 'در حال ثبت...' : 'ثبت تصویر'"
+                ></span>
+              </button>
+              <button
+                class="btn btn-ss btn-ss-outline"
+                type="button"
+                :disabled="identityLoading"
+                @click="verifyIdentityFace()"
+              >
+                <span
+                  x-cloak
+                  x-show="identityButtonLoading('verify')"
+                  class="spinner-border spinner-border-sm"
+                ></span>
+                <span
+                  x-text="identityButtonLoading('verify') ? 'در حال بررسی...' : 'بررسی تصویر'"
+                ></span>
+              </button>
+              <button
+                class="btn btn-ss btn-ss-danger"
+                type="button"
+                :disabled="identityLoading"
+                @click="deleteIdentityFace()"
+              >
+                <span
+                  x-cloak
+                  x-show="identityButtonLoading('delete')"
+                  class="spinner-border spinner-border-sm"
+                ></span>
+                <span
+                  x-text="identityButtonLoading('delete') ? 'در حال حذف...' : 'حذف تصویر ثبت‌شده'"
+                ></span>
+              </button>
+            </div>
+          </article>
+
           <article class="panel glass p-3 p-md-4">
             <h2 class="h5 fw-bold mb-1">تغییر رمز ورود</h2>
             <p class="text-muted-ss small">

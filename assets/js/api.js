@@ -3,6 +3,7 @@
   const DEFAULT_BASE_URL = '/api';
   const DEFAULT_ACCOUNTS_BASE_URL = 'http://127.0.0.1:8001';
   const DEFAULT_DORMITORY_BASE_URL = 'http://127.0.0.1:8000';
+  const DEFAULT_AI_BASE_URL = 'http://127.0.0.1:5000';
   const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
   const ACCOUNT_V1_PATHS = [
     /^\/api\/v1\/users\/(?:create|login|logout|token\/refresh|password\/change|password\/reset|password\/reset\/username|changePassword|editProfile|adminUpdate|list|current|status\/change)\/?$/i,
@@ -18,6 +19,7 @@
     if (options.baseUrl) window.SARA_API_BASE_URL = options.baseUrl;
     if (options.accountsBaseUrl) window.SARA_ACCOUNTS_API_BASE_URL = options.accountsBaseUrl;
     if (options.dormitoryBaseUrl) window.SARA_DORMITORY_API_BASE_URL = options.dormitoryBaseUrl;
+    if (options.aiBaseUrl) window.SARA_AI_API_BASE_URL = options.aiBaseUrl;
   }
 
   function normalizeAccountPath(path = '', method = 'GET') {
@@ -74,8 +76,18 @@
     return value;
   }
 
+  function normalizeAiPath(path = '') {
+    const value = String(path || '');
+
+    if (/^\/api\/face\/register\/?$/i.test(value)) return '/register';
+    if (/^\/api\/face\/verify\/?$/i.test(value)) return '/verify';
+    if (/^\/api\/face\/delete\/?$/i.test(value)) return '/delete';
+
+    return value;
+  }
+
   function normalizeApiPath(path = '', method = 'GET') {
-    return normalizeDormitoryPath(normalizeAccountPath(path, method), method);
+    return normalizeAiPath(normalizeDormitoryPath(normalizeAccountPath(path, method), method));
   }
 
   function isAccountPath(path = '') {
@@ -89,8 +101,20 @@
     return /^\/api\/v1\/users\/(?:login|create|token\/refresh|password\/reset)\/?$/i.test(value);
   }
 
+  function isAiPath(path = '') {
+    const value = String(path || '');
+    return /^\/api\/face\/(?:register|verify|delete)\/?$/i.test(value);
+  }
+
   function apiBaseUrl(path = '') {
+    const originalValue = String(path || '');
     const value = normalizeApiPath(path);
+    if (isAiPath(originalValue)) {
+      return window.SARA_AI_API_BASE_URL
+        || localStorage.getItem('sarasystem.aiApiBaseUrl')
+        || DEFAULT_AI_BASE_URL;
+    }
+
     if (/^\/api\/accounts(?:\/|$)/i.test(value)) {
       return window.SARA_ACCOUNTS_API_BASE_URL
         || localStorage.getItem('sarasystem.accountsApiBaseUrl')
@@ -118,7 +142,7 @@
     const value = normalizeApiPath(path, method);
     if (/^https?:\/\//i.test(value)) return value;
 
-    const resolvedBaseUrl = baseUrl || apiBaseUrl(value);
+    const resolvedBaseUrl = baseUrl || apiBaseUrl(path);
     const base = String(resolvedBaseUrl || '').replace(/\/+$/, '');
     if (/^\/api(\/|$)/i.test(value)) {
       if (/^https?:\/\//i.test(base)) {
@@ -292,7 +316,7 @@
         if (!/^\/api(\/|$)/i.test(requestPath)) return;
 
         const normalizedPath = normalizeApiPath(requestPath, event.detail?.verb || event.detail?.requestConfig?.verb || 'GET');
-        const resolvedPath = joinUrl(normalizedPath);
+        const resolvedPath = joinUrl(requestPath, undefined, event.detail?.verb || event.detail?.requestConfig?.verb || 'GET');
         if (resolvedPath !== requestPath) {
           event.detail.path = resolvedPath;
           if (event.detail.pathInfo) event.detail.pathInfo.requestPath = resolvedPath;
@@ -300,7 +324,7 @@
         }
 
         const token = window.SaraAuth?.getAccessToken?.();
-        if (token && !isAnonymousAccountPath(normalizedPath)) {
+        if (token && !isAnonymousAccountPath(normalizedPath) && !isAiPath(requestPath)) {
           event.detail.headers = event.detail.headers || {};
           event.detail.headers.Authorization = `Bearer ${token}`;
         }
@@ -328,8 +352,10 @@
     apiBaseUrl,
     normalizeAccountPath,
     normalizeDormitoryPath,
+    normalizeAiPath,
     normalizeApiPath,
     isAccountPath,
+    isAiPath,
     joinUrl,
     normalizeEndpoint,
     buildHeaders,

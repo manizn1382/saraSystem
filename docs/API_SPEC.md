@@ -19,9 +19,10 @@ Scope: complete API inventory for the current SaraSystem repository, including i
 | --- | --- | --- | --- |
 | Account service | `http://127.0.0.1:8001` | `/api/v1/...` | Handles users, JWT login/refresh, roles, permissions, user-role, role-permission. |
 | Dormitory service | `http://127.0.0.1:8000` | `/api/dormitory/`, `/api/rooms/`, `/api/beds/` | Handles dormitories, rooms, beds. |
+| AI service | `http://127.0.0.1:5000` | `/register`, `/verify`, `/delete` | Flask face-image service. Front-end aliases use `/api/face/...` and route to this base. |
 | Application API | same origin `/api` or gateway | `/api/...` | Planned unified API surface for accommodation, assignments, payments, maintenance, announcements, reports, public data. |
 
-Current front-end routing in `assets/js/api.js` sends account paths to the account service, dormitory/room/bed paths to the dormitory service, and all other `/api/...` paths to the configured general API base.
+Current front-end routing in `assets/js/api.js` sends account paths to the account service, dormitory/room/bed/accommodation paths to the dormitory service, AI face aliases to the AI service, and all other `/api/...` paths to the configured general API base.
 
 ## Global API Conventions
 
@@ -2095,36 +2096,95 @@ Status: Planned future
 Auth: system admin  
 Purpose: user activity/audit log. Mentioned as future roadmap in project documentation.
 
-## Planned External/Future Integration APIs
+## External AI Service APIs
 
-These are not front-end implementation tasks. They are documented only so backend boundaries are explicit.
+The current backend includes a Flask AI service in `AI/face_recognition/face_recognition_server.py`.
+The service exposes raw paths on port `5000`. The front end uses `/api/face/...` aliases so UI code does not depend on the raw service paths.
 
-### `POST /api/face/verify/`
+Important caveats:
 
-Status: Planned future external integration  
-Auth: authenticated or admin workflow depending on policy  
-Purpose: optional future face verification service.
+- Current Flask routes do not enforce JWT authentication. The front end sends these requests with `auth: false` and relies on the surrounding authenticated page context.
+- Current Flask routes do not configure CORS. Direct browser calls from another origin may fail until the AI service enables CORS or is placed behind the same gateway/origin as the front end.
+- Responses use `{ "success": boolean, "log": string }`, not the standard SaraSystem success envelope.
+- The AI service stores face data on local disk under `AI/face_recognition/database/{id}/img.jpg`.
+- The front end only uploads/deletes images and displays service results. It does not implement face recognition logic.
 
-Request:
+### `POST /api/face/register/`
 
-```json
-{
-  "user_id": 13,
-  "image": "base64-or-upload-reference"
-}
-```
+Status: Implemented external service alias
+
+AI service path: `POST http://127.0.0.1:5000/register`
+
+Auth: authenticated front-end page context; no JWT currently enforced by AI service
+
+Purpose: register a user's face image in the AI service.
+
+Request: `multipart/form-data`
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | string/integer | yes | User identifier. Current front end sends account user `id`/`user_id`. |
+| `image` | file | yes | Face image file. |
 
 Response:
 
 ```json
 {
-  "verified": true,
-  "confidence": 0.98,
-  "provider_reference": "face-job-123"
+  "success": true,
+  "log": "saved successfully."
 }
 ```
 
-Rule: do not implement AI face recognition in the front end.
+### `POST /api/face/verify/`
+
+Status: Implemented external service alias
+
+AI service path: `POST http://127.0.0.1:5000/verify`
+
+Auth: authenticated front-end page context; no JWT currently enforced by AI service
+
+Purpose: verify a user-submitted face image against the stored image for that user.
+
+Request: `multipart/form-data`
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | string/integer | yes | User identifier. |
+| `image` | file | yes | Face image file to verify. |
+
+Response:
+
+```json
+{
+  "success": true,
+  "log": "operation done."
+}
+```
+
+### `POST /api/face/delete/`
+
+Status: Implemented external service alias
+
+AI service path: `POST http://127.0.0.1:5000/delete`
+
+Auth: authenticated front-end page context; no JWT currently enforced by AI service
+
+Purpose: delete the stored face image for a user from the AI service.
+
+Request: `multipart/form-data`
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | string/integer | yes | User identifier. |
+
+Response:
+
+```json
+{
+  "success": true,
+  "log": "deleted successfully."
+}
+```
 
 ### `GET /api/health/`
 

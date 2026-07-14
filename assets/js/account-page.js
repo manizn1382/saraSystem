@@ -4,6 +4,10 @@ function accountPage() {
         profileImage: null,
         profileLoading: false,
         passwordLoading: false,
+        identityImage: null,
+        identityLoading: false,
+        identityAction: '',
+        identityStatus: { type: 'info', message: '' },
         isDemo: false,
         accountStatus: { label: 'نامشخص', className: 'badge-neutral', message: '' },
         alert: { type: 'info', message: '' },
@@ -81,6 +85,92 @@ function accountPage() {
           } finally {
             this.passwordLoading = false;
           }
+        },
+
+        handleIdentityImage(event) {
+          this.identityImage = event?.target?.files?.[0] || null;
+          if (this.identityImage) {
+            this.showIdentityStatus('info', 'تصویر انتخاب شد و آماده ارسال به سرویس هوش مصنوعی است.');
+          } else {
+            this.identityStatus.message = '';
+          }
+        },
+
+        async registerIdentityFace() {
+          await this.submitIdentityFace('register');
+        },
+
+        async verifyIdentityFace() {
+          await this.submitIdentityFace('verify');
+        },
+
+        async deleteIdentityFace() {
+          await this.submitIdentityFace('delete');
+        },
+
+        async submitIdentityFace(action) {
+          const userId = this.identityUserId();
+          const needsImage = action !== 'delete';
+
+          if (this.isDemo) {
+            this.showIdentityStatus('warning', 'در حالت نمایشی درخواست به سرویس هوش مصنوعی ارسال نمی‌شود.');
+            return;
+          }
+
+          if (!userId) {
+            this.showIdentityStatus('warning', 'شناسه کاربر برای اتصال به سرویس هوش مصنوعی در دسترس نیست.');
+            return;
+          }
+
+          if (needsImage && !this.identityImage) {
+            this.showIdentityStatus('warning', 'ابتدا یک تصویر انتخاب کنید.');
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('id', userId);
+          if (needsImage) formData.append('image', this.identityImage);
+
+          this.identityLoading = true;
+          this.identityAction = action;
+          this.showIdentityStatus('info', 'در حال ارسال درخواست...');
+
+          try {
+            const response = await window.SaraAPI.post(`/api/face/${action}/`, formData, {
+              auth: false,
+              retryOnUnauthorized: false,
+              redirectOnExpired: false
+            });
+            const succeeded = response?.success !== false;
+            const message = response?.log || response?.message || (succeeded ? 'درخواست با موفقیت انجام شد.' : 'درخواست توسط سرویس رد شد.');
+            this.showIdentityStatus(succeeded ? 'success' : 'warning', message);
+          } catch (error) {
+            this.showIdentityStatus('danger', error.message || 'ارتباط با سرویس هوش مصنوعی برقرار نشد.');
+          } finally {
+            this.identityLoading = false;
+            this.identityAction = '';
+          }
+        },
+
+        identityUserId() {
+          return this.profile.id || this.profile.user_id || this.profile.userId || this.profile.pk || '';
+        },
+
+        identityButtonLoading(action) {
+          return this.identityLoading && this.identityAction === action;
+        },
+
+        identityAlertClass() {
+          return {
+            success: 'alert-success',
+            warning: 'alert-warning',
+            danger: 'alert-danger',
+            info: 'alert-info'
+          }[this.identityStatus.type] || 'alert-info';
+        },
+
+        showIdentityStatus(type, message) {
+          this.identityStatus = { type, message };
         },
 
         profilePayload() {
