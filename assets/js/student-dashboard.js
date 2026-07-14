@@ -228,10 +228,18 @@
 
           document.body.addEventListener("htmx:configRequest", (event) => {
             const token = this.getAccessToken();
+            const path = event.detail?.path
+              || event.detail?.pathInfo?.requestPath
+              || event.detail?.requestConfig?.path
+              || "";
+            const method = event.detail?.verb
+              || event.detail?.requestConfig?.verb
+              || "GET";
 
+            event.detail.headers = event.detail.headers || {};
             event.detail.headers["Accept"] = "application/json";
 
-            if (token) {
+            if (token && (window.SaraAPI?.shouldAttachAuthHeader?.(path, method) ?? true)) {
               event.detail.headers["Authorization"] = `Bearer ${token}`;
             }
           });

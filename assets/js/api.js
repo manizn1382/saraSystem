@@ -216,6 +216,69 @@
       || /^\/api\/announcements\/public\/?$/i.test(value);
   }
 
+  function requestPathname(path = '') {
+    const raw = String(path || '');
+    try {
+      if (/^[a-z][a-z\d+.-]*:\/\//i.test(raw)) return new URL(raw).pathname;
+    } catch {
+      return splitUrlPath(raw).path;
+    }
+    return splitUrlPath(raw).path;
+  }
+
+  function requestOrigin(path = '') {
+    try {
+      if (/^[a-z][a-z\d+.-]*:\/\//i.test(String(path || ''))) return new URL(String(path)).origin;
+    } catch {
+      return '';
+    }
+    return '';
+  }
+
+  function isResolvedAiServicePath(path = '') {
+    const origin = requestOrigin(path);
+    if (!origin) return false;
+    const aiBase = window.SARA_AI_API_BASE_URL
+      || localStorage.getItem('sarasystem.aiApiBaseUrl')
+      || DEFAULT_AI_BASE_URL;
+    return origin === requestOrigin(aiBase)
+      && /^\/(?:register|verify|delete)\/?$/i.test(requestPathname(path));
+  }
+
+  function isAiRequestPath(path = '', normalizedPath = '') {
+    return isAiPath(path)
+      || isAiPath(normalizedPath)
+      || /^\/(?:register|verify|delete)\/?$/i.test(requestPathname(normalizedPath))
+      || isResolvedAiServicePath(path)
+      || isResolvedAiServicePath(normalizedPath);
+  }
+
+  function isPublicRequestPath(path = '', normalizedPath = '') {
+    const value = requestPathname(path);
+    const normalizedValue = requestPathname(normalizedPath);
+    return isPublicApiPath(path)
+      || isPublicApiPath(normalizedPath)
+      || /^\/api\/public(?:\/|$)/i.test(value)
+      || /^\/api\/public(?:\/|$)/i.test(normalizedValue)
+      || /^\/api\/announcements\/public\/?$/i.test(value)
+      || /^\/api\/announcements\/public\/?$/i.test(normalizedValue);
+  }
+
+  function isAnonymousAccountRequestPath(path = '', method = 'GET') {
+    const normalizedPath = normalizeApiPath(path, method);
+    const value = requestPathname(normalizedPath);
+    const originalValue = requestPathname(path);
+    return /^\/api\/v1\/users\/(?:login|create|token\/refresh|password\/reset)\/?$/i.test(value)
+      || /^\/api\/accounts\/(?:getToken|refreshToken|register|users\/register|reset-password|forgot-password|password\/reset|password\/reset\/username)\/?$/i.test(originalValue);
+  }
+
+  function shouldAttachAuthHeader(path = '', method = 'GET') {
+    const normalizedPath = normalizeApiPath(path, method);
+    return !isPublicRequestPath(path, normalizedPath)
+      && !isAiRequestPath(path, normalizedPath)
+      && !isAnonymousAccountRequestPath(path, method);
+  }
+
   function apiBaseUrl(path = '', method = 'GET') {
     const originalValue = String(path || '');
     const value = normalizeApiPath(path, method);
@@ -283,6 +346,8 @@
 
   function buildHeaders(options = {}) {
     const body = options.body;
+    const path = options.path || options.endpoint || '';
+    const method = options.method || 'GET';
     const headers = {
       Accept: 'application/json',
       ...(body && !(body instanceof FormData) ? { 'Content-Type': 'application/json' } : {}),
@@ -290,7 +355,9 @@
     };
 
     const token = options.token || window.SaraAuth?.getAccessToken?.();
-    if (token && options.auth !== false) headers.Authorization = `Bearer ${token}`;
+    if (token && options.auth !== false && (!path || shouldAttachAuthHeader(path, method))) {
+      headers.Authorization = `Bearer ${token}`;
+    }
     return headers;
   }
 
@@ -407,7 +474,7 @@
       response = await fetch(url, {
         ...options,
         method,
-        headers: buildHeaders({ ...options, body }),
+        headers: buildHeaders({ ...options, path, method, body }),
         body: serializeBody(body)
       });
     } catch (networkError) {
@@ -465,7 +532,7 @@
         }
 
         const token = window.SaraAuth?.getAccessToken?.();
-        if (token && !isAnonymousAccountPath(normalizedPath) && !isAiPath(requestPath) && !isPublicApiPath(requestPath)) {
+        if (token && shouldAttachAuthHeader(requestPath, event.detail?.verb || event.detail?.requestConfig?.verb || 'GET')) {
           event.detail.headers = event.detail.headers || {};
           event.detail.headers.Authorization = `Bearer ${token}`;
         }
@@ -500,6 +567,7 @@
     isAiPath,
     isAnnouncementPath,
     isPublicApiPath,
+    shouldAttachAuthHeader,
     joinUrl,
     normalizeEndpoint,
     buildHeaders,

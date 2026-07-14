@@ -330,6 +330,10 @@
     }
 
     function shouldAttachAuthorization(path, verb) {
+      if (window.SaraAPI?.shouldAttachAuthHeader) {
+        return window.SaraAPI.shouldAttachAuthHeader(path, verb);
+      }
+
       const normalized = window.SaraAPI?.normalizeApiPath?.(path, verb) || path;
 
       return !isPublicRequest(path, normalized) && !isAiRequest(path, normalized) && !isAnonymousAccountRequest(path, verb);
