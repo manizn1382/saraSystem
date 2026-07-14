@@ -80,6 +80,7 @@
           maintenanceRequests: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
           announcements: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false }
         },
+        announcementReadsSyncing: false,
 
         tableState: {
           accommodationRequests: { query: "", sort: { key: "request_date", direction: "desc" }, page: 1, pageSize: 5 },
@@ -691,6 +692,33 @@
                 read: Boolean(item.read || item.is_read || item.read_at)
               }));
             this.updateUnreadBadge();
+            this.syncAnnouncementReads();
+          }
+        },
+
+        async syncAnnouncementReads() {
+          if (this.isDemoMode() || this.announcementReadsSyncing || !this.announcements.length) return;
+
+          this.announcementReadsSyncing = true;
+          try {
+            const data = await window.SaraAPI.get("/api/announcements/reads/me/");
+            const reads = this.asList(data);
+            const readIds = new Set(reads.map((item) => String(
+              item.announcement?.id || item.announcement_id || item.announcement || ""
+            )).filter(Boolean));
+
+            if (!readIds.size) return;
+
+            this.announcements = this.announcements.map((announcement) => (
+              readIds.has(String(announcement.id))
+                ? { ...announcement, read: true }
+                : announcement
+            ));
+            this.updateUnreadBadge();
+          } catch {
+            // Read-state sync is secondary to loading the announcement list.
+          } finally {
+            this.announcementReadsSyncing = false;
           }
         },
 
@@ -1045,7 +1073,8 @@
 
           try {
             if (!window.SaraAuth?.isDemoMode?.()) {
-              await window.SaraAPI.post(`/api/announcements/${announcement.id}/read/`, {});
+              const data = await window.SaraAPI.post(`/api/announcements/${announcement.id}/read/`, {});
+              announcement.read_at = data?.read_at || announcement.read_at || "";
             }
             this.showAlert("success", "اطلاعیه به عنوان خوانده‌شده علامت‌گذاری شد.");
           } catch (error) {

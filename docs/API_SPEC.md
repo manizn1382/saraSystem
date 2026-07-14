@@ -2017,6 +2017,8 @@ Status: implemented app, backend URL mount pending
 Auth: authenticated
 Purpose: list current user's `AnnouncementRead` records.
 
+Frontend note: the student dashboard now loads this endpoint after `/api/announcements/` and merges returned `announcement` IDs into local read/unread state.
+
 ### `GET /api/announcements/{id}/reads/`
 
 Status: Planned  
