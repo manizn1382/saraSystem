@@ -45,6 +45,51 @@
     return query ? `?${query}` : '';
   }
 
+  function queryTail(params) {
+    const query = params.toString();
+    return query ? `?${query}` : '';
+  }
+
+  function normalizeRoomListTail(tail = '', forcedDormId = '') {
+    if (!tail.startsWith('?')) {
+      return forcedDormId ? `${queryTail(new URLSearchParams([['dormId', forcedDormId]]))}${tail}` : tail;
+    }
+    const params = new URLSearchParams(tail.startsWith('?') ? tail.slice(1) : '');
+    const dormitoryId = forcedDormId
+      || params.get('dormId')
+      || params.get('dormitory_id')
+      || params.get('dormitoryId')
+      || params.get('dormitory');
+    params.delete('dormitory_id');
+    params.delete('dormitoryId');
+    params.delete('dormitory');
+    if (dormitoryId) params.set('dormId', dormitoryId);
+    return queryTail(params);
+  }
+
+  function normalizeBedListTarget(tail = '') {
+    if (!tail.startsWith('?')) {
+      return { path: '/api/beds/listAll/', tail };
+    }
+    const params = new URLSearchParams(tail.startsWith('?') ? tail.slice(1) : '');
+    const roomId = params.get('room_id') || params.get('roomId') || params.get('room');
+    const status = params.get('status');
+    params.delete('room_id');
+    params.delete('roomId');
+    params.delete('room');
+    if (roomId) {
+      return {
+        path: `/api/rooms/listAllRoomBeds/${encodeURIComponent(roomId)}`,
+        tail: queryTail(params)
+      };
+    }
+    params.delete('status');
+    return {
+      path: status ? `/api/beds/listAll/${encodeURIComponent(status)}` : '/api/beds/listAll/',
+      tail: queryTail(params)
+    };
+  }
+
   function normalizeAccountPath(path = '', method = 'GET') {
     const { original, path: value, tail } = splitUrlPath(path);
     const requestMethod = String(method || 'GET').toUpperCase();
@@ -150,7 +195,7 @@
 
     const dormRoomsMatch = value.match(/^\/api\/dormitories\/([^/?#]+)\/rooms\/?$/i);
     if (dormRoomsMatch) {
-      return appendUrlTail(`/api/rooms/listAllRoom/?dormId=${encodeURIComponent(dormRoomsMatch[1])}`, tail);
+      return appendUrlTail('/api/rooms/listAllRoom/', normalizeRoomListTail(tail, dormRoomsMatch[1]));
     }
 
     const dormMatch = value.match(/^\/api\/dormitories\/([^/?#]+)\/?$/i);
@@ -159,7 +204,7 @@
     }
 
     if (/^\/api\/rooms\/?$/i.test(value)) {
-      return appendUrlTail(requestMethod === 'POST' ? '/api/rooms/createRoom/' : '/api/rooms/listAllRoom/', tail);
+      return appendUrlTail(requestMethod === 'POST' ? '/api/rooms/createRoom/' : '/api/rooms/listAllRoom/', requestMethod === 'GET' ? normalizeRoomListTail(tail) : tail);
     }
 
     const roomBedsMatch = value.match(/^\/api\/rooms\/([^/?#]+)\/beds\/?$/i);
@@ -176,7 +221,11 @@
     }
 
     if (/^\/api\/beds\/?$/i.test(value)) {
-      return appendUrlTail(requestMethod === 'POST' ? '/api/beds/createBed/' : '/api/beds/listAll/', tail);
+      if (requestMethod === 'GET') {
+        const target = normalizeBedListTarget(tail);
+        return appendUrlTail(target.path, target.tail);
+      }
+      return appendUrlTail('/api/beds/createBed/', tail);
     }
 
     const bedMatch = value.match(/^\/api\/beds\/([^/?#]+)\/?$/i);

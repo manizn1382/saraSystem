@@ -1263,6 +1263,7 @@ Recommended dormitory query params:
 | Method | Path | Status | Purpose |
 | --- | --- | --- | --- |
 | `GET` | `/api/rooms/` | Front-end alias | Normalizes to `GET /api/rooms/listAllRoom/`. |
+| `GET` | `/api/rooms/?dormitory_id={id}` | Front-end alias | Normalizes to `GET /api/rooms/listAllRoom/?dormId={id}`. |
 | `POST` | `/api/rooms/` | Front-end alias | Normalizes to `POST /api/rooms/createRoom/`. |
 | `GET` | `/api/rooms/{id}/` | Planned | Retrieve room. |
 | `PUT` | `/api/rooms/{id}/` | Front-end alias | Normalizes to `PUT /api/rooms/updateRoom/{id}`. |
@@ -1274,7 +1275,7 @@ Recommended room query params:
 
 | Param | Description |
 | --- | --- |
-| `dormitory_id` | Filter by dormitory. |
+| `dormitory_id` | Front-end alias for the current backend `dormId` filter. |
 | `status` | Room status. |
 | `floorNumber` or `floor_number` | Filter by floor. |
 | `q` | Room number search. |
@@ -1284,6 +1285,8 @@ Recommended room query params:
 | Method | Path | Status | Purpose |
 | --- | --- | --- | --- |
 | `GET` | `/api/beds/` | Front-end alias | Normalizes to `GET /api/beds/listAll/`. |
+| `GET` | `/api/beds/?status={status}` | Front-end alias | Normalizes to `GET /api/beds/listAll/{status}`. |
+| `GET` | `/api/beds/?room_id={id}` | Front-end alias | Normalizes to `GET /api/rooms/listAllRoomBeds/{id}`. |
 | `POST` | `/api/beds/` | Front-end alias | Normalizes to `POST /api/beds/createBed/`. |
 | `GET` | `/api/beds/{id}/` | Front-end alias | Normalizes to `GET /api/beds/getBedById/{id}`. |
 | `PUT` | `/api/beds/{id}/` | Front-end alias | Normalizes to `PUT /api/beds/updateBed/{id}`. |
@@ -1294,9 +1297,9 @@ Recommended bed query params:
 
 | Param | Description |
 | --- | --- |
-| `room_id` | Filter by room. |
+| `room_id` | Front-end alias for the current backend room-beds route. |
 | `dormitory_id` | Filter by dormitory through room. |
-| `status` | Bed status. |
+| `status` | Front-end alias for the current backend status path. |
 | `available_only` | Boolean helper for assignment screens. |
 
 ## Front-End Contract: Public APIs
