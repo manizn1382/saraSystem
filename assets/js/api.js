@@ -84,6 +84,11 @@
       return appendUrlTail('/api/accommodation/history', tail);
     }
 
+    const reviewMatch = value.match(/^\/api\/accommodation-requests\/([^/?#]+)\/review\/?$/i);
+    if (reviewMatch) {
+      return appendUrlTail(`/api/accommodation/review?id=${encodeURIComponent(reviewMatch[1])}`, tail);
+    }
+
     const historyMatch = value.match(/^\/api\/accommodation-requests\/([^/?#]+)\/history\/?$/i);
     if (historyMatch) {
       return appendUrlTail(`/api/accommodation/history?id=${encodeURIComponent(historyMatch[1])}`, tail);

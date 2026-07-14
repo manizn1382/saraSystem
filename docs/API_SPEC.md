@@ -1474,7 +1474,7 @@ Response:
 }
 ```
 
-Recommended REST alias: `PATCH /api/accommodation-requests/{id}/review/`.
+Recommended REST alias: `PATCH /api/accommodation-requests/{id}/review/`. The front-end normalizer maps this to `PATCH /api/accommodation/review?id={id}`.
 
 Current backend caveat: `UpdateReviewInfo.put` currently rejects records whose status is `pending`, which prevents the dormitory-admin approval/rejection workflow from reviewing pending requests. The condition should be adjusted so pending requests can transition to `approved` or `rejected`.
 
