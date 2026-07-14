@@ -1440,6 +1440,7 @@ Server rules:
 ### `PUT /api/accommodation-requests/review/`
 
 Status: implemented
+Backend path: `PUT /api/accommodation/review?id={id}`
 Auth: dormitory admin or system admin  
 Used by: dormitory admin review modal.
 
@@ -1447,7 +1448,6 @@ Request:
 
 ```json
 {
-  "request_id": 101,
   "status": "approved",
   "review_note": "Approved for assignment."
 }
@@ -1457,7 +1457,6 @@ Rejected request:
 
 ```json
 {
-  "request_id": 101,
   "status": "rejected",
   "review_note": "Incomplete documentation."
 }
@@ -1476,6 +1475,8 @@ Response:
 ```
 
 Recommended REST alias: `PATCH /api/accommodation-requests/{id}/review/`.
+
+Current backend caveat: `UpdateReviewInfo.put` currently rejects records whose status is `pending`, which prevents the dormitory-admin approval/rejection workflow from reviewing pending requests. The condition should be adjusted so pending requests can transition to `approved` or `rejected`.
 
 ### `GET /api/accommodation-requests/history/`
 
@@ -2298,7 +2299,8 @@ The front end already checks several permission names. The API should treat thes
 8. Username-only anonymous password reset is implemented at `/api/v1/users/password/reset`; older `/password/reset/username` aliases should normalize to that route.
 9. Accommodation requests and the announcements app now have partial backend implementations. Remaining missing or unmounted areas include bed assignments, payments, maintenance requests, public stats, public announcements, reports, and the `announcements.urls` include in the account service root URL config.
 10. Dormitory/room/bed endpoints use action-style names; RESTful aliases are recommended for long-term consistency.
-11. Current serializers omit some model fields such as dormitory `dorm_type`, `description`, `createdAt`, `updatedAt`, room/bed `description`, and timestamps. Add them if the UI/reporting needs them.
+11. `PUT /api/accommodation/review?id={id}` currently rejects `pending` records, so dormitory admins cannot approve/reject newly submitted requests.
+12. Current serializers omit some model fields such as dormitory `dorm_type`, `description`, `createdAt`, `updatedAt`, room/bed `description`, and timestamps. Add them if the UI/reporting needs them.
 
 ## Minimum API Set Needed for Full Product
 
