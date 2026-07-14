@@ -1056,6 +1056,7 @@ Query strings and hash fragments are preserved during normalization, so filtered
 | `/api/accounts/users/register/` | `/api/v1/users/create` |
 | `GET /api/accounts/users/` | `/api/v1/users/list` |
 | `POST /api/accounts/users/` | `/api/v1/users/create` |
+| `GET /api/accounts/users/by-student-id/?student_id={studentId}` | `/api/v1/users/current/studentId?studentId={studentId}` |
 | `GET /api/accounts/users/{id}/` | `/api/v1/users/current?userId={id}` |
 | `PUT/PATCH /api/accounts/users/{id}/` | `/api/v1/users/adminUpdate` |
 | `PATCH /api/accounts/users/{id}/status/` | `/api/v1/users/status/change` |

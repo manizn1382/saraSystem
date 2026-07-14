@@ -34,6 +34,17 @@
     return `${target}${tail}`;
   }
 
+  function normalizeStudentIdTail(tail = '') {
+    if (!tail.startsWith('?')) return tail;
+    const params = new URLSearchParams(tail.slice(1));
+    if (!params.has('studentId') && params.has('student_id')) {
+      params.set('studentId', params.get('student_id'));
+      params.delete('student_id');
+    }
+    const query = params.toString();
+    return query ? `?${query}` : '';
+  }
+
   function normalizeAccountPath(path = '', method = 'GET') {
     const { original, path: value, tail } = splitUrlPath(path);
     const requestMethod = String(method || 'GET').toUpperCase();
@@ -51,6 +62,10 @@
     if (/^\/api\/v1\/users\/password\/reset\/username\/?$/i.test(value)) return appendUrlTail('/api/v1/users/password/reset', tail);
     if (/^\/api\/accounts\/users\/?$/i.test(value)) {
       return appendUrlTail(requestMethod === 'POST' ? '/api/v1/users/create' : '/api/v1/users/list', tail);
+    }
+
+    if (/^\/api\/accounts\/users\/(?:by-student-id|student-id)\/?$/i.test(value)) {
+      return appendUrlTail('/api/v1/users/current/studentId', normalizeStudentIdTail(tail));
     }
 
     const accountUserStatusMatch = value.match(/^\/api\/accounts\/users\/([^/?#]+)\/status\/?$/i);
