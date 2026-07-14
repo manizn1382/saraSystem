@@ -1055,6 +1055,8 @@ Query strings and hash fragments are preserved during normalization, so filtered
 | `/api/accounts/users/register/` | `/api/v1/users/create` |
 | `GET /api/accounts/users/` | `/api/v1/users/list` |
 | `POST /api/accounts/users/` | `/api/v1/users/create` |
+| `GET /api/accounts/users/{id}/` | `/api/v1/users/current?userId={id}` |
+| `DELETE /api/accounts/users/{id}/` | `/api/v1/users/delete/{id}` |
 | `/api/accounts/update-profile/` | `/api/v1/users/editProfile` |
 | `/api/accounts/editProfile/` | `/api/v1/users/editProfile` |
 | `/api/accounts/users/admin-update/` | `/api/v1/users/adminUpdate` |
@@ -1068,10 +1070,14 @@ Query strings and hash fragments are preserved during normalization, so filtered
 | `/api/v1/users/changePassword` | `/api/v1/users/password/change` |
 | `GET /api/accounts/roles/` | `/api/v1/role/list` |
 | `POST /api/accounts/roles/` | `/api/v1/role/create` |
+| `PUT/PATCH /api/accounts/roles/{id}/` | `/api/v1/role/update/{id}` |
+| `DELETE /api/accounts/roles/{id}/` | `/api/v1/role/delete/{id}` |
 | `GET /api/accounts/permissions/` | `/api/v1/permission/list` |
 | `POST /api/accounts/permissions/` | `/api/v1/permission/create` |
 | `/api/accounts/role-permissions/` | `/api/v1/rolePermission/create` |
 | `/api/accounts/user-roles/` | `/api/v1/userRole/create` |
+
+User update/status aliases with `{id}` are not enabled yet because the current backend expects the user `id` inside the JSON request body for `/api/v1/users/adminUpdate` and `/api/v1/users/status/change`.
 
 ## Planned Account and RBAC APIs
 
