@@ -13,7 +13,7 @@
   const PERMISSION_LIST_ENDPOINT = '/api/accounts/permissions/';
   const ROLE_PERMISSION_CREATE_ENDPOINT = '/api/accounts/role-permissions/';
   const USER_ROLE_CREATE_ENDPOINT = '/api/accounts/user-roles/';
-  const DORMITORY_ENDPOINT = '/api/dormitory/listAll/';
+  const DORMITORY_ENDPOINT = '/api/dormitories/';
 
   function asArray(data) {
     return window.SaraUI?.asList?.(data)
@@ -99,7 +99,7 @@
         { label: 'خوابگاه‌ها', value: '—', icon: 'خوابگاه' }
       ],
       operations: [
-        { title: 'درخواست‌های اسکان', anchor: '#operations', endpoint: '/api/accommodation/detail' },
+        { title: 'درخواست‌های اسکان', anchor: '#operations', endpoint: '/api/accommodation-requests/' },
         { title: 'تخصیص تخت', anchor: '#operations', endpoint: '/api/bed-assignments/' },
         { title: 'پرداخت‌ها', anchor: '#operations', endpoint: '/api/payments/' },
         { title: 'تعمیرات', anchor: '#operations', endpoint: '/api/maintenance-requests/' },

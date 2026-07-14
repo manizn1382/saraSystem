@@ -7,10 +7,10 @@
 
    Expected endpoint families:
    /api/accounts/users/ -> User[]
-   /api/dormitory/listAll/ -> Dormitory[]
-   /api/rooms/listAllRoom/ -> Room[]
-   /api/beds/listAll/ -> Bed[]
-   /api/accommodation/detail -> AccommodationRequest[]
+   /api/dormitories/ -> Dormitory[]
+   /api/rooms/ -> Room[]
+   /api/beds/ -> Bed[]
+   /api/accommodation-requests/ -> AccommodationRequest[]
    /api/bed-assignments/ -> BedAssignment[]
    /api/payments/ -> Payment[]
    /api/maintenance-requests/ -> MaintenanceRequest[]

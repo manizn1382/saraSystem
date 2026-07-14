@@ -1071,7 +1071,7 @@
     <div class="d-none">
       <div
         data-resource="accommodationRequests"
-        hx-get="/api/accommodation/history"
+        hx-get="/api/accommodation-requests/history/"
         hx-trigger="load, click from:#refreshDashboard"
         hx-swap="none"
         hx-timeout="15000"
@@ -1140,7 +1140,7 @@
             id="accommodationForm"
             novalidate
             hx-ext="json-enc"
-            hx-post="/api/accommodation/create"
+            hx-post="/api/accommodation-requests/"
             hx-trigger="submit"
             hx-swap="none"
             hx-timeout="15000"

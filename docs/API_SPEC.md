@@ -1512,7 +1512,7 @@ Supported current backend query params:
 
 Front-end notes:
 
-- Student dashboard now calls `/api/accommodation/history?user_id={id}` for request history.
+- Student dashboard now calls `/api/accommodation-requests/history/?user_id={id}` for request history; `assets/js/api.js` normalizes it to the current backend `/api/accommodation/history` route.
 - REST-style `/api/accommodation-requests/{id}/history/` is normalized by `assets/js/api.js` to `/api/accommodation/history?id={id}`, but the current backend does not filter by `id` yet.
 
 ## Front-End Contract: Bed Assignment APIs
@@ -1981,7 +1981,7 @@ Rules:
 - Empty `target_role_id` and empty `target_dormitory_id` means public/authenticated-wide announcement.
 - Dormitory admin may only target allowed dormitories.
 
-Frontend note: dormitory-admin announcement targeting now loads role IDs from `/api/v1/role/list` and submits the backend serializer field `target_role`.
+Frontend note: dormitory-admin announcement targeting now loads role IDs through `/api/accounts/roles/` and submits the backend serializer field `target_role`.
 
 ### `GET /api/announcements/{id}/`
 

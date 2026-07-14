@@ -331,8 +331,8 @@
         accommodationListEndpoint() {
           const userId = this.user?.id || this.user?.user_id;
           return userId
-            ? window.SaraAPI.withQuery("/api/accommodation/history", { user_id: userId })
-            : "/api/accommodation/history";
+            ? window.SaraAPI.withQuery("/api/accommodation-requests/history/", { user_id: userId })
+            : "/api/accommodation-requests/history/";
         },
 
         accommodationPayload(data = {}) {
@@ -972,7 +972,7 @@
           try {
             const payload = this.accommodationPayload(form.data);
             if (!window.SaraAuth?.isDemoMode?.()) {
-              await window.SaraAPI.put(`/api/accommodation/update?id=${encodeURIComponent(form.editingId)}`, payload);
+              await window.SaraAPI.put(`/api/accommodation-requests/${encodeURIComponent(form.editingId)}/`, payload);
             }
 
             this.accommodationRequests = this.accommodationRequests.map((request) => {
@@ -1009,7 +1009,7 @@
 
           try {
             if (!window.SaraAuth?.isDemoMode?.()) {
-              await window.SaraAPI.put(`/api/accommodation/update?id=${encodeURIComponent(request.id)}`, { status: "cancelled" });
+              await window.SaraAPI.put(`/api/accommodation-requests/${encodeURIComponent(request.id)}/`, { status: "cancelled" });
             }
             request.status = "cancelled";
             request.description = request.description || "درخواست توسط دانشجو لغو شد.";
