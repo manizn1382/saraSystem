@@ -687,7 +687,7 @@
                 title: item.title || "بدون عنوان",
                 content: item.content || "",
                 created_at: item.created_at || "—",
-                target: item.target_role?.name || item.target_dormitory?.name || item.target || "عمومی",
+                target: item.target_dormitory?.name || item.target_dormitory_name || item.target_role?.name || item.target_role_name || item.target || "عمومی",
                 expires_at: item.expires_at || "",
                 read: Boolean(item.read || item.is_read || item.read_at)
               }));
