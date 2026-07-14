@@ -57,32 +57,81 @@
   }
 
   function normalizeDormitoryPath(path = '', method = 'GET') {
-    const value = String(path || '');
+    const originalValue = String(path || '');
+    const [, value = originalValue, tail = ''] = originalValue.match(/^([^?#]*)(.*)$/) || [];
     const requestMethod = String(method || 'GET').toUpperCase();
+    const appendTail = (target) => {
+      if (!tail) return target;
+      if (tail.startsWith('?') && target.includes('?')) return `${target}&${tail.slice(1)}`;
+      return `${target}${tail}`;
+    };
 
     if (/^\/api\/accommodation-requests\/?$/i.test(value)) {
-      return requestMethod === 'POST' ? '/api/accommodation/create' : '/api/accommodation/detail';
+      return appendTail(requestMethod === 'POST' ? '/api/accommodation/create' : '/api/accommodation/detail');
     }
 
     if (/^\/api\/accommodation-requests\/review\/?$/i.test(value)) {
-      return '/api/accommodation/review';
+      return appendTail('/api/accommodation/review');
     }
 
     if (/^\/api\/accommodation-requests\/history\/?$/i.test(value)) {
-      return '/api/accommodation/history';
+      return appendTail('/api/accommodation/history');
     }
 
     const historyMatch = value.match(/^\/api\/accommodation-requests\/([^/?#]+)\/history\/?$/i);
     if (historyMatch) {
-      return `/api/accommodation/history?id=${encodeURIComponent(historyMatch[1])}`;
+      return appendTail(`/api/accommodation/history?id=${encodeURIComponent(historyMatch[1])}`);
     }
 
     const detailMatch = value.match(/^\/api\/accommodation-requests\/([^/?#]+)\/?$/i);
     if (detailMatch) {
-      return `/api/accommodation/update?id=${encodeURIComponent(detailMatch[1])}`;
+      return appendTail(`/api/accommodation/update?id=${encodeURIComponent(detailMatch[1])}`);
     }
 
-    return value;
+    if (/^\/api\/dormitories\/?$/i.test(value)) {
+      return appendTail(requestMethod === 'POST' ? '/api/dormitory/createDorm/' : '/api/dormitory/listAll/');
+    }
+
+    const dormRoomsMatch = value.match(/^\/api\/dormitories\/([^/?#]+)\/rooms\/?$/i);
+    if (dormRoomsMatch) {
+      return appendTail(`/api/rooms/listAllRoom/?dormId=${encodeURIComponent(dormRoomsMatch[1])}`);
+    }
+
+    const dormMatch = value.match(/^\/api\/dormitories\/([^/?#]+)\/?$/i);
+    if (dormMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
+      return appendTail(`/api/dormitory/updateDorm/${encodeURIComponent(dormMatch[1])}`);
+    }
+
+    if (/^\/api\/rooms\/?$/i.test(value)) {
+      return appendTail(requestMethod === 'POST' ? '/api/rooms/createRoom/' : '/api/rooms/listAllRoom/');
+    }
+
+    const roomBedsMatch = value.match(/^\/api\/rooms\/([^/?#]+)\/beds\/?$/i);
+    if (roomBedsMatch) {
+      return appendTail(`/api/rooms/listAllRoomBeds/${encodeURIComponent(roomBedsMatch[1])}`);
+    }
+
+    const roomMatch = value.match(/^\/api\/rooms\/([^/?#]+)\/?$/i);
+    if (roomMatch && requestMethod === 'DELETE') {
+      return appendTail(`/api/rooms/deleteRoom/${encodeURIComponent(roomMatch[1])}`);
+    }
+    if (roomMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
+      return appendTail(`/api/rooms/updateRoom/${encodeURIComponent(roomMatch[1])}`);
+    }
+
+    if (/^\/api\/beds\/?$/i.test(value)) {
+      return appendTail(requestMethod === 'POST' ? '/api/beds/createBed/' : '/api/beds/listAll/');
+    }
+
+    const bedMatch = value.match(/^\/api\/beds\/([^/?#]+)\/?$/i);
+    if (bedMatch && requestMethod === 'GET') {
+      return appendTail(`/api/beds/getBedById/${encodeURIComponent(bedMatch[1])}`);
+    }
+    if (bedMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
+      return appendTail(`/api/beds/updateBed/${encodeURIComponent(bedMatch[1])}`);
+    }
+
+    return originalValue;
   }
 
   function normalizeAiPath(path = '') {
@@ -120,9 +169,9 @@
     return /^\/api\/announcements(?:\/|$)/i.test(value);
   }
 
-  function apiBaseUrl(path = '') {
+  function apiBaseUrl(path = '', method = 'GET') {
     const originalValue = String(path || '');
-    const value = normalizeApiPath(path);
+    const value = normalizeApiPath(path, method);
     if (isAiPath(originalValue)) {
       return window.SARA_AI_API_BASE_URL
         || localStorage.getItem('sarasystem.aiApiBaseUrl')
@@ -162,7 +211,7 @@
     const value = normalizeApiPath(path, method);
     if (/^https?:\/\//i.test(value)) return value;
 
-    const resolvedBaseUrl = baseUrl || apiBaseUrl(path);
+    const resolvedBaseUrl = baseUrl || apiBaseUrl(path, method);
     const base = String(resolvedBaseUrl || '').replace(/\/+$/, '');
     if (/^\/api(\/|$)/i.test(value)) {
       if (/^https?:\/\//i.test(base)) {

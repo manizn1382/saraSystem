@@ -1204,21 +1204,21 @@ Status: Planned
 Auth: admin  
 Purpose: delete permission.
 
-## Planned RESTful Dormitory API Aliases
+## RESTful Dormitory API Aliases
 
-The implemented dormitory routes use action-style names (`listAll`, `createDorm`, `updateRoom`). These RESTful aliases are recommended for the complete API while keeping existing endpoints as backward-compatible aliases.
+The implemented dormitory routes use action-style names (`listAll`, `createDorm`, `updateRoom`). `assets/js/api.js` now normalizes the frontend aliases below to the implemented routes where possible.
 
 ### Dormitories
 
 | Method | Path | Status | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/api/dormitories/` | Planned alias | List dormitories. |
-| `POST` | `/api/dormitories/` | Planned alias | Create dormitory. |
+| `GET` | `/api/dormitories/` | Front-end alias | Normalizes to `GET /api/dormitory/listAll/`. |
+| `POST` | `/api/dormitories/` | Front-end alias | Normalizes to `POST /api/dormitory/createDorm/`. |
 | `GET` | `/api/dormitories/{id}/` | Planned | Retrieve dormitory. |
-| `PUT` | `/api/dormitories/{id}/` | Planned alias | Replace dormitory. |
-| `PATCH` | `/api/dormitories/{id}/` | Planned alias | Partial update dormitory. |
+| `PUT` | `/api/dormitories/{id}/` | Front-end alias | Normalizes to `PUT /api/dormitory/updateDorm/{id}`. |
+| `PATCH` | `/api/dormitories/{id}/` | Front-end alias | Normalizes to `PATCH /api/dormitory/updateDorm/{id}`. |
 | `DELETE` | `/api/dormitories/{id}/` | Planned | Delete or deactivate dormitory. |
-| `GET` | `/api/dormitories/{id}/rooms/` | Planned alias | List rooms in dormitory. |
+| `GET` | `/api/dormitories/{id}/rooms/` | Front-end alias | Normalizes to `GET /api/rooms/listAllRoom/?dormId={id}`. |
 | `GET` | `/api/dormitories/{id}/capacity/` | Planned | Dormitory capacity summary. |
 
 Recommended dormitory query params:
@@ -1234,13 +1234,13 @@ Recommended dormitory query params:
 
 | Method | Path | Status | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/api/rooms/` | Planned alias | List rooms. |
-| `POST` | `/api/rooms/` | Planned alias | Create room. |
+| `GET` | `/api/rooms/` | Front-end alias | Normalizes to `GET /api/rooms/listAllRoom/`. |
+| `POST` | `/api/rooms/` | Front-end alias | Normalizes to `POST /api/rooms/createRoom/`. |
 | `GET` | `/api/rooms/{id}/` | Planned | Retrieve room. |
-| `PUT` | `/api/rooms/{id}/` | Planned alias | Replace room. |
-| `PATCH` | `/api/rooms/{id}/` | Planned alias | Partial update room. |
-| `DELETE` | `/api/rooms/{id}/` | Planned alias | Delete room. |
-| `GET` | `/api/rooms/{id}/beds/` | Planned alias | List beds in room. |
+| `PUT` | `/api/rooms/{id}/` | Front-end alias | Normalizes to `PUT /api/rooms/updateRoom/{id}`. |
+| `PATCH` | `/api/rooms/{id}/` | Front-end alias | Normalizes to `PATCH /api/rooms/updateRoom/{id}`. |
+| `DELETE` | `/api/rooms/{id}/` | Front-end alias | Normalizes to `DELETE /api/rooms/deleteRoom/{id}`. |
+| `GET` | `/api/rooms/{id}/beds/` | Front-end alias | Normalizes to `GET /api/rooms/listAllRoomBeds/{id}`. |
 
 Recommended room query params:
 
@@ -1255,11 +1255,11 @@ Recommended room query params:
 
 | Method | Path | Status | Purpose |
 | --- | --- | --- | --- |
-| `GET` | `/api/beds/` | Planned alias | List beds. |
-| `POST` | `/api/beds/` | Planned alias | Create bed. |
-| `GET` | `/api/beds/{id}/` | Planned alias | Retrieve bed. |
-| `PUT` | `/api/beds/{id}/` | Planned alias | Replace bed. |
-| `PATCH` | `/api/beds/{id}/` | Planned alias | Partial update bed/status. |
+| `GET` | `/api/beds/` | Front-end alias | Normalizes to `GET /api/beds/listAll/`. |
+| `POST` | `/api/beds/` | Front-end alias | Normalizes to `POST /api/beds/createBed/`. |
+| `GET` | `/api/beds/{id}/` | Front-end alias | Normalizes to `GET /api/beds/getBedById/{id}`. |
+| `PUT` | `/api/beds/{id}/` | Front-end alias | Normalizes to `PUT /api/beds/updateBed/{id}`. |
+| `PATCH` | `/api/beds/{id}/` | Front-end alias | Normalizes to `PATCH /api/beds/updateBed/{id}`. |
 | `DELETE` | `/api/beds/{id}/` | Planned | Delete bed. |
 
 Recommended bed query params:
