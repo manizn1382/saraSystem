@@ -2158,13 +2158,16 @@ Purpose: user activity/audit log. Mentioned as future roadmap in project documen
 The current backend includes a Flask AI service in `AI/face_recognition/face_recognition_server.py`.
 The service exposes raw paths on port `5000`. The front end uses `/api/face/...` aliases so UI code does not depend on the raw service paths.
 
+The repository also contains `AI/national_id_detector/` model/script code for ID-card detection/classification. That directory does not currently expose an HTTP server, route list, request schema, or stable response schema, so there is no front-end API alias for it yet.
+
 Important caveats:
 
-- Current Flask routes do not enforce JWT authentication. The front end sends these requests with `auth: false` and relies on the surrounding authenticated page context.
-- Current Flask routes do not configure CORS. Direct browser calls from another origin may fail until the AI service enables CORS or is placed behind the same gateway/origin as the front end.
+- Current Flask face routes do not enforce JWT authentication. The front end sends these requests with `auth: false` and relies on the surrounding authenticated page context.
+- Current Flask face routes do not configure CORS. Direct browser calls from another origin may fail until the AI service enables CORS or is placed behind the same gateway/origin as the front end.
 - Responses use `{ "success": boolean, "log": string }`, not the standard SaraSystem success envelope.
 - The AI service stores face data on local disk under `AI/face_recognition/database/{id}/img.jpg`.
 - The front end only uploads/deletes images and displays service results. It does not implement face recognition logic.
+- National-ID/card detection cannot be connected from the browser until the backend exposes a REST endpoint, expected multipart field names, auth/CORS behavior, and response shape.
 
 ### `POST /api/face/register/`
 
@@ -2307,9 +2310,9 @@ The front end already checks several permission names. The API should treat thes
 
 1. Account child URL routes use leading slash strings. Normalize URL patterns to avoid routing surprises.
 2. `GET /api/v1/users/current` now returns a user object, but the optional `userId` permission check compares `request.user.id` to the raw query-string value; normalize types before comparing.
-3. `RoomCreateView` returns `success: false` on successful create.
-4. `RoomUpdateView` uses `AllowAny` while relying on `request.user.is_staff`; add JWT authentication and `IsAuthenticated`.
-5. `BedUpdateView` returns `success: true` in a `403` response for non-admin updates.
+3. `BedCreateView` currently repeats `IsAuthenticated` in `permission_classes` and does not require `IsAdminUser`, so authenticated non-admin users may be able to create beds.
+4. The face-recognition AI service does not enforce JWT auth or configure CORS; browser calls need either CORS support or same-origin gateway/proxying.
+5. `AI/national_id_detector/` is present as scripts/models only; expose a real HTTP API before adding front-end ID-card verification controls.
 6. There are no list/delete endpoints for `UserRole` and `RolePermission`.
 7. There are no update/delete endpoints for `Permission`.
 8. Username-only anonymous password reset is implemented at `/api/v1/users/password/reset`; older `/password/reset/username` aliases should normalize to that route.
@@ -2332,3 +2335,4 @@ For a complete SaraSystem release, implement at least these endpoint families:
 - Reports: dashboard, occupancy, capacity, requests, payments, maintenance, announcements.
 - Public: public stats and public announcements.
 - Operations: health check.
+- AI: keep current face register/verify/delete routes stable; add an authenticated/CORS-safe national-ID/card verification endpoint if the detector should be user-facing.
