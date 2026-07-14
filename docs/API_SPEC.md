@@ -45,7 +45,7 @@ Anonymous endpoints:
 - `POST /api/v1/users/create`
 - `POST /api/v1/users/login`
 - `POST /api/v1/users/token/refresh`
-- `POST /api/v1/users/password/reset/username`
+- `PUT /api/v1/users/password/reset`
 - `GET /api/public/stats/`
 - `GET /api/announcements/public/`
 
@@ -1059,9 +1059,9 @@ These paths are normalized in `assets/js/api.js` before being sent. They are ali
 | `/api/accounts/adminUpdate/` | `/api/v1/users/adminUpdate` |
 | `/api/accounts/change-password/` | `/api/v1/users/password/change` |
 | `/api/accounts/changePassword/` | `/api/v1/users/password/change` |
-| `/api/accounts/reset-password/` | `/api/v1/users/password/reset/username` |
-| `/api/accounts/forgot-password/` | `/api/v1/users/password/reset/username` |
-| `/api/accounts/password/reset/username/` | `/api/v1/users/password/reset/username` |
+| `/api/accounts/reset-password/` | `/api/v1/users/password/reset` |
+| `/api/accounts/forgot-password/` | `/api/v1/users/password/reset` |
+| `/api/accounts/password/reset/username/` | `/api/v1/users/password/reset` |
 | `/api/v1/users/changePassword` | `/api/v1/users/password/change` |
 | `GET /api/accounts/roles/` | `/api/v1/role/list` |
 | `POST /api/accounts/roles/` | `/api/v1/role/create` |
@@ -1128,9 +1128,9 @@ Request:
 }
 ```
 
-### `POST /api/v1/users/password/reset/username`
+### `PUT /api/v1/users/password/reset`
 
-Status: implemented 
+Status: implemented
 Auth: anonymous  
 Purpose: change a user's password by username only, without current password, reset token, email, SMS, or any external verification channel.
 
@@ -1151,7 +1151,7 @@ Response `200`:
 ```json
 {
   "success": true,
-  "message": "Password changed successfully."
+  "message": "Password updated successfully."
 }
 ```
 
