@@ -742,6 +742,8 @@ Response item:
 
 Implementation note: `available_capacity` is currently `totalRoom - currentOccupancy`, so it acts like available rooms or capacity units depending on how `currentOccupancy` is maintained.
 
+Frontend normalization: `assets/js/api-adapters.js` maps `totalRoom` to `total_rooms`, `currentOccupancy` to `occupied_beds`, `available_capacity` to `available_beds`, and `occupancy_percentage` to `occupancy` for the admin capacity cards.
+
 ### `GET /api/dormitory/withRooms/`
 
 Status: Implemented  

@@ -84,7 +84,7 @@
       name: text(item.name || item.title || `خوابگاه ${item.id || index + 1}`),
       address: text(item.address, ''),
       total_rooms: Number(item.total_rooms ?? item.rooms_count ?? item.totalRoom ?? 0),
-      occupied_beds: Number(item.occupied_beds ?? 0),
+      occupied_beds: Number(item.occupied_beds ?? item.currentOccupancy ?? 0),
       available_beds: Number(item.available_beds ?? item.available_capacity ?? 0),
       occupancy: Number(item.occupancy ?? item.occupancy_percent ?? item.occupancy_percentage ?? 0),
       gender_type: text(item.gender_type ?? item.gender, '')
