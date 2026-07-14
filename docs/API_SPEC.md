@@ -939,15 +939,15 @@ Response:
 
 ### `PUT /api/rooms/updateRoom/{id}`
 
-Status: Implemented 
+Status: Implemented
+Auth: authenticated admin (`JWTStatelessUserAuthentication`, `IsAdminUser`)
 View: `RoomUpdateView`  
 Purpose: replace room fields.
-
-Fix recommendation: add JWT authentication and `IsAuthenticated`.
 
 ### `PATCH /api/rooms/updateRoom/{id}`
 
 Status: Implemented
+Auth: authenticated admin (`JWTStatelessUserAuthentication`, `IsAdminUser`)
 View: `RoomUpdateView`  
 Purpose: partially update room fields.
 
@@ -991,8 +991,8 @@ Path values:
 
 ### `POST /api/beds/createBed/`
 
-Status: Implemented  
-Auth: authenticated; code requires `request.user.is_staff`  
+Status: Implemented with caveat
+Auth: authenticated only in current code (`IsAuthenticated` is repeated; `IsAdminUser` is not enforced)
 View: `BedCreateView`  
 Purpose: create bed.
 
@@ -1041,13 +1041,15 @@ Response:
 
 ### `PUT /api/beds/updateBed/{id}`
 
-Status: Implemented   
+Status: Implemented
+Auth: authenticated admin (`JWTStatelessUserAuthentication`, `IsAdminUser`)
 View: `BedUpdateView`  
 Purpose: replace bed fields.
 
 ### `PATCH /api/beds/updateBed/{id}`
 
-Status: Implemented  
+Status: Implemented
+Auth: authenticated admin (`JWTStatelessUserAuthentication`, `IsAdminUser`)
 View: `BedUpdateView`  
 Purpose: partially update bed fields.
 
