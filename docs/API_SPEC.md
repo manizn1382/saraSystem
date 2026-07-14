@@ -749,6 +749,8 @@ Auth: authenticated
 View: `DormitoryWithRoomsView`  
 Purpose: list dormitories with nested room dropdown data.
 
+Frontend note: the student accommodation form uses this route for dormitory options because `/api/dormitory/listAll/` is admin-only in the current backend.
+
 Response item:
 
 ```json
