@@ -22,7 +22,7 @@ Scope: complete API inventory for the current SaraSystem repository, including i
 | AI service | `http://127.0.0.1:5000` | `/register`, `/verify`, `/delete` | Flask face-image service. Front-end aliases use `/api/face/...` and route to this base. |
 | Application API | same origin `/api` or gateway | `/api/...` | Planned unified API surface for accommodation, assignments, payments, maintenance, announcements, reports, public data. |
 
-Current front-end routing in `assets/js/api.js` sends account paths to the account service, dormitory/room/bed/accommodation paths to the dormitory service, AI face aliases to the AI service, and all other `/api/...` paths to the configured general API base.
+Current front-end routing in `assets/js/api.js` sends account paths to the account service, dormitory/room/bed/accommodation paths to the dormitory service, authenticated `/api/announcements/...` paths to the account service, AI face aliases to the AI service, and all other `/api/...` paths to the configured general API base. Anonymous public paths such as `/api/public/stats/` and `/api/announcements/public/` stay on the general API base.
 
 ## Global API Conventions
 
@@ -1309,10 +1309,12 @@ Response:
 
 ### `GET /api/announcements/public/`
 
-Status: implemented  
+Status: Front-end contract
 Auth: anonymous  
 Used by: `frontend/index.html`  
 Purpose: public active announcements visible before login.
+
+Current backend note: the account-service announcement app does not implement this anonymous public route. `assets/js/api.js` therefore keeps this path on the general API base instead of routing it to the account service.
 
 Query params: `limit`, `page`, `page_size`.
 
@@ -1917,7 +1919,7 @@ Entity: `Announcement`
 
 Current backend implementation: `account_service/announcements` defines list/create, detail/update/delete, mark-read, and current-user read-list views. However, `account_service/account_service/urls.py` does not currently include `announcements.urls`, so these endpoints will 404 until the backend mounts the app, for example at `path('api/announcements/', include('announcements.urls'))`.
 
-Current front-end routing sends `/api/announcements/...` to the account service base because the implemented app lives in `account_service`.
+Current front-end routing sends authenticated `/api/announcements/...` routes to the account service base because the implemented app lives in `account_service`. The anonymous `/api/announcements/public/` homepage route is excluded and stays on the general API base because the account-service announcement app does not currently implement it.
 
 Recommended fields:
 

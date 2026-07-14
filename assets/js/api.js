@@ -210,6 +210,12 @@
     return /^\/api\/announcements(?:\/|$)/i.test(value);
   }
 
+  function isPublicApiPath(path = '') {
+    const { path: value } = splitUrlPath(path);
+    return /^\/api\/public(?:\/|$)/i.test(value)
+      || /^\/api\/announcements\/public\/?$/i.test(value);
+  }
+
   function apiBaseUrl(path = '', method = 'GET') {
     const originalValue = String(path || '');
     const value = normalizeApiPath(path, method);
@@ -217,6 +223,12 @@
       return window.SARA_AI_API_BASE_URL
         || localStorage.getItem('sarasystem.aiApiBaseUrl')
         || DEFAULT_AI_BASE_URL;
+    }
+
+    if (isPublicApiPath(originalValue) || isPublicApiPath(value)) {
+      return window.SARA_API_BASE_URL
+        || localStorage.getItem('sarasystem.apiBaseUrl')
+        || DEFAULT_BASE_URL;
     }
 
     if (isAnnouncementPath(originalValue) || isAnnouncementPath(value)) {
@@ -453,7 +465,7 @@
         }
 
         const token = window.SaraAuth?.getAccessToken?.();
-        if (token && !isAnonymousAccountPath(normalizedPath) && !isAiPath(requestPath)) {
+        if (token && !isAnonymousAccountPath(normalizedPath) && !isAiPath(requestPath) && !isPublicApiPath(requestPath)) {
           event.detail.headers = event.detail.headers || {};
           event.detail.headers.Authorization = `Bearer ${token}`;
         }
@@ -487,6 +499,7 @@
     isAccountPath,
     isAiPath,
     isAnnouncementPath,
+    isPublicApiPath,
     joinUrl,
     normalizeEndpoint,
     buildHeaders,
