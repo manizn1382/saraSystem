@@ -330,8 +330,8 @@
         accommodationListEndpoint() {
           const userId = this.user?.id || this.user?.user_id;
           return userId
-            ? window.SaraAPI.withQuery("/api/accommodation/detail", { user_id: userId })
-            : "/api/accommodation/detail";
+            ? window.SaraAPI.withQuery("/api/accommodation/history", { user_id: userId })
+            : "/api/accommodation/history";
         },
 
         accommodationPayload(data = {}) {

@@ -68,6 +68,15 @@
       return '/api/accommodation/review';
     }
 
+    if (/^\/api\/accommodation-requests\/history\/?$/i.test(value)) {
+      return '/api/accommodation/history';
+    }
+
+    const historyMatch = value.match(/^\/api\/accommodation-requests\/([^/?#]+)\/history\/?$/i);
+    if (historyMatch) {
+      return `/api/accommodation/history?id=${encodeURIComponent(historyMatch[1])}`;
+    }
+
     const detailMatch = value.match(/^\/api\/accommodation-requests\/([^/?#]+)\/?$/i);
     if (detailMatch) {
       return `/api/accommodation/update?id=${encodeURIComponent(detailMatch[1])}`;

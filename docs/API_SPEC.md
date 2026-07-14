@@ -1350,6 +1350,9 @@ Recommended fields:
 ### `GET /api/accommodation-requests/`
 
 Status: implemented
+
+Backend path: `GET /api/accommodation/detail`
+
 Auth: authenticated  
 Roles: student sees own requests; dormitory admin sees assigned dormitory requests; system admin sees all.
 
@@ -1392,9 +1395,13 @@ Server rules:
 
 ### `GET /api/accommodation-requests/{id}/`
 
-Status: implemented 
-Auth: owner, dormitory admin, or system admin  
-Purpose: retrieve one request and review history.
+Status: front-end alias only
+
+Auth: owner, dormitory admin, or system admin
+
+Purpose: intended single-request detail route.
+
+Current backend caveat: the implemented accommodation service exposes list/history routes and update-by-query-id. It does not currently expose a true `GET` detail route by request id.
 
 ### `PUT /api/accommodation-requests/{id}/`
 
@@ -1467,12 +1474,30 @@ Response:
 
 Recommended REST alias: `PATCH /api/accommodation-requests/{id}/review/`.
 
-### `GET /api/accommodation-requests/{id}/history/`
+### `GET /api/accommodation-requests/history/`
 
-Status: implemented  
-Auth: owner, dormitory admin, or system admin  
-Purpose: show status/review/assignment history.
-- you can use GET /api/accommodation-requests/{id}/ to get history of user accommodation request by giving user_id to service
+Status: implemented alias
+
+Backend path: `GET /api/accommodation/history`
+
+Auth: owner, dormitory admin, or system admin
+
+Purpose: show accommodation request history/list for a user or filtered scope.
+
+Supported current backend query params:
+
+| Param | Description |
+| --- | --- |
+| `status` | Exact status filter. |
+| `semester` | Exact semester filter. |
+| `requested_dorm` | Dormitory id filter used by the backend model field. |
+| `user_id` | Account user id filter. |
+| `studentId` | Student number lookup through account service `/api/v1/users/current/studentId`. |
+
+Front-end notes:
+
+- Student dashboard now calls `/api/accommodation/history?user_id={id}` for request history.
+- REST-style `/api/accommodation-requests/{id}/history/` is normalized by `assets/js/api.js` to `/api/accommodation/history?id={id}`, but the current backend does not filter by `id` yet.
 
 ## Front-End Contract: Bed Assignment APIs
 
