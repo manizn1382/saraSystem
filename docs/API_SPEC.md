@@ -865,6 +865,8 @@ Response:
 }
 ```
 
+Frontend normalization: room responses carry `dormitory` as an ID. The dormitory-admin dashboard maps that ID to the loaded dormitory list for display as `dormitory_name`.
+
 ### `GET /api/rooms/listAllRoomBeds/{room_id}`
 
 Status: Implemented  
@@ -902,17 +904,23 @@ Request:
 }
 ```
 
-Response `201` currently returns `success: false` even on success:
+Response `201`:
 
 ```json
 {
-  "success": false,
+  "success": true,
   "message": "room created successfully",
-  "data": {}
+  "data": {
+    "id": 10,
+    "roomNumber": 201,
+    "dormitory": 1,
+    "floorNumber": 2,
+    "capacity": 4,
+    "status": "available",
+    "currentOccupancy": 0
+  }
 }
 ```
-
-Fix recommendation: return `success: true`.
 
 ### `DELETE /api/rooms/deleteRoom/{id}`
 

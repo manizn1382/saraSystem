@@ -96,7 +96,7 @@
     return {
       id: id(item.id, String(index + 1)),
       dormitory_id: id(dorm.id || item.dormitory_id || item.dormitory),
-      dormitory_name: text(dorm.name || item.dormitory_name),
+      dormitory_name: text(dorm.name || item.dormitory_name, ''),
       room_number: text(item.room_number || item.roomNumber || item.number),
       floor_number: text(item.floor_number || item.floorNumber || item.floor),
       capacity: text(item.capacity || 0),
