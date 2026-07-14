@@ -43,9 +43,17 @@
     }
   }
 
+  function normalizeAuthEndpoint(endpoint) {
+    const value = String(endpoint || '');
+    if (/^\/api\/accounts\/refreshToken\/?$/i.test(value)) return '/api/v1/users/token/refresh';
+    if (/^\/api\/accounts\/me\/?$/i.test(value)) return '/api/v1/users/current';
+    if (/^\/api\/accounts\/logout\/?$/i.test(value)) return '/api/v1/users/logout';
+    return value;
+  }
+
   function accountServiceUrl(endpoint) {
     if (window.SaraAPI?.joinUrl) return window.SaraAPI.joinUrl(endpoint);
-    const value = String(endpoint || '');
+    const value = normalizeAuthEndpoint(endpoint);
     if (/^https?:\/\//i.test(value)) return value;
     const base = window.SARA_ACCOUNTS_API_BASE_URL
       || localStorage.getItem('sarasystem.accountsApiBaseUrl')
@@ -243,7 +251,7 @@
     const endpoint = options.endpoint
       || window.SARA_ACCOUNTS_TOKEN_REFRESH_ENDPOINT
       || localStorage.getItem('sarasystem.accountsTokenRefreshEndpoint')
-      || '/api/v1/users/token/refresh';
+      || '/api/accounts/refreshToken/';
 
     const response = await fetch(accountServiceUrl(endpoint), {
       method: 'POST',
@@ -283,7 +291,7 @@
     const endpoint = options.endpoint
       || window.SARA_ACCOUNTS_ME_ENDPOINT
       || localStorage.getItem('sarasystem.accountsMeEndpoint')
-      || '/api/v1/users/current';
+      || '/api/accounts/me/';
 
     const retryOnUnauthorized = options.retryOnUnauthorized !== false;
     const token = read(STORAGE_KEYS.accessToken);
@@ -346,7 +354,7 @@
 
     const endpoint = window.SARA_ACCOUNTS_LOGOUT_ENDPOINT
       || localStorage.getItem('sarasystem.accountsLogoutEndpoint')
-      || '/api/v1/users/logout';
+      || '/api/accounts/logout/';
 
     fetch(accountServiceUrl(endpoint), {
       method: 'POST',

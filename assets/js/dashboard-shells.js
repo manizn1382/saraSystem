@@ -175,7 +175,7 @@
 
         this.forms.role.loading = true;
         try {
-          const response = await window.SaraAPI.post('/api/v1/role/create', {
+          const response = await window.SaraAPI.post('/api/accounts/roles/', {
             name: this.forms.role.name.trim(),
             description: this.forms.role.description.trim()
           });

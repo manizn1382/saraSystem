@@ -1051,6 +1051,7 @@ Query strings and hash fragments are preserved during normalization, so filtered
 | `/api/accounts/getToken/` | `/api/v1/users/login` |
 | `/api/accounts/refreshToken/` | `/api/v1/users/token/refresh` |
 | `/api/accounts/me/` | `/api/v1/users/current` |
+| `/api/accounts/logout/` | `/api/v1/users/logout` |
 | `/api/accounts/register/` | `/api/v1/users/create` |
 | `/api/accounts/users/register/` | `/api/v1/users/create` |
 | `GET /api/accounts/users/` | `/api/v1/users/list` |
@@ -1081,7 +1082,7 @@ Query strings and hash fragments are preserved during normalization, so filtered
 
 For `PUT/PATCH /api/accounts/users/{id}/` and `PATCH /api/accounts/users/{id}/status/`, `assets/js/api.js` injects the path `{id}` into plain JSON request bodies because the current backend expects `id` in the body for `/api/v1/users/adminUpdate` and `/api/v1/users/status/change`. FormData and string bodies are not modified.
 
-Frontend note: the system-admin dashboard uses these `/api/accounts/...` aliases so account-service action-style URLs remain centralized in `assets/js/api.js`.
+Frontend note: authentication, account profile, dormitory-admin role loading, and system-admin account/RBAC UI now use these `/api/accounts/...` aliases so account-service action-style URLs remain centralized in `assets/js/api.js`.
 
 ## Planned Account and RBAC APIs
 

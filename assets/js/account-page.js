@@ -38,7 +38,7 @@ function accountPage() {
             }
 
             const payload = this.profilePayload();
-            const updated = await window.SaraAPI.put('/api/v1/users/editProfile', payload);
+            const updated = await window.SaraAPI.put('/api/accounts/update-profile/', payload);
             this.profile = window.SaraAuth?.updateStoredUser?.(updated?.user || this.profile) || this.profile;
             this.accountStatus = window.SaraAuth?.getAccountStatus?.(this.profile) || this.accountStatus;
             this.showAlert('success', 'پروفایل با موفقیت ذخیره شد.');
@@ -73,7 +73,7 @@ function accountPage() {
               return;
             }
 
-            await window.SaraAPI.patch('/api/v1/users/password/change', {
+            await window.SaraAPI.patch('/api/accounts/change-password/', {
               current_password: this.password.current_password,
               new_password: this.password.new_password,
               confirm_password: this.password.confirm_password

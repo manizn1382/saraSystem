@@ -2,7 +2,7 @@
 (function () {
   function forgotPasswordPage() {
     return {
-      endpoint: '/api/v1/users/password/reset',
+      endpoint: '/api/accounts/reset-password/',
       form: {
         username: '',
         new_password: '',

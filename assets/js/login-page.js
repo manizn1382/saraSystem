@@ -175,7 +175,7 @@
           this.clearAlert();
 
           try {
-            const data = await window.SaraAPI.post('/api/v1/users/login', {
+            const data = await window.SaraAPI.post('/api/accounts/getToken/', {
               username: this.form.username,
               password: this.form.password
             }, {

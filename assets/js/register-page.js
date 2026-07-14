@@ -90,7 +90,7 @@ function registerPage() {
           this.clearAlert();
 
           try {
-            const data = await window.SaraAPI.post("/api/v1/users/create", this.registrationPayload(), {
+            const data = await window.SaraAPI.post("/api/accounts/register/", this.registrationPayload(), {
               auth: false,
               retryOnUnauthorized: false,
               redirectOnExpired: false
