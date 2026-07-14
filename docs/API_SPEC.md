@@ -1409,6 +1409,8 @@ Request:
 
 Frontend note: the student form keeps UI state as `requested_dormitory_id`, `preferred_room_type`, and `request_date`, then submits the current backend serializer fields `requested_dorm`, `preferred_room`, and `req_date` through `assets/js/student-dashboard.js`.
 
+Current backend note: `AccommodationCreateView` manually creates the model instance after validation but does not pass `description`, so submitted student notes may be stored as the model default until the backend includes `description=request.data.get("description")` or uses `serializer.save(...)`. The model also uses `OneToOneField` for `requested_dorm`, which can prevent more than one accommodation request from referencing the same dormitory; a `ForeignKey` better matches the product flow.
+
 Server rules:
 
 - User should be taken from JWT, not trusted from body.
@@ -2323,6 +2325,8 @@ The front end already checks several permission names. The API should treat thes
 10. Dormitory/room/bed endpoints use action-style names; RESTful aliases are recommended for long-term consistency.
 11. `PUT /api/accommodation/review?id={id}` currently rejects `pending` records, so dormitory admins cannot approve/reject newly submitted requests.
 12. Current serializers omit some model fields such as dormitory `dorm_type`, `description`, `createdAt`, `updatedAt`, room/bed `description`, and timestamps. Add them if the UI/reporting needs them.
+13. `AccommodationCreateView` validates `description` but does not pass it into `Accommodation.objects.create(...)`, so student notes may be lost and replaced by the model default.
+14. `Accommodation.requested_dorm` is a `OneToOneField`; use `ForeignKey` if multiple students can request the same dormitory.
 
 ## Minimum API Set Needed for Full Product
 
