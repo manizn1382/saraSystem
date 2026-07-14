@@ -498,6 +498,7 @@
             ? window.SaraAdapters.adaptList(data, window.SaraAdapters.accommodationRequest).map((request) => ({
               ...request,
               display_id: this.toPersianNumber(request.id),
+              dormitory: this.selectedDormitoryName(request.requested_dormitory_id, request.dormitory),
               preferred_room_type_value: request.preferred_room_type_value || request.preferred_room_type
             }))
             : this.asList(data).map((item, index) => ({
@@ -506,7 +507,10 @@
               semester: item.semester || "—",
               user_id: String(item.user_id || item.user?.id || ""),
               requested_dormitory_id: item.requested_dormitory?.id || item.requested_dormitory_id || item.requested_dorm || "",
-              dormitory: item.requested_dormitory?.name || item.requested_dorm?.name || item.dormitory || item.requested_dormitory_name || "بدون ترجیح",
+              dormitory: this.selectedDormitoryName(
+                item.requested_dormitory?.id || item.requested_dormitory_id || item.requested_dorm || "",
+                item.requested_dormitory?.name || item.requested_dorm?.name || item.dormitory || item.requested_dormitory_name || ""
+              ),
               preferred_room_type: this.roomTypeText(item.preferred_room_type || item.preferred_room),
               preferred_room_type_value: item.preferred_room_type || item.preferred_room || "",
               status: item.status || "pending",
@@ -1152,9 +1156,11 @@
           }
         },
 
-        selectedDormitoryName(value) {
+        selectedDormitoryName(value, fallback = "بدون ترجیح") {
           const dormitory = this.dormitories.find((item) => String(item.id) === String(value));
-          return dormitory?.name || "بدون ترجیح";
+          if (dormitory?.name) return dormitory.name;
+          if (fallback && !["—", "بدون ترجیح"].includes(String(fallback))) return fallback;
+          return value ? `خوابگاه ${this.toPersianNumber(value)}` : fallback;
         },
 
         roomTypeText(value) {

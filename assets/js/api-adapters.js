@@ -50,6 +50,12 @@
   function accommodationRequest(item = {}, index = 0) {
     const user = item.user || item.student || {};
     const dormitory = item.requested_dormitory || item.requested_dorm || item.dormitory || {};
+    const dormitoryId = dormitory.id || item.requested_dormitory_id || item.requested_dorm || item.dormitory_id;
+    const dormitoryName = dormitory.name
+      || item.requested_dormitory_name
+      || item.dormitory_name
+      || (typeof item.dormitory === 'string' ? item.dormitory : '')
+      || (dormitoryId ? `خوابگاه ${dormitoryId}` : '');
     const preferredRoom = item.preferred_room_type || item.preferred_room;
     return {
       id: id(item.id, String(index + 1)),
@@ -58,8 +64,8 @@
       student_name: fullName(user, item.student_name || (item.user_id ? `کاربر ${item.user_id}` : 'دانشجو')),
       student_id: text(user.student_id || item.student_number || item.student_id, ''),
       semester: text(item.semester || item.term),
-      dormitory: text(dormitory.name || item.requested_dormitory_name || item.dormitory_name || item.dormitory),
-      requested_dormitory_id: id(dormitory.id || item.requested_dormitory_id || item.requested_dorm || item.dormitory_id),
+      dormitory: text(dormitoryName),
+      requested_dormitory_id: id(dormitoryId),
       preferred_room_type: roomType(preferredRoom),
       preferred_room_type_value: text(preferredRoom, ''),
       status: text(item.status, 'pending'),

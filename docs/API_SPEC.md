@@ -1365,6 +1365,8 @@ Recommended fields:
 }
 ```
 
+Current backend note: `AccommodationList` serializes model fields directly, so rows may include `requested_dorm` as a numeric dormitory id rather than a nested `requested_dormitory` object or name. Front-end adapters resolve that id against the loaded dormitory list when possible and otherwise display `خوابگاه {id}`.
+
 ### `GET /api/accommodation-requests/`
 
 Status: implemented
