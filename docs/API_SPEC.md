@@ -1081,6 +1081,8 @@ Query strings and hash fragments are preserved during normalization, so filtered
 
 For `PUT/PATCH /api/accounts/users/{id}/` and `PATCH /api/accounts/users/{id}/status/`, `assets/js/api.js` injects the path `{id}` into plain JSON request bodies because the current backend expects `id` in the body for `/api/v1/users/adminUpdate` and `/api/v1/users/status/change`. FormData and string bodies are not modified.
 
+Frontend note: the system-admin dashboard uses these `/api/accounts/...` aliases so account-service action-style URLs remain centralized in `assets/js/api.js`.
+
 ## Planned Account and RBAC APIs
 
 These are required to make the account/RBAC module complete and easier to consume.

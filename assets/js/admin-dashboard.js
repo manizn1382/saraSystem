@@ -1,18 +1,18 @@
 /* System-admin dashboard controller. API authorization remains server-side. */
 (function () {
-  const USER_LIST_ENDPOINT = '/api/v1/users/list';
-  const USER_CREATE_ENDPOINT = '/api/v1/users/create';
-  const USER_ADMIN_UPDATE_ENDPOINT = '/api/v1/users/adminUpdate';
-  const USER_DELETE_ENDPOINT = '/api/v1/users/delete';
-  const USER_STATUS_ENDPOINT = '/api/v1/users/status/change';
-  const ROLE_CREATE_ENDPOINT = '/api/v1/role/create';
-  const ROLE_LIST_ENDPOINT = '/api/v1/role/list';
-  const ROLE_UPDATE_ENDPOINT = '/api/v1/role/update';
-  const ROLE_DELETE_ENDPOINT = '/api/v1/role/delete';
-  const PERMISSION_CREATE_ENDPOINT = '/api/v1/permission/create';
-  const PERMISSION_LIST_ENDPOINT = '/api/v1/permission/list';
-  const ROLE_PERMISSION_CREATE_ENDPOINT = '/api/v1/rolePermission/create';
-  const USER_ROLE_CREATE_ENDPOINT = '/api/v1/userRole/create';
+  const USER_LIST_ENDPOINT = '/api/accounts/users/';
+  const USER_CREATE_ENDPOINT = '/api/accounts/users/';
+  const USER_ADMIN_UPDATE_ENDPOINT = '/api/accounts/users';
+  const USER_DELETE_ENDPOINT = '/api/accounts/users';
+  const USER_STATUS_ENDPOINT = '/api/accounts/users';
+  const ROLE_CREATE_ENDPOINT = '/api/accounts/roles/';
+  const ROLE_LIST_ENDPOINT = '/api/accounts/roles/';
+  const ROLE_UPDATE_ENDPOINT = '/api/accounts/roles';
+  const ROLE_DELETE_ENDPOINT = '/api/accounts/roles';
+  const PERMISSION_CREATE_ENDPOINT = '/api/accounts/permissions/';
+  const PERMISSION_LIST_ENDPOINT = '/api/accounts/permissions/';
+  const ROLE_PERMISSION_CREATE_ENDPOINT = '/api/accounts/role-permissions/';
+  const USER_ROLE_CREATE_ENDPOINT = '/api/accounts/user-roles/';
   const DORMITORY_ENDPOINT = '/api/dormitory/listAll/';
 
   function asArray(data) {
@@ -410,7 +410,7 @@
         try {
           const payload = this.userPayload();
           if (this.userForm.id) {
-            const response = await window.SaraAPI.put(USER_ADMIN_UPDATE_ENDPOINT, payload);
+            const response = await window.SaraAPI.put(`${USER_ADMIN_UPDATE_ENDPOINT}/${encodeURIComponent(this.userForm.id)}/`, payload);
             const index = this.users.findIndex((item) => String(item.id) === String(this.userForm.id));
             const current = index >= 0 ? this.users[index] : {};
             const saved = normalizeUser({ ...current, ...payload, profile: { ...(current.profile || {}), ...(payload.profile || {}) } });
@@ -446,8 +446,7 @@
         const nextStatus = user.is_active === false;
         this.loading.saving = true;
         try {
-          const response = await window.SaraAPI.patch(USER_STATUS_ENDPOINT, {
-            id: user.id,
+          const response = await window.SaraAPI.patch(`${USER_STATUS_ENDPOINT}/${encodeURIComponent(user.id)}/status/`, {
             is_active: nextStatus
           });
           user.is_active = nextStatus;
