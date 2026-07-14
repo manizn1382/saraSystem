@@ -103,6 +103,10 @@
       return appendUrlTail(requestMethod === 'POST' ? '/api/dormitory/createDorm/' : '/api/dormitory/listAll/', tail);
     }
 
+    if (/^\/api\/dormitories\/(?:with-rooms|withRooms)\/?$/i.test(value)) {
+      return appendUrlTail('/api/dormitory/withRooms/', tail);
+    }
+
     const dormRoomsMatch = value.match(/^\/api\/dormitories\/([^/?#]+)\/rooms\/?$/i);
     if (dormRoomsMatch) {
       return appendUrlTail(`/api/rooms/listAllRoom/?dormId=${encodeURIComponent(dormRoomsMatch[1])}`, tail);

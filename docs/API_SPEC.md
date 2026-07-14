@@ -1221,6 +1221,7 @@ The implemented dormitory routes use action-style names (`listAll`, `createDorm`
 | `PUT` | `/api/dormitories/{id}/` | Front-end alias | Normalizes to `PUT /api/dormitory/updateDorm/{id}`. |
 | `PATCH` | `/api/dormitories/{id}/` | Front-end alias | Normalizes to `PATCH /api/dormitory/updateDorm/{id}`. |
 | `DELETE` | `/api/dormitories/{id}/` | Planned | Delete or deactivate dormitory. |
+| `GET` | `/api/dormitories/with-rooms/` | Front-end alias | Normalizes to `GET /api/dormitory/withRooms/`. Used by student dormitory options. |
 | `GET` | `/api/dormitories/{id}/rooms/` | Front-end alias | Normalizes to `GET /api/rooms/listAllRoom/?dormId={id}`. |
 | `GET` | `/api/dormitories/{id}/capacity/` | Planned | Dormitory capacity summary. |
 
