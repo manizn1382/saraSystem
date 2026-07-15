@@ -143,10 +143,15 @@
   }
 
   function payment(item = {}, index = 0) {
+    const user = item.user || item.student || {};
     return {
       id: id(item.id || item.reference || item.transaction_ref, `PAY-${index + 1}`),
+      user_id: id(user.id || item.user_id || item.student_id),
+      student_name: fullName(user, item.student_name || ''),
+      student_id: text(user.student_id || item.student_number || item.student_id, ''),
       payment_type: text(item.payment_type || item.title || item.type, 'پرداخت خوابگاه'),
       amount: item.amount_display || window.SaraUI?.formatAmount?.(item.amount) || text(item.amount),
+      amount_value: item.amount ?? '',
       due_date: text(item.due_date),
       paid_at: text(item.paid_at, ''),
       transaction_ref: text(item.transaction_ref || item.reference, ''),

@@ -18,6 +18,7 @@
   const BED_ENDPOINT = '/api/beds/';
   const ACCOMMODATION_REQUEST_ENDPOINT = '/api/accommodation-requests/';
   const BED_ASSIGNMENT_ENDPOINT = '/api/bed-assignments/';
+  const PAYMENT_ENDPOINT = '/api/payments/';
 
   function asArray(data) {
     return window.SaraUI?.asList?.(data)
@@ -136,6 +137,23 @@
     };
   }
 
+  function normalizePayment(item = {}, index = 0) {
+    return window.SaraAdapters?.payment?.(item, index) || {
+      id: item.id || item.reference || item.transaction_ref || `PAY-${index + 1}`,
+      user_id: item.user_id || item.user?.id || '',
+      student_name: item.student_name || item.user?.full_name || '',
+      student_id: item.student_id || item.user?.student_id || '',
+      payment_type: item.payment_type || item.title || item.type || 'پرداخت خوابگاه',
+      amount: item.amount_display || window.SaraUI?.formatAmount?.(item.amount) || item.amount || '',
+      amount_value: item.amount || '',
+      due_date: item.due_date || '',
+      paid_at: item.paid_at || '',
+      transaction_ref: item.transaction_ref || item.reference || '',
+      status: item.status || 'unpaid',
+      description: item.description || item.notes || ''
+    };
+  }
+
   function systemAdminPanel() {
     return {
       ...window.SaraPage.basePanelState(),
@@ -150,6 +168,7 @@
       beds: [],
       accommodationRequests: [],
       bedAssignments: [],
+      payments: [],
       loading: {
         users: false,
         roles: false,
@@ -158,6 +177,7 @@
         beds: false,
         accommodationRequests: false,
         bedAssignments: false,
+        payments: false,
         permissions: false,
         saving: false
       },
@@ -169,6 +189,7 @@
         beds: '',
         accommodationRequests: '',
         bedAssignments: '',
+        payments: '',
         permissions: ''
       },
       filters: { query: '', role: 'all', status: 'all', page: 1, pageSize: 10 },
@@ -179,6 +200,8 @@
         assignmentStatus: 'all',
         dormitoryId: 'all'
       },
+      paymentFilters: { query: '', status: 'all', due: 'all' },
+      paymentAction: { status: '', transaction_ref: '', note: '' },
       selectedDormitoryId: '',
       selectedRoomId: '',
       dormitoryForm: { id: '', name: '', address: '', totalRoom: '', gender: '', currentOccupancy: '' },
@@ -254,7 +277,8 @@
           this.loadRooms(),
           this.loadBeds(),
           this.loadAccommodationRequests(),
-          this.loadBedAssignments()
+          this.loadBedAssignments(),
+          this.loadPayments()
         ]);
         this.syncRolesFromUsers();
         this.updateStats();
@@ -410,6 +434,18 @@
         }
       },
 
+      async loadPayments() {
+        this.loading.payments = true;
+        this.errors.payments = '';
+        try {
+          this.payments = asArray(await window.SaraAPI.get(PAYMENT_ENDPOINT)).map(normalizePayment);
+        } catch (error) {
+          this.errors.payments = this.apiMessage(error);
+        } finally {
+          this.loading.payments = false;
+        }
+      },
+
       updateStats() {
         this.stats[0].value = this.toPersianNumber(this.users.length);
         this.stats[1].value = this.toPersianNumber(this.users.filter((item) => item.is_active !== false).length);
@@ -531,6 +567,79 @@
           const matchesDormitory = this.operationFilters.dormitoryId === 'all' || assignment.dormitory === selectedFilterDormitory?.name;
           return matchesStatus && matchesDormitory && this.matchesText(assignment, this.operationFilters.assignmentQuery, ['student_name', 'dormitory', 'room', 'bed', 'request_id']);
         });
+      },
+
+      filteredPayments() {
+        return this.payments.filter((payment) => {
+          const matchesStatus = this.paymentFilters.status === 'all' || payment.status === this.paymentFilters.status;
+          const dueState = this.paymentDueState(payment);
+          const matchesDue = this.paymentFilters.due === 'all' || dueState === this.paymentFilters.due;
+          return matchesStatus && matchesDue && this.matchesText(payment, this.paymentFilters.query, ['id', 'student_name', 'student_id', 'payment_type', 'transaction_ref', 'description']);
+        });
+      },
+
+      paymentDueState(payment) {
+        if (payment.status === 'paid') return 'paid';
+        if (!payment.due_date || payment.due_date === '—') return 'unknown';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const due = new Date(payment.due_date);
+        if (Number.isNaN(due.getTime())) return 'unknown';
+        const diffDays = Math.ceil((due.getTime() - today.getTime()) / 86400000);
+        if (diffDays < 0) return 'overdue';
+        if (diffDays <= 7) return 'due-soon';
+        return 'upcoming';
+      },
+
+      paymentDueLabel(payment) {
+        return {
+          paid: 'پرداخت شده',
+          overdue: 'سررسید گذشته',
+          'due-soon': 'نزدیک سررسید',
+          upcoming: 'در مهلت',
+          unknown: 'بدون سررسید'
+        }[this.paymentDueState(payment)] || 'نامشخص';
+      },
+
+      paymentDueClass(payment) {
+        return {
+          paid: 'ss-status-badge ss-status-success',
+          overdue: 'ss-status-badge ss-status-danger',
+          'due-soon': 'ss-status-badge ss-status-warning',
+          upcoming: 'ss-status-badge ss-status-info',
+          unknown: 'ss-status-badge ss-status-muted'
+        }[this.paymentDueState(payment)] || 'ss-status-badge ss-status-muted';
+      },
+
+      openPaymentDetail(payment) {
+        this.paymentAction = {
+          status: payment.status || 'unpaid',
+          transaction_ref: payment.transaction_ref || '',
+          note: ''
+        };
+        this.dialog = { open: true, type: 'payment-detail', subject: payment };
+      },
+
+      applyPaymentShellUpdate() {
+        const payment = this.dialog.subject;
+        if (!payment) return;
+        payment.status = this.paymentAction.status || payment.status;
+        payment.transaction_ref = this.paymentAction.transaction_ref || payment.transaction_ref;
+        if (payment.status === 'paid' && !payment.paid_at) payment.paid_at = new Date().toISOString().slice(0, 10);
+        this.paymentAction.note = 'وضعیت پرداخت در فرانت‌اند به‌روزرسانی شد؛ ثبت دائمی به endpoint پرداخت‌ها وابسته است.';
+      },
+
+      openPaymentStudent(payment) {
+        const student = this.users.find((user) =>
+          String(user.id || '') === String(payment.user_id || '')
+          || String(user.student_id || '') === String(payment.student_id || '')
+          || this.fullName(user) === payment.student_name
+        );
+        if (student) {
+          this.openUserDetails(student);
+          return;
+        }
+        this.showAlert('danger', 'دانشجوی مرتبط در فهرست کاربران بارگذاری‌شده پیدا نشد.');
       },
 
       statusBadgeClass(type, status) {

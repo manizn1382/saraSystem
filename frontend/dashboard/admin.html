@@ -306,6 +306,45 @@
               <p class="ss-muted small mb-0" x-show="filteredBedAssignments().length > 12" x-text="`${toPersianNumber(filteredBedAssignments().length - 12)} مورد دیگر با همین فیلتر وجود دارد.`"></p>
             </article>
           </div>
+          <article class="admin-access-card mt-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+              <div>
+                <h4 class="h6 fw-bold mb-1">مدیریت پرداخت‌ها</h4>
+                <p class="ss-muted small mb-0">نمای frontend-only برای فهرست، فیلتر، جزئیات و ثبت مرجع تراکنش</p>
+              </div>
+              <button class="admin-action-button" type="button" @click="loadPayments()">بروزرسانی</button>
+            </div>
+            <div class="alert alert-info small" role="note">
+              هیچ پرداخت بانکی واقعی در فرانت‌اند انجام نمی‌شود؛ ثبت و تغییر وضعیت پرداخت تا زمان آماده شدن API پرداخت‌ها نمایشی است.
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-md-5"><input class="form-control" type="search" x-model.debounce.250ms="paymentFilters.query" placeholder="جستجوی دانشجو، شناسه پرداخت یا مرجع تراکنش" /></div>
+              <div class="col-md-3"><select class="form-select" x-model="paymentFilters.status"><option value="all">همه وضعیت‌ها</option><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option><option value="pending">در انتظار</option><option value="overdue">معوق</option><option value="cancelled">لغو شده</option></select></div>
+              <div class="col-md-4"><select class="form-select" x-model="paymentFilters.due"><option value="all">همه سررسیدها</option><option value="overdue">سررسید گذشته</option><option value="due-soon">نزدیک سررسید</option><option value="upcoming">در مهلت</option><option value="paid">پرداخت شده</option><option value="unknown">بدون سررسید</option></select></div>
+            </div>
+            <div x-cloak x-show="errors.payments" class="alert alert-warning small" role="alert" x-text="errors.payments"></div>
+            <div class="table-responsive">
+              <table class="table ss-table align-middle ss-table-card-mobile">
+                <caption class="visually-hidden">فهرست پرداخت‌های دانشجویان</caption>
+                <thead><tr><th>دانشجو</th><th>پرداخت</th><th>مبلغ</th><th>سررسید</th><th>مرجع تراکنش</th><th>وضعیت</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
+                <tbody>
+                  <template x-for="payment in filteredPayments().slice(0, 12)" :key="payment.id">
+                    <tr>
+                      <td><strong x-text="payment.student_name || '—'"></strong><small class="d-block ss-muted" x-text="payment.student_id || payment.user_id || '—'"></small></td>
+                      <td><span x-text="payment.payment_type"></span><small class="d-block ss-muted" x-text="payment.id"></small></td>
+                      <td x-text="payment.amount"></td>
+                      <td><span :class="paymentDueClass(payment)" x-text="paymentDueLabel(payment)"></span><small class="d-block ss-muted mt-1" x-text="payment.due_date || '—'"></small></td>
+                      <td dir="ltr" x-text="payment.transaction_ref || '—'"></td>
+                      <td><span :class="statusBadgeClass('payment', payment.status)" x-text="statusBadgeLabel('payment', payment.status)"></span></td>
+                      <td><div class="admin-table-actions"><button class="admin-action-button" type="button" @click="openPaymentDetail(payment)">جزئیات</button><button class="admin-action-button" type="button" @click="openPaymentStudent(payment)">دانشجو</button></div></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!loading.payments && filteredPayments().length === 0"><td colspan="7"><div class="ss-empty">پرداختی با فیلتر فعلی دریافت نشده است یا API پرداخت‌ها هنوز آماده نیست.</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="ss-muted small mb-0" x-show="filteredPayments().length > 12" x-text="`${toPersianNumber(filteredPayments().length - 12)} پرداخت دیگر با همین فیلتر وجود دارد.`"></p>
+          </article>
         </section>
 
         <section id="reports" class="admin-section ss-card ss-glass p-3 p-md-4 mb-4" aria-labelledby="reportsTitle">
@@ -343,6 +382,30 @@
 
       <section class="admin-dialog" x-show="dialog.type === 'role-form'" role="dialog" aria-modal="true" aria-labelledby="roleFormTitle">
         <form @submit.prevent="saveRole()"><header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3"><h3 id="roleFormTitle" class="h5 fw-bold mb-0" x-text="roleForm.id ? 'ویرایش نقش' : 'ایجاد نقش'"></h3><button class="admin-action-button" type="button" @click="closeDialog()">بستن</button></header><div class="p-3"><label class="form-label" for="role-name">نام نقش</label><input id="role-name" class="form-control mb-3" x-model.trim="roleForm.name" required dir="ltr" /><label class="form-label" for="role-description">توضیحات</label><textarea id="role-description" class="form-control" rows="4" x-model.trim="roleForm.description"></textarea></div><footer class="d-flex justify-content-end gap-2 border-top p-3"><button class="btn ss-btn ss-btn-outline" type="button" @click="closeDialog()">انصراف</button><button class="btn ss-btn ss-btn-primary" type="submit" :disabled="loading.saving" x-text="loading.saving ? 'در حال ثبت...' : (roleForm.id ? 'ثبت تغییرات' : 'ایجاد نقش')"></button></footer></form>
+      </section>
+
+      <section class="admin-dialog admin-dialog-wide" x-show="dialog.type === 'payment-detail'" role="dialog" aria-modal="true" aria-labelledby="paymentDetailTitle">
+        <header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3">
+          <div>
+            <h3 id="paymentDetailTitle" class="h5 fw-bold mb-1">جزئیات پرداخت</h3>
+            <p class="ss-muted small mb-0" x-text="dialog.subject?.id || '—'"></p>
+          </div>
+          <button class="admin-action-button" type="button" @click="closeDialog()">بستن</button>
+        </header>
+        <div class="p-3">
+          <dl class="admin-detail-list mb-3">
+            <template x-for="field in [{label:'دانشجو',value:dialog.subject?.student_name},{label:'شماره دانشجویی',value:dialog.subject?.student_id},{label:'نوع پرداخت',value:dialog.subject?.payment_type},{label:'مبلغ',value:dialog.subject?.amount},{label:'سررسید',value:dialog.subject?.due_date},{label:'پرداخت در',value:dialog.subject?.paid_at},{label:'مرجع تراکنش',value:dialog.subject?.transaction_ref},{label:'وضعیت',value:statusBadgeLabel('payment', dialog.subject?.status)}]" :key="field.label">
+              <div class="admin-detail-item"><dt x-text="field.label"></dt><dd x-text="field.value || '—'"></dd></div>
+            </template>
+          </dl>
+          <div class="alert alert-info small" role="note">این فرم فقط وضعیت نمایشی و مرجع تراکنش را در همین نشست تغییر می‌دهد؛ پرداخت بانکی واقعی انجام نمی‌شود.</div>
+          <div class="row g-3">
+            <div class="col-md-5"><label class="form-label" for="payment-status">وضعیت پرداخت</label><select id="payment-status" class="form-select" x-model="paymentAction.status"><option value="unpaid">پرداخت نشده</option><option value="pending">در انتظار</option><option value="paid">پرداخت شده</option><option value="overdue">معوق</option><option value="cancelled">لغو شده</option></select></div>
+            <div class="col-md-7"><label class="form-label" for="payment-ref">مرجع تراکنش</label><input id="payment-ref" class="form-control" dir="ltr" x-model.trim="paymentAction.transaction_ref" placeholder="TRX-..." /></div>
+            <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-2"><button class="btn ss-btn ss-btn-outline" type="button" @click="openPaymentStudent(dialog.subject)">مشاهده دانشجو</button><button class="btn ss-btn ss-btn-primary" type="button" @click="applyPaymentShellUpdate()">ثبت نمایشی وضعیت</button></div>
+          </div>
+          <p x-cloak x-show="paymentAction.note" class="alert alert-warning small mt-3 mb-0" role="status" aria-live="polite" x-text="paymentAction.note"></p>
+        </div>
       </section>
 
       <section class="admin-dialog admin-dialog-wide" x-show="dialog.type === 'generic-details'" role="dialog" aria-modal="true" aria-labelledby="genericDetailTitle">
