@@ -121,16 +121,20 @@
   function bedAssignment(item = {}, index = 0) {
     const user = item.user || item.student || {};
     const bedData = item.bed || {};
+    const requestData = item.request || {};
+    const bedId = bedData && typeof bedData === 'object' ? bedData.id : item.bed;
+    const requestId = requestData && typeof requestData === 'object' ? requestData.id : item.request;
     const roomData = item.room || bedData.room || {};
     const dorm = item.dormitory || roomData.dormitory || {};
     return {
       id: id(item.id, String(index + 1)),
+      request_id: id(requestId || item.request_id),
       user_id: id(user.id || item.user_id),
-      bed_id: id(bedData.id || item.bed_id),
+      bed_id: id(bedId || item.bed_id),
       student_name: fullName(user, item.student_name),
       dormitory: text(dorm.name || item.dormitory_name),
       room: text(roomData.room_number || item.room_number),
-      bed: text(bedData.bed_number || item.bed_number),
+      bed: text(bedData.bed_number || item.bed_number || bedId),
       start_date: text(item.start_date),
       end_date: text(item.end_date, ''),
       status: text(item.status, 'active'),

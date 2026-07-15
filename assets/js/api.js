@@ -236,6 +236,22 @@
       return appendUrlTail(`/api/beds/updateBed/${encodeURIComponent(bedMatch[1])}`, tail);
     }
 
+    if (/^\/api\/bed-assignments\/?$/i.test(value)) {
+      return appendUrlTail(requestMethod === 'POST' ? '/api/bedAssign/create' : '/api/bedAssign/detail', tail);
+    }
+
+    if (/^\/api\/bed-assignments\/current\/?$/i.test(value)) {
+      return appendUrlTail('/api/bedAssign/current', tail);
+    }
+
+    const assignmentMatch = value.match(/^\/api\/bed-assignments\/([^/?#]+)\/?$/i);
+    if (assignmentMatch && requestMethod === 'GET') {
+      return appendUrlTail(`/api/bedAssign/detail?assign_id=${encodeURIComponent(assignmentMatch[1])}`, tail);
+    }
+    if (assignmentMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
+      return appendUrlTail(`/api/bedAssign/update?assign_id=${encodeURIComponent(assignmentMatch[1])}`, tail);
+    }
+
     return original;
   }
 
@@ -376,7 +392,7 @@
         || DEFAULT_ACCOUNTS_BASE_URL;
     }
 
-    if (/^\/api\/(?:dormitory|rooms|beds|accommodation)(?:\/|$)/i.test(value)) {
+    if (/^\/api\/(?:dormitory|rooms|beds|accommodation|bedAssign)(?:\/|$)/i.test(value)) {
       return window.SARA_DORMITORY_API_BASE_URL
         || localStorage.getItem('sarasystem.dormitoryApiBaseUrl')
         || DEFAULT_DORMITORY_BASE_URL;
@@ -430,6 +446,29 @@
     return JSON.stringify(body);
   }
 
+  function isBedAssignmentCreatePath(path = '', method = 'GET') {
+    const { path: value } = splitUrlPath(path);
+    return String(method || 'GET').toUpperCase() === 'POST'
+      && (/^\/api\/bed-assignments\/?$/i.test(value) || /^\/api\/bedAssign\/create\/?$/i.test(value));
+  }
+
+  function normalizeBedAssignmentCreatePayload(body = {}) {
+    const { request_id: requestId, bed_id: bedId, room_id: _roomId, ...rest } = body;
+    return {
+      ...rest,
+      request: body.request ?? requestId,
+      bed: body.bed ?? bedId
+    };
+  }
+
+  function normalizeHtmxParameters(path = '', method = 'GET', parameters) {
+    if (!parameters || typeof parameters !== 'object' || Array.isArray(parameters)) return;
+    if (!isBedAssignmentCreatePath(path, method)) return;
+    const normalized = normalizeBedAssignmentCreatePayload(parameters);
+    Object.keys(parameters).forEach((key) => delete parameters[key]);
+    Object.assign(parameters, normalized);
+  }
+
   function normalizeRequestBody(path = '', method = 'GET', body) {
     if (!body || body instanceof FormData || typeof body !== 'object' || Array.isArray(body)) return body;
 
@@ -443,6 +482,10 @@
     const userMatch = value.match(/^\/api\/accounts\/users\/([^/?#]+)\/?$/i);
     if (userMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
       return { ...body, id: body.id ?? userMatch[1] };
+    }
+
+    if (isBedAssignmentCreatePath(path, requestMethod)) {
+      return normalizeBedAssignmentCreatePayload(body);
     }
 
     return body;
@@ -587,8 +630,11 @@
 
         if (!/^\/api(\/|$)/i.test(requestPath)) return;
 
-        const normalizedPath = normalizeApiPath(requestPath, event.detail?.verb || event.detail?.requestConfig?.verb || 'GET');
-        const resolvedPath = joinUrl(requestPath, undefined, event.detail?.verb || event.detail?.requestConfig?.verb || 'GET');
+        const requestMethod = event.detail?.verb || event.detail?.requestConfig?.verb || 'GET';
+        normalizeHtmxParameters(requestPath, requestMethod, event.detail?.parameters);
+
+        const normalizedPath = normalizeApiPath(requestPath, requestMethod);
+        const resolvedPath = joinUrl(requestPath, undefined, requestMethod);
         if (resolvedPath !== requestPath) {
           event.detail.path = resolvedPath;
           if (event.detail.pathInfo) event.detail.pathInfo.requestPath = resolvedPath;
@@ -596,7 +642,7 @@
         }
 
         const token = window.SaraAuth?.getAccessToken?.();
-        if (token && shouldAttachAuthHeader(requestPath, event.detail?.verb || event.detail?.requestConfig?.verb || 'GET')) {
+        if (token && shouldAttachAuthHeader(requestPath, requestMethod)) {
           event.detail.headers = event.detail.headers || {};
           event.detail.headers.Authorization = `Bearer ${token}`;
         }
@@ -627,6 +673,7 @@
     normalizeAiPath,
     normalizeApiPath,
     normalizeRequestBody,
+    normalizeHtmxParameters,
     isAccountPath,
     isAiPath,
     isAnnouncementPath,
