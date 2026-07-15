@@ -252,6 +252,30 @@
       return appendUrlTail(`/api/bedAssign/update?assign_id=${encodeURIComponent(assignmentMatch[1])}`, tail);
     }
 
+    if (/^\/api\/maintenance-requests\/?$/i.test(value)) {
+      return appendUrlTail(requestMethod === 'POST' ? '/api/maintenance/create' : '/api/maintenance/detail', tail);
+    }
+
+    const maintenanceStatusMatch = value.match(/^\/api\/maintenance-requests\/([^/?#]+)\/status\/?$/i);
+    if (maintenanceStatusMatch && requestMethod === 'PATCH') {
+      return appendUrlTail(`/api/maintenance/update/status?maintain_id=${encodeURIComponent(maintenanceStatusMatch[1])}`, tail);
+    }
+
+    const maintenanceAssignMatch = value.match(/^\/api\/maintenance-requests\/([^/?#]+)\/assign\/?$/i);
+    if (maintenanceAssignMatch && requestMethod === 'PATCH') {
+      return appendUrlTail(`/api/maintenance/update/assign?maintain_id=${encodeURIComponent(maintenanceAssignMatch[1])}`, tail);
+    }
+
+    const maintenanceCommentMatch = value.match(/^\/api\/maintenance-requests\/([^/?#]+)\/comments\/?$/i);
+    if (maintenanceCommentMatch && requestMethod === 'PATCH') {
+      return appendUrlTail(`/api/maintenance/update/comments?maintain_id=${encodeURIComponent(maintenanceCommentMatch[1])}`, tail);
+    }
+
+    const maintenanceMatch = value.match(/^\/api\/maintenance-requests\/([^/?#]+)\/?$/i);
+    if (maintenanceMatch && requestMethod === 'PATCH') {
+      return appendUrlTail(`/api/maintenance/update?maintain_id=${encodeURIComponent(maintenanceMatch[1])}`, tail);
+    }
+
     return original;
   }
 
@@ -392,7 +416,7 @@
         || DEFAULT_ACCOUNTS_BASE_URL;
     }
 
-    if (/^\/api\/(?:dormitory|rooms|beds|accommodation|bedAssign)(?:\/|$)/i.test(value)) {
+    if (/^\/api\/(?:dormitory|rooms|beds|accommodation|bedAssign|maintenance)(?:\/|$)/i.test(value)) {
       return window.SARA_DORMITORY_API_BASE_URL
         || localStorage.getItem('sarasystem.dormitoryApiBaseUrl')
         || DEFAULT_DORMITORY_BASE_URL;
@@ -461,10 +485,61 @@
     };
   }
 
+  function isMaintenanceCreatePath(path = '', method = 'GET') {
+    const { path: value } = splitUrlPath(path);
+    return String(method || 'GET').toUpperCase() === 'POST'
+      && (/^\/api\/maintenance-requests\/?$/i.test(value) || /^\/api\/maintenance\/create\/?$/i.test(value));
+  }
+
+  function isMaintenanceMutationPath(path = '', method = 'GET') {
+    const { path: value } = splitUrlPath(path);
+    return ['POST', 'PUT', 'PATCH'].includes(String(method || 'GET').toUpperCase())
+      && (/^\/api\/maintenance-requests(?:\/|$)/i.test(value) || /^\/api\/maintenance\/(?:create|update)(?:\/|$)/i.test(value));
+  }
+
+  function normalizeMaintenancePayload(path = '', method = 'GET', body = {}) {
+    const { path: value } = splitUrlPath(path);
+    const normalized = { ...body };
+    const requestMethod = String(method || 'GET').toUpperCase();
+
+    if (normalized.room === undefined && normalized.room_id !== undefined) normalized.room = normalized.room_id;
+    if (normalized.bed === undefined && normalized.bed_id !== undefined) normalized.bed = normalized.bed_id;
+    if (normalized.dorm === undefined) normalized.dorm = normalized.dorm_id ?? normalized.dormitory_id;
+    if (normalized.assigned_to === undefined && normalized.assigned_to_id !== undefined) normalized.assigned_to = normalized.assigned_to_id;
+    if (normalized.description === undefined && normalized.resolution_note !== undefined) normalized.description = normalized.resolution_note;
+    if (isMaintenanceCreatePath(path, requestMethod) && !normalized.status) normalized.status = 'pending';
+
+    if (isMaintenanceCreatePath(path, requestMethod)) {
+      const title = String(normalized.title || '').trim();
+      const description = String(normalized.description || '').trim();
+      normalized.description = title && description && !description.startsWith(title)
+        ? `${title}\n\n${description}`
+        : description || title;
+      delete normalized.title;
+    }
+
+    if (/\/comments\/?$/i.test(value) || /^\/api\/maintenance\/update\/comments\/?$/i.test(value)) {
+      delete normalized.status;
+      delete normalized.assigned_to;
+      delete normalized.assigned_to_id;
+    }
+
+    delete normalized.room_id;
+    delete normalized.bed_id;
+    delete normalized.dorm_id;
+    delete normalized.dormitory_id;
+    delete normalized.location;
+    delete normalized.requested_by;
+    delete normalized.assigned_to_id;
+    delete normalized.resolution_note;
+
+    return normalized;
+  }
+
   function normalizeHtmxParameters(path = '', method = 'GET', parameters) {
     if (!parameters || typeof parameters !== 'object' || Array.isArray(parameters)) return;
-    if (!isBedAssignmentCreatePath(path, method)) return;
-    const normalized = normalizeBedAssignmentCreatePayload(parameters);
+    const normalized = normalizeRequestBody(path, method, parameters);
+    if (normalized === parameters) return;
     Object.keys(parameters).forEach((key) => delete parameters[key]);
     Object.assign(parameters, normalized);
   }
@@ -486,6 +561,10 @@
 
     if (isBedAssignmentCreatePath(path, requestMethod)) {
       return normalizeBedAssignmentCreatePayload(body);
+    }
+
+    if (isMaintenanceMutationPath(path, requestMethod)) {
+      return normalizeMaintenancePayload(path, requestMethod, body);
     }
 
     return body;

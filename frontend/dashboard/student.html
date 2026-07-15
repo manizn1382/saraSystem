@@ -1429,16 +1429,34 @@
 
                 <div class="col-md-6">
                   <label for="maintenanceBed" class="form-label"
-                    >شناسه تخت، اختیاری</label
+                    >شناسه تخت</label
                   >
                   <input
                     x-model.trim="forms.maintenance.data.bed_id"
+                    :class="{ 'is-invalid': forms.maintenance.errors.bed_id }"
                     type="text"
                     class="form-control form-control-lg"
                     id="maintenanceBed"
                     name="bed_id"
+                    required
+                    aria-describedby="maintenanceBedError"
                     placeholder="مثلاً 3"
                   />
+                  <div
+                    id="maintenanceBedError"
+                    class="invalid-feedback"
+                    x-text="forms.maintenance.errors.bed_id"
+                  ></div>
+                </div>
+
+                <input
+                  type="hidden"
+                  name="dorm_id"
+                  x-model="forms.maintenance.data.dorm_id"
+                />
+
+                <div class="col-12" x-cloak x-show="forms.maintenance.errors.dorm_id">
+                  <div class="alert alert-ss-danger small mb-0" role="alert" x-text="forms.maintenance.errors.dorm_id"></div>
                 </div>
 
                 <div class="col-12">

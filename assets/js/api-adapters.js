@@ -163,17 +163,26 @@
   function maintenanceRequest(item = {}, index = 0) {
     const roomData = item.room || {};
     const bedData = item.bed || {};
+    const dormData = item.dorm || item.dormitory || {};
+    const roomId = id(roomData.id || item.room_id || (typeof item.room === 'string' || typeof item.room === 'number' ? item.room : ''));
+    const bedId = id(bedData.id || item.bed_id || (typeof item.bed === 'string' || typeof item.bed === 'number' ? item.bed : ''));
+    const dormId = id(dormData.id || item.dorm_id || item.dormitory_id || (typeof item.dorm === 'string' || typeof item.dorm === 'number' ? item.dorm : ''));
+    const roomLabel = roomData.room_number || roomData.number || roomId;
+    const bedLabel = bedData.bed_number || bedData.number || bedId;
     return {
       id: id(item.id, `M-${index + 1}`),
       title: text(item.title, 'بدون عنوان'),
       description: text(item.description, ''),
-      location: text(item.location || item.location_text || roomData.room_number || bedData.bed_number),
+      dorm_id: dormId,
+      room_id: roomId,
+      bed_id: bedId,
+      location: text(item.location || item.location_text || [roomLabel ? `اتاق ${roomLabel}` : '', bedLabel ? `تخت ${bedLabel}` : ''].filter(Boolean).join('، ')),
       priority: text(item.priority, 'medium'),
       status: text(item.status, 'pending'),
-      requested_by: fullName(item.requested_by || item.user || item.student, item.requested_by_name || item.student_name || ''),
-      assigned_to_id: id(item.assigned_to?.id || item.assigned_to_id || ''),
+      requested_by: fullName(item.requested_by || item.user || item.student, item.requested_by_name || item.student_name || item.requester_id || ''),
+      assigned_to_id: id(item.assigned_to?.id || item.assigned_to_id || (typeof item.assigned_to === 'string' || typeof item.assigned_to === 'number' ? item.assigned_to : '')),
       assigned_to: fullName(item.assigned_to, item.assigned_to_name || item.assigned_to || ''),
-      created_at: text(item.created_at || item.request_date),
+      created_at: text(item.created_at || item.createAt || item.request_date),
       updated_at: text(item.updated_at, ''),
       resolved_at: text(item.resolved_at || item.closed_at, ''),
       resolution_note: text(item.resolution_note || item.resolution || item.close_note || '', '')

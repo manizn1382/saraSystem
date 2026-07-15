@@ -38,6 +38,9 @@
         },
 
         assignment: {
+          dormitory_id: "1",
+          room_id: "212",
+          bed_id: "3",
           dormitory: "خوابگاه یک",
           room: "۲۱۲",
           bed: "۳",
@@ -208,12 +211,15 @@
               priority: "",
               room_id: "",
               bed_id: "",
+              dorm_id: "",
               description: ""
             },
             errors: {
               title: "",
               priority: "",
               room_id: "",
+              bed_id: "",
+              dorm_id: "",
               description: ""
             }
           }
@@ -259,6 +265,10 @@
           document.body.addEventListener("htmx:timeout", (event) => {
             this.handleRequestFailure(event, "زمان پاسخ‌گویی سرور به پایان رسید. لطفاً دوباره تلاش کنید.");
           });
+
+          document.getElementById("maintenanceModal")?.addEventListener("show.bs.modal", () => {
+            this.prefillMaintenanceFormFromAssignment();
+          });
         },
 
         loadStoredUser() {
@@ -294,7 +304,7 @@
             unpaid_total: "۰ تومان",
             unread_announcements: "۰"
           };
-          this.assignment = { dormitory: "", room: "", bed: "", start_date: "", end_date: "", status: "pending", notes: "" };
+          this.assignment = { dormitory_id: "", room_id: "", bed_id: "", dormitory: "", room: "", bed: "", start_date: "", end_date: "", status: "pending", notes: "" };
           this.accommodationRequests = [];
           this.payments = [];
           this.maintenanceRequests = [];
@@ -641,11 +651,20 @@
           if (resource === "assignment") {
             const assignment = Array.isArray(list) ? list[0] : data;
             if (assignment) {
+              const room = assignment.room || assignment.bed?.room || {};
+              const bed = assignment.bed || {};
+              const dormitory = assignment.dormitory || room.dormitory || assignment.dorm || {};
+              const roomId = room.id || assignment.room_id || (typeof assignment.room === "string" || typeof assignment.room === "number" ? assignment.room : "");
+              const bedId = bed.id || assignment.bed_id || (typeof assignment.bed === "string" || typeof assignment.bed === "number" ? assignment.bed : "");
+              const dormitoryId = dormitory.id || assignment.dormitory_id || assignment.dorm_id || (typeof assignment.dormitory === "string" || typeof assignment.dormitory === "number" ? assignment.dormitory : "");
               this.assignment = {
                 id: assignment.id || "—",
-                dormitory: assignment.dormitory?.name || assignment.room?.dormitory?.name || assignment.dormitory_name || "—",
-                room: this.toPersianNumber(assignment.room?.room_number || assignment.room_number || assignment.bed?.room?.room_number || ""),
-                bed: this.toPersianNumber(assignment.bed?.bed_number || assignment.bed_number || ""),
+                dormitory_id: dormitoryId,
+                room_id: roomId,
+                bed_id: bedId,
+                dormitory: dormitory.name || assignment.dormitory_name || "—",
+                room: this.toPersianNumber(room.room_number || assignment.room_number || roomId || ""),
+                bed: this.toPersianNumber(bed.bed_number || assignment.bed_number || bedId || ""),
                 start_date: assignment.start_date || "—",
                 end_date: assignment.end_date || "—",
                 status: assignment.status || "active",
@@ -798,6 +817,7 @@
         },
 
         handleMaintenanceSuccess(data) {
+          const responseData = data?.data || data || {};
           this.forms.maintenance.loading = false;
           this.forms.maintenance.success = true;
           this.forms.maintenance.message = data?.message || "درخواست تعمیرات با موفقیت ثبت شد.";
@@ -809,8 +829,11 @@
             description: this.forms.maintenance.data.description,
             location: `اتاق ${this.toPersianNumber(this.forms.maintenance.data.room_id)}${this.forms.maintenance.data.bed_id ? `، تخت ${this.toPersianNumber(this.forms.maintenance.data.bed_id)}` : ""}`,
             priority: this.forms.maintenance.data.priority,
-            status: data?.status || "pending",
-            created_at: data?.created_at || "امروز"
+            dorm_id: this.forms.maintenance.data.dorm_id,
+            room_id: this.forms.maintenance.data.room_id,
+            bed_id: this.forms.maintenance.data.bed_id,
+            status: responseData.status || "pending",
+            created_at: responseData.created_at || responseData.createAt || "امروز"
           };
 
           this.maintenanceRequests = [newTicket, ...this.maintenanceRequests];
@@ -856,6 +879,7 @@
 
         validateMaintenance(event) {
           this.clearFormErrors("maintenance");
+          this.prefillMaintenanceFormFromAssignment();
           const form = this.forms.maintenance;
 
           if (!form.data.title) {
@@ -868,6 +892,15 @@
 
           if (!form.data.room_id) {
             form.errors.room_id = "وارد کردن شناسه اتاق الزامی است.";
+          }
+
+          if (!form.data.bed_id) {
+            form.errors.bed_id = "وارد کردن شناسه تخت الزامی است.";
+          }
+
+          if (!form.data.dorm_id) {
+            form.errors.dorm_id = "شناسه خوابگاه از تخصیص فعال قابل تشخیص نیست.";
+            form.message = form.errors.dorm_id;
           }
 
           if (!form.data.description) {
@@ -901,7 +934,18 @@
                 preferred_room_type: "preferred_room_type",
                 semester: "semester"
               }
-            : {};
+            : {
+                room: "room_id",
+                room_id: "room_id",
+                bed: "bed_id",
+                bed_id: "bed_id",
+                dorm: "dorm_id",
+                dorm_id: "dorm_id",
+                dormitory_id: "dorm_id",
+                title: "title",
+                priority: "priority",
+                description: "description"
+              };
 
           Object.entries(fieldMap).forEach(([apiField, formField]) => {
             if (errors[formField] !== undefined && data?.[apiField]) {
@@ -935,12 +979,20 @@
             priority: "",
             room_id: "",
             bed_id: "",
+            dorm_id: "",
             description: ""
           };
           this.forms.maintenance.loading = false;
           this.forms.maintenance.message = "";
           this.forms.maintenance.success = false;
           this.clearFormErrors("maintenance");
+        },
+
+        prefillMaintenanceFormFromAssignment() {
+          const data = this.forms.maintenance.data;
+          if (!data.room_id) data.room_id = this.assignment.room_id || "";
+          if (!data.bed_id) data.bed_id = this.assignment.bed_id || "";
+          if (!data.dorm_id) data.dorm_id = this.assignment.dormitory_id || this.assignment.dorm_id || "";
         },
 
         closeModal(id) {

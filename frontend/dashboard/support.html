@@ -291,7 +291,7 @@
               <article class="ss-action-panel h-100">
                 <h4 class="h6 fw-bold mb-3">اقدام پشتیبانی</h4>
                 <div class="d-grid gap-2 mb-3">
-                  <button class="btn ss-btn ss-btn-outline" type="button" @click="assignSelectedToMe()">ارجاع به من</button>
+                  <button class="btn ss-btn ss-btn-outline" type="button" @click="assignSelectedToMe()" :disabled="ticketAction.loading">ارجاع به من</button>
                 </div>
                 <label class="form-label" for="support-status">وضعیت</label>
                 <select id="support-status" class="form-select mb-3" x-model="ticketAction.status">
@@ -304,8 +304,11 @@
                 </select>
                 <label class="form-label" for="support-resolution">یادداشت حل مشکل</label>
                 <textarea id="support-resolution" class="form-control" rows="5" x-model.trim="ticketAction.resolution_note" placeholder="شرح اقدام انجام‌شده، قطعه تعویض‌شده یا علت بستن درخواست"></textarea>
-                <button class="btn ss-btn ss-btn-primary w-100 mt-3" type="button" @click="applyTicketUpdate()">ثبت نمایشی وضعیت</button>
-                <p x-cloak x-show="ticketAction.notice" class="alert alert-warning small mt-3 mb-0" role="status" aria-live="polite" x-text="ticketAction.notice"></p>
+                <button class="btn ss-btn ss-btn-primary w-100 mt-3" type="button" @click="applyTicketUpdate()" :disabled="ticketAction.loading">
+                  <span x-show="ticketAction.loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                  <span x-text="ticketAction.loading ? 'در حال ثبت...' : 'ثبت وضعیت'"></span>
+                </button>
+                <p x-cloak x-show="ticketAction.notice" class="alert alert-info small mt-3 mb-0" role="status" aria-live="polite" x-text="ticketAction.notice"></p>
               </article>
             </div>
             <div class="col-lg-6">

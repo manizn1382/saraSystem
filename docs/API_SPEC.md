@@ -1822,6 +1822,18 @@ Purpose: payment gateway callback. This is a back-end integration endpoint only.
 
 Entity: `MaintenanceRequest`
 
+Current backend implementation: `dormitory_service/maintenance_service` exposes action-style routes under `/api/maintenance`:
+
+- `GET /detail`
+- `POST /create`
+- `PATCH /update?maintain_id={id}`
+- `PATCH /update/status?maintain_id={id}`
+- `PATCH /update/assign?maintain_id={id}`
+- `PATCH /update/comments?maintain_id={id}`
+- `GET /history`
+
+Current front-end routing keeps the REST-style contract below and normalizes it to those action routes. The create serializer currently requires `room`, `bed`, and `dorm` foreign-key IDs, so the front end maps `room_id`, `bed_id`, and `dorm_id` before sending. Current backend limitations: `/detail` filters by `requester_id`, so support/admin global queues may need role-aware list behavior or `/history`; `/history` does not expose per-maintenance filtering; `/update/comments` updates `description` rather than appending separate comment/history rows.
+
 Recommended fields:
 
 ```json
@@ -2355,13 +2367,15 @@ The front end already checks several permission names. The API should treat thes
 6. There are no list/delete endpoints for `UserRole` and `RolePermission`.
 7. There are no update/delete endpoints for `Permission`.
 8. Username-only anonymous password reset is implemented at `/api/v1/users/password/reset`; older `/password/reset/username` aliases should normalize to that route.
-9. Accommodation requests, bed assignments, and the announcements app now have partial backend implementations. Remaining missing or unmounted areas include payments, maintenance requests, public stats, public announcements, reports, and the `announcements.urls` include in the account service root URL config.
+9. Accommodation requests, bed assignments, maintenance requests, and the announcements app now have partial backend implementations. Remaining missing or unmounted areas include payments, public stats, public announcements, reports, and the `announcements.urls` include in the account service root URL config.
 10. Dormitory/room/bed endpoints use action-style names; RESTful aliases are recommended for long-term consistency.
 11. `PUT /api/accommodation/review?id={id}` currently rejects `pending` records, so dormitory admins cannot approve/reject newly submitted requests.
 12. Current serializers omit some model fields such as dormitory `dorm_type`, `description`, `createdAt`, `updatedAt`, room/bed `description`, and timestamps. Add them if the UI/reporting needs them.
 13. `AccommodationCreateView` validates `description` but does not pass it into `Accommodation.objects.create(...)`, so student notes may be lost and replaced by the model default.
 14. `Accommodation.requested_dorm` is a `OneToOneField`; use `ForeignKey` if multiple students can request the same dormitory.
 15. Bed assignment create currently does not persist `notes`, does not return conflicts for existing active user/bed assignments, and does not update the related bed/request statuses after success.
+16. Maintenance `/api/maintenance/detail` currently filters by requester for every role, so support/admin queue views cannot reliably list all maintenance requests through the REST-style list alias.
+17. Maintenance `/api/maintenance/history` is a broad list with no documented `maintain_id` filtering, and `/update/comments` stores text in `description` rather than a separate comment/history entity.
 
 ## Minimum API Set Needed for Full Product
 

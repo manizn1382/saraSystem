@@ -280,6 +280,9 @@
       currentUserName() {
         return `${this.user.first_name || ''} ${this.user.last_name || ''}`.trim() || this.user.username || this.user.email || 'واحد پشتیبانی';
       },
+      currentUserId() {
+        return this.user.id || this.user.user_id || this.user.pk || '';
+      },
       assigneeText(ticket) {
         return ticket.assigned_to?.name || ticket.assigned_to || '';
       },
@@ -302,27 +305,114 @@
         this.selectedTicket = null;
         this.ticketAction = { status: '', resolution_note: '', notice: '' };
       },
-      assignSelectedToMe() {
-        if (!this.selectedTicket) return;
-        this.selectedTicket.assigned_to = this.currentUserName();
-        this.selectedTicket.assigned_to_id = this.user.id || this.user.user_id || '';
-        if (this.selectedTicket.status === 'pending') {
-          this.selectedTicket.status = 'assigned';
-          this.ticketAction.status = 'assigned';
+      mergeTicketUpdate(ticket, data = {}, fallback = {}) {
+        if (!ticket) return;
+        const payload = data?.data || data || {};
+        const adapted = {};
+        if (payload.id !== undefined) adapted.id = payload.id;
+        if (payload.title !== undefined) adapted.title = payload.title;
+        if (payload.description !== undefined) {
+          adapted.description = payload.description;
+          if (fallback.resolution_note) adapted.resolution_note = fallback.resolution_note;
         }
-        this.ticketAction.notice = 'ارجاع در فرانت‌اند ثبت شد؛ ذخیره دائمی به API تعمیرات وابسته است.';
+        if (payload.priority !== undefined) adapted.priority = payload.priority;
+        if (payload.status !== undefined) adapted.status = payload.status;
+        if (payload.assigned_to !== undefined) {
+          adapted.assigned_to_id = payload.assigned_to?.id || payload.assigned_to;
+          adapted.assigned_to = String(adapted.assigned_to_id) === String(this.currentUserId())
+            ? this.currentUserName()
+            : String(adapted.assigned_to_id || '');
+        }
+        if (payload.updated_at !== undefined) adapted.updated_at = payload.updated_at || fallback.updated_at;
+        if (payload.resolved_at !== undefined) adapted.resolved_at = payload.resolved_at || fallback.resolved_at;
+        if (payload.createAt !== undefined || payload.created_at !== undefined) adapted.created_at = payload.created_at || payload.createAt;
+        const updated = {
+          ...ticket,
+          ...fallback,
+          ...adapted,
+          id: ticket.id
+        };
+        Object.assign(ticket, updated);
+        this.tickets = this.tickets.map((item) => String(item.id) === String(ticket.id) ? ticket : item);
+        if (this.selectedTicket && String(this.selectedTicket.id) === String(ticket.id)) {
+          this.selectedTicket = ticket;
+        }
         this.updateStats();
       },
-      applyTicketUpdate() {
+      maintenanceActionError(error, fallback) {
+        return error?.message || window.SaraUI?.apiErrorMessage?.(error?.status, error?.data) || fallback;
+      },
+      async assignSelectedToMe() {
         if (!this.selectedTicket) return;
-        this.selectedTicket.status = this.ticketAction.status || this.selectedTicket.status;
-        this.selectedTicket.resolution_note = this.ticketAction.resolution_note || '';
-        this.selectedTicket.updated_at = new Date().toISOString().slice(0, 10);
-        if (this.selectedTicket.status === 'resolved' && !this.selectedTicket.resolved_at) {
-          this.selectedTicket.resolved_at = this.selectedTicket.updated_at;
+        const userId = this.currentUserId();
+        if (!userId) {
+          this.ticketAction.notice = 'شناسه کاربر فعلی برای ارجاع در دسترس نیست.';
+          return;
         }
-        this.ticketAction.notice = 'تغییر وضعیت و یادداشت به صورت نمایشی ثبت شد؛ endpoint تعمیرات هنوز برای ذخیره نهایی لازم است.';
-        this.updateStats();
+
+        this.ticketAction.loading = true;
+        this.ticketAction.notice = '';
+
+        try {
+          const data = await window.SaraAPI.patch(`/api/maintenance-requests/${encodeURIComponent(this.selectedTicket.id)}/assign/`, {
+            assigned_to: userId
+          });
+          const fallback = {
+            assigned_to: this.currentUserName(),
+            assigned_to_id: userId,
+            status: this.selectedTicket.status === 'pending' ? 'assigned' : this.selectedTicket.status,
+            updated_at: new Date().toISOString().slice(0, 10)
+          };
+          this.mergeTicketUpdate(this.selectedTicket, data, fallback);
+          if (this.selectedTicket.status === 'pending') this.selectedTicket.status = 'assigned';
+          if (this.ticketAction.status === 'pending') this.ticketAction.status = this.selectedTicket.status || 'assigned';
+          this.ticketAction.notice = data?.message || 'ارجاع درخواست در API تعمیرات ثبت شد.';
+        } catch (error) {
+          this.ticketAction.notice = this.maintenanceActionError(error, 'ارجاع درخواست ناموفق بود.');
+        } finally {
+          this.ticketAction.loading = false;
+        }
+      },
+      async applyTicketUpdate() {
+        if (!this.selectedTicket) return;
+        const nextStatus = this.ticketAction.status || this.selectedTicket.status;
+        const resolutionNote = this.ticketAction.resolution_note || '';
+        this.ticketAction.loading = true;
+        this.ticketAction.notice = '';
+
+        try {
+          const responses = [];
+          if (nextStatus && nextStatus !== this.selectedTicket.status) {
+            responses.push(await window.SaraAPI.patch(`/api/maintenance-requests/${encodeURIComponent(this.selectedTicket.id)}/status/`, {
+              status: nextStatus
+            }));
+          }
+
+          if (resolutionNote && resolutionNote !== this.selectedTicket.resolution_note) {
+            responses.push(await window.SaraAPI.patch(`/api/maintenance-requests/${encodeURIComponent(this.selectedTicket.id)}/comments/`, {
+              resolution_note: resolutionNote
+            }));
+          }
+
+          if (!responses.length) {
+            this.ticketAction.notice = 'تغییری برای ثبت وجود ندارد.';
+            return;
+          }
+
+          const updatedAt = new Date().toISOString().slice(0, 10);
+          const fallback = {
+            status: nextStatus,
+            resolution_note: resolutionNote,
+            updated_at: updatedAt,
+            resolved_at: nextStatus === 'resolved' ? this.selectedTicket.resolved_at || updatedAt : this.selectedTicket.resolved_at
+          };
+          responses.forEach((data) => this.mergeTicketUpdate(this.selectedTicket, data, fallback));
+          this.ticketAction.notice = responses[responses.length - 1]?.message || 'تغییرات درخواست در API تعمیرات ثبت شد.';
+        } catch (error) {
+          this.ticketAction.notice = this.maintenanceActionError(error, 'ثبت تغییرات درخواست ناموفق بود.');
+        } finally {
+          this.ticketAction.loading = false;
+        }
       },
       ticketTimeline(ticket = this.selectedTicket) {
         if (!ticket) return [];
