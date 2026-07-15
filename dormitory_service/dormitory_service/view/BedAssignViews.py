@@ -116,35 +116,6 @@ class BedAssignDetail(generics.ListAPIView):
 
         return queryset
 
-    # def get(self, request, *args, **kwargs):
-    #     assign_id = self.request.query_params.get("assign_id")
-    #
-    #     if not assign_id:
-    #         return Response({
-    #             "success": False,
-    #             "message": "assignment id is mandatory for search"
-    #         }, status=status.HTTP_400_BAD_REQUEST)
-    #
-    #     try:
-    #         assignmentInfo = BedAssign.objects.get(id=assign_id)
-    #     except BedAssign.DoesNotExist:
-    #         return Response({
-    #             "success": False,
-    #             "message": f"there is not assignment with id: {assign_id}"
-    #         }, status=status.HTTP_404_NOT_FOUND)
-    #
-    #     if assignmentInfo.user_id != request.user.id and not request.user.is_staff:
-    #         return Response({
-    #             "success": False,
-    #             "message": "you can't see other persons assignment"
-    #         }, status=status.HTTP_403_FORBIDDEN)
-    #
-    #     serializer = self.get_serializer(assignmentInfo)
-    #     return Response({
-    #         "success": True,
-    #         "data": serializer.data
-    #     }, status=status.HTTP_200_OK)
-
 
 class BedAssignUpdate(generics.UpdateAPIView):
     serializer_class = BedAssignUpdateSerializer

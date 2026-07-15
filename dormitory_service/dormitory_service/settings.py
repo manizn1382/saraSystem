@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'dormitory_service',
     'accomodation_service',
+    'maintenance_service',
 ]
 
 MIDDLEWARE = [

@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from dormitory_service.api import dormUrl, roomUrl, bedUrl, bedAssign
 from accomodation_service import urls as accUrl
+from maintenance_service import urls as maintainUrl
 
 
 urlpatterns = [
@@ -26,5 +27,6 @@ urlpatterns = [
     path('api/rooms/', include(roomUrl)),
     path('api/beds/', include(bedUrl)),
     path('api/accommodation', include(accUrl)),
-    path('api/bedAssign', include(bedAssign))
+    path('api/bedAssign', include(bedAssign)),
+    path('api/maintenance', include(maintainUrl))
 ]

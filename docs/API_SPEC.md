@@ -1827,7 +1827,7 @@ Recommended fields:
 
 ### `GET /api/maintenance-requests/`
 
-Status: Front-end contract  
+Status: implemented  
 Auth: authenticated  
 Roles: student sees own requests; support sees queue; dormitory admin sees managed dormitories; system admin sees all.
 
@@ -1847,7 +1847,7 @@ Query params:
 
 ### `POST /api/maintenance-requests/`
 
-Status: Front-end contract  
+Status: implemented  
 Auth: student/resident or staff  
 Used by: student maintenance form.
 
@@ -1871,19 +1871,19 @@ Server rules:
 
 ### `GET /api/maintenance-requests/{id}/`
 
-Status: Planned  
+Status: implemented  
 Auth: reporter, assigned support staff, dormitory admin, or system admin  
 Purpose: detail including comments/history.
 
 ### `PATCH /api/maintenance-requests/{id}/`
 
-Status: Planned  
+Status: implemented  
 Auth: reporter for limited pending edits/cancel; support/admin for status fields  
 Purpose: update request.
 
 ### `PATCH /api/maintenance-requests/{id}/assign/`
 
-Status: Planned  
+Status: implemented  
 Auth: support staff lead, dormitory admin, or system admin  
 Purpose: assign request to support staff.
 
@@ -1898,7 +1898,7 @@ Request:
 
 ### `PATCH /api/maintenance-requests/{id}/status/`
 
-Status: Planned  
+Status: implemented  
 Auth: assigned support staff or admin  
 Purpose: update work status.
 
@@ -1912,9 +1912,9 @@ Request:
 }
 ```
 
-### `POST /api/maintenance-requests/{id}/comments/`
+### `PATCH /api/maintenance-requests/{id}/comments/`
 
-Status: Planned  
+Status: implemented  
 Auth: visible request participants  
 Purpose: add history/comment item.
 
@@ -1929,7 +1929,7 @@ Request:
 
 ### `GET /api/maintenance-requests/{id}/history/`
 
-Status: Planned  
+Status: implemented  
 Auth: visible request participants  
 Purpose: list comments/status changes.
 

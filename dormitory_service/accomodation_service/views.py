@@ -9,7 +9,6 @@ from .models import Accommodation
 from dormitory_service.models.DormModel import Dormitory
 import requests
 from django.utils import timezone
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
 
 @method_decorator(csrf_exempt, name='dispatch')
