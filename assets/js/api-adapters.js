@@ -121,16 +121,20 @@
   function bedAssignment(item = {}, index = 0) {
     const user = item.user || item.student || {};
     const bedData = item.bed || {};
+    const requestData = item.request || {};
+    const bedId = bedData && typeof bedData === 'object' ? bedData.id : item.bed;
+    const requestId = requestData && typeof requestData === 'object' ? requestData.id : item.request;
     const roomData = item.room || bedData.room || {};
     const dorm = item.dormitory || roomData.dormitory || {};
     return {
       id: id(item.id, String(index + 1)),
+      request_id: id(requestId || item.request_id),
       user_id: id(user.id || item.user_id),
-      bed_id: id(bedData.id || item.bed_id),
+      bed_id: id(bedId || item.bed_id),
       student_name: fullName(user, item.student_name),
       dormitory: text(dorm.name || item.dormitory_name),
       room: text(roomData.room_number || item.room_number),
-      bed: text(bedData.bed_number || item.bed_number),
+      bed: text(bedData.bed_number || item.bed_number || bedId),
       start_date: text(item.start_date),
       end_date: text(item.end_date, ''),
       status: text(item.status, 'active'),
@@ -139,10 +143,15 @@
   }
 
   function payment(item = {}, index = 0) {
+    const user = item.user || item.student || {};
     return {
       id: id(item.id || item.reference || item.transaction_ref, `PAY-${index + 1}`),
+      user_id: id(user.id || item.user_id || item.student_id),
+      student_name: fullName(user, item.student_name || ''),
+      student_id: text(user.student_id || item.student_number || item.student_id, ''),
       payment_type: text(item.payment_type || item.title || item.type, 'پرداخت خوابگاه'),
       amount: item.amount_display || window.SaraUI?.formatAmount?.(item.amount) || text(item.amount),
+      amount_value: item.amount ?? '',
       due_date: text(item.due_date),
       paid_at: text(item.paid_at, ''),
       transaction_ref: text(item.transaction_ref || item.reference, ''),
@@ -161,8 +170,13 @@
       location: text(item.location || item.location_text || roomData.room_number || bedData.bed_number),
       priority: text(item.priority, 'medium'),
       status: text(item.status, 'pending'),
+      requested_by: fullName(item.requested_by || item.user || item.student, item.requested_by_name || item.student_name || ''),
+      assigned_to_id: id(item.assigned_to?.id || item.assigned_to_id || ''),
       assigned_to: fullName(item.assigned_to, item.assigned_to_name || item.assigned_to || ''),
-      created_at: text(item.created_at || item.request_date)
+      created_at: text(item.created_at || item.request_date),
+      updated_at: text(item.updated_at, ''),
+      resolved_at: text(item.resolved_at || item.closed_at, ''),
+      resolution_note: text(item.resolution_note || item.resolution || item.close_note || '', '')
     };
   }
 
@@ -177,6 +191,9 @@
       target_dormitory_id: id(item.target_dormitory_id || item.target_dormitory?.id),
       expires_at: text(item.expires_at, ''),
       is_active: item.is_active !== false,
+      read_count: item.read_count ?? item.reads_count ?? item.readCount ?? '',
+      unread_count: item.unread_count ?? item.unreadCount ?? '',
+      readers: item.readers || item.announcement_reads || [],
       read: Boolean(item.read || item.is_read)
     };
   }

@@ -14,6 +14,11 @@
   const ROLE_PERMISSION_CREATE_ENDPOINT = '/api/accounts/role-permissions/';
   const USER_ROLE_CREATE_ENDPOINT = '/api/accounts/user-roles/';
   const DORMITORY_ENDPOINT = '/api/dormitories/';
+  const ROOM_ENDPOINT = '/api/rooms/';
+  const BED_ENDPOINT = '/api/beds/';
+  const ACCOMMODATION_REQUEST_ENDPOINT = '/api/accommodation-requests/';
+  const BED_ASSIGNMENT_ENDPOINT = '/api/bed-assignments/';
+  const PAYMENT_ENDPOINT = '/api/payments/';
 
   function asArray(data) {
     return window.SaraUI?.asList?.(data)
@@ -66,6 +71,89 @@
     };
   }
 
+  function normalizeDormitory(item = {}, index = 0) {
+    const adapted = window.SaraAdapters?.dormitory?.(item, index) || {};
+    return {
+      ...item,
+      ...adapted,
+      id: adapted.id || item.id || item.dormitory_id || String(index + 1),
+      total_rooms: Number(adapted.total_rooms ?? item.total_rooms ?? item.totalRoom ?? item.rooms_count ?? 0),
+      occupied_beds: Number(adapted.occupied_beds ?? item.occupied_beds ?? item.currentOccupancy ?? 0),
+      available_beds: Number(adapted.available_beds ?? item.available_beds ?? item.available_capacity ?? 0),
+      occupancy: Number(adapted.occupancy ?? item.occupancy ?? item.occupancy_percent ?? item.occupancy_percentage ?? 0)
+    };
+  }
+
+  function normalizeRoom(item = {}, index = 0) {
+    const adapted = window.SaraAdapters?.room?.(item, index) || {};
+    return {
+      ...item,
+      ...adapted,
+      id: adapted.id || item.id || item.room_id || String(index + 1),
+      dormitory_id: adapted.dormitory_id || item.dormitory_id || item.dormitory?.id || item.dormitory || '',
+      capacity: Number(adapted.capacity ?? item.capacity ?? 0),
+      occupied: Number(adapted.occupied ?? item.occupied ?? item.currentOccupancy ?? item.occupied_beds ?? 0)
+    };
+  }
+
+  function normalizeBed(item = {}, index = 0) {
+    const adapted = window.SaraAdapters?.bed?.(item, index) || {};
+    return {
+      ...item,
+      ...adapted,
+      id: adapted.id || item.id || item.bed_id || String(index + 1),
+      room_id: adapted.room_id || item.room_id || item.room?.id || item.room || ''
+    };
+  }
+
+  function normalizeAccommodationRequest(item = {}, index = 0) {
+    return window.SaraAdapters?.accommodationRequest?.(item, index) || {
+      id: item.id || String(index + 1),
+      code: item.code || item.request_code || `REQ-${item.id || index + 1}`,
+      student_name: item.student_name || item.user?.full_name || '',
+      student_id: item.student_id || item.user?.student_id || '',
+      dormitory: item.dormitory_name || item.requested_dormitory?.name || '',
+      requested_dormitory_id: item.requested_dormitory_id || item.requested_dormitory?.id || item.dormitory_id || '',
+      preferred_room_type: item.preferred_room_type || '',
+      semester: item.semester || item.term || '',
+      status: item.status || 'pending',
+      request_date: item.request_date || item.created_at || ''
+    };
+  }
+
+  function normalizeBedAssignment(item = {}, index = 0) {
+    return window.SaraAdapters?.bedAssignment?.(item, index) || {
+      id: item.id || String(index + 1),
+      request_id: item.request_id || item.request?.id || '',
+      user_id: item.user_id || item.user?.id || '',
+      student_name: item.student_name || item.user?.full_name || '',
+      dormitory: item.dormitory_name || item.dormitory?.name || '',
+      room: item.room_number || item.room?.room_number || '',
+      bed: item.bed_number || item.bed?.bed_number || item.bed || '',
+      start_date: item.start_date || '',
+      end_date: item.end_date || '',
+      status: item.status || 'active',
+      notes: item.notes || ''
+    };
+  }
+
+  function normalizePayment(item = {}, index = 0) {
+    return window.SaraAdapters?.payment?.(item, index) || {
+      id: item.id || item.reference || item.transaction_ref || `PAY-${index + 1}`,
+      user_id: item.user_id || item.user?.id || '',
+      student_name: item.student_name || item.user?.full_name || '',
+      student_id: item.student_id || item.user?.student_id || '',
+      payment_type: item.payment_type || item.title || item.type || 'پرداخت خوابگاه',
+      amount: item.amount_display || window.SaraUI?.formatAmount?.(item.amount) || item.amount || '',
+      amount_value: item.amount || '',
+      due_date: item.due_date || '',
+      paid_at: item.paid_at || '',
+      transaction_ref: item.transaction_ref || item.reference || '',
+      status: item.status || 'unpaid',
+      description: item.description || item.notes || ''
+    };
+  }
+
   function systemAdminPanel() {
     return {
       ...window.SaraPage.basePanelState(),
@@ -76,9 +164,47 @@
       users: [],
       roles: [],
       dormitories: [],
-      loading: { users: false, roles: false, dormitories: false, permissions: false, saving: false },
-      errors: { users: '', roles: '', dormitories: '', permissions: '' },
+      rooms: [],
+      beds: [],
+      accommodationRequests: [],
+      bedAssignments: [],
+      payments: [],
+      loading: {
+        users: false,
+        roles: false,
+        dormitories: false,
+        rooms: false,
+        beds: false,
+        accommodationRequests: false,
+        bedAssignments: false,
+        payments: false,
+        permissions: false,
+        saving: false
+      },
+      errors: {
+        users: '',
+        roles: '',
+        dormitories: '',
+        rooms: '',
+        beds: '',
+        accommodationRequests: '',
+        bedAssignments: '',
+        payments: '',
+        permissions: ''
+      },
       filters: { query: '', role: 'all', status: 'all', page: 1, pageSize: 10 },
+      operationFilters: {
+        requestQuery: '',
+        requestStatus: 'all',
+        assignmentQuery: '',
+        assignmentStatus: 'all',
+        dormitoryId: 'all'
+      },
+      paymentFilters: { query: '', status: 'all', due: 'all' },
+      paymentAction: { status: '', transaction_ref: '', note: '' },
+      selectedDormitoryId: '',
+      selectedRoomId: '',
+      dormitoryForm: { id: '', name: '', address: '', totalRoom: '', gender: '', currentOccupancy: '' },
       dialog: { open: false, type: '', subject: null },
       userForm: {},
       roleForm: { name: '', description: '' },
@@ -143,7 +269,17 @@
       },
 
       async loadAll() {
-        await Promise.all([this.loadUsers(), this.loadRoles(), this.loadPermissions(), this.loadDormitories()]);
+        await Promise.all([
+          this.loadUsers(),
+          this.loadRoles(),
+          this.loadPermissions(),
+          this.loadDormitories(),
+          this.loadRooms(),
+          this.loadBeds(),
+          this.loadAccommodationRequests(),
+          this.loadBedAssignments(),
+          this.loadPayments()
+        ]);
         this.syncRolesFromUsers();
         this.updateStats();
       },
@@ -232,7 +368,10 @@
         this.loading.dormitories = true;
         this.errors.dormitories = '';
         try {
-          this.dormitories = asArray(await window.SaraAPI.get(DORMITORY_ENDPOINT));
+          this.dormitories = asArray(await window.SaraAPI.get(DORMITORY_ENDPOINT)).map(normalizeDormitory);
+          if (!this.selectedDormitoryId && this.dormitories.length) {
+            this.selectedDormitoryId = this.dormitories[0].id;
+          }
           this.updateStats();
         } catch (error) {
           this.errors.dormitories = this.apiMessage(error);
@@ -241,11 +380,339 @@
         }
       },
 
+      async loadRooms() {
+        this.loading.rooms = true;
+        this.errors.rooms = '';
+        try {
+          this.rooms = asArray(await window.SaraAPI.get(ROOM_ENDPOINT)).map(normalizeRoom);
+          if (!this.selectedRoomId && this.roomsForSelectedDormitory().length) {
+            this.selectedRoomId = this.roomsForSelectedDormitory()[0].id;
+          }
+        } catch (error) {
+          this.errors.rooms = this.apiMessage(error);
+        } finally {
+          this.loading.rooms = false;
+        }
+      },
+
+      async loadBeds() {
+        this.loading.beds = true;
+        this.errors.beds = '';
+        try {
+          this.beds = asArray(await window.SaraAPI.get(BED_ENDPOINT)).map(normalizeBed);
+          this.updateStats();
+        } catch (error) {
+          this.errors.beds = this.apiMessage(error);
+        } finally {
+          this.loading.beds = false;
+        }
+      },
+
+      async loadAccommodationRequests() {
+        this.loading.accommodationRequests = true;
+        this.errors.accommodationRequests = '';
+        try {
+          this.accommodationRequests = asArray(await window.SaraAPI.get(ACCOMMODATION_REQUEST_ENDPOINT)).map(normalizeAccommodationRequest);
+          this.updateStats();
+        } catch (error) {
+          this.errors.accommodationRequests = this.apiMessage(error);
+        } finally {
+          this.loading.accommodationRequests = false;
+        }
+      },
+
+      async loadBedAssignments() {
+        this.loading.bedAssignments = true;
+        this.errors.bedAssignments = '';
+        try {
+          this.bedAssignments = asArray(await window.SaraAPI.get(BED_ASSIGNMENT_ENDPOINT)).map(normalizeBedAssignment);
+          this.updateStats();
+        } catch (error) {
+          this.errors.bedAssignments = this.apiMessage(error);
+        } finally {
+          this.loading.bedAssignments = false;
+        }
+      },
+
+      async loadPayments() {
+        this.loading.payments = true;
+        this.errors.payments = '';
+        try {
+          this.payments = asArray(await window.SaraAPI.get(PAYMENT_ENDPOINT)).map(normalizePayment);
+        } catch (error) {
+          this.errors.payments = this.apiMessage(error);
+        } finally {
+          this.loading.payments = false;
+        }
+      },
+
       updateStats() {
         this.stats[0].value = this.toPersianNumber(this.users.length);
         this.stats[1].value = this.toPersianNumber(this.users.filter((item) => item.is_active !== false).length);
         this.stats[2].value = this.toPersianNumber(this.roles.length);
         this.stats[3].value = this.dormitories.length ? this.toPersianNumber(this.dormitories.length) : '—';
+      },
+
+      selectedDormitory() {
+        return this.dormitories.find((item) => String(item.id) === String(this.selectedDormitoryId)) || null;
+      },
+
+      selectedRoom() {
+        return this.rooms.find((item) => String(item.id) === String(this.selectedRoomId)) || null;
+      },
+
+      selectDormitory(dormitory) {
+        if (!dormitory) return;
+        this.selectedDormitoryId = dormitory.id;
+        this.selectedRoomId = this.roomsForSelectedDormitory()[0]?.id || '';
+      },
+
+      startDormitoryCreate() {
+        this.dormitoryForm = { id: '', name: '', address: '', totalRoom: '', gender: '', currentOccupancy: '' };
+      },
+
+      editDormitory(dormitory) {
+        this.selectDormitory(dormitory);
+        this.dormitoryForm = {
+          id: dormitory.id || '',
+          name: dormitory.name || '',
+          address: dormitory.address || '',
+          totalRoom: dormitory.total_rooms || dormitory.totalRoom || '',
+          gender: dormitory.gender_type || dormitory.gender || '',
+          currentOccupancy: dormitory.occupied_beds || dormitory.currentOccupancy || ''
+        };
+      },
+
+      dormitoryPayload() {
+        const totalRoom = Number(window.SaraUI?.toEnglishDigits?.(this.dormitoryForm.totalRoom || '0') || 0);
+        const currentOccupancy = Number(window.SaraUI?.toEnglishDigits?.(this.dormitoryForm.currentOccupancy || '0') || 0);
+        return {
+          name: this.dormitoryForm.name,
+          address: this.dormitoryForm.address || '',
+          totalRoom,
+          gender: this.dormitoryForm.gender || '',
+          currentOccupancy
+        };
+      },
+
+      async saveDormitory() {
+        if (!this.dormitoryForm.name) {
+          this.showAlert('danger', 'نام خوابگاه الزامی است.');
+          return;
+        }
+
+        this.loading.saving = true;
+        try {
+          const payload = this.dormitoryPayload();
+          const endpoint = this.dormitoryForm.id
+            ? `${DORMITORY_ENDPOINT}${encodeURIComponent(this.dormitoryForm.id)}/`
+            : DORMITORY_ENDPOINT;
+          const response = this.dormitoryForm.id
+            ? await window.SaraAPI.patch(endpoint, payload)
+            : await window.SaraAPI.post(endpoint, payload);
+          const saved = normalizeDormitory(unwrap(response, 'dormitory'), this.dormitories.length);
+          const existingIndex = this.dormitories.findIndex((item) => String(item.id) === String(saved.id || this.dormitoryForm.id));
+          if (existingIndex >= 0) this.dormitories.splice(existingIndex, 1, { ...this.dormitories[existingIndex], ...saved });
+          else this.dormitories.unshift(saved);
+          this.selectedDormitoryId = saved.id || this.selectedDormitoryId;
+          this.startDormitoryCreate();
+          this.updateStats();
+          this.showAlert('success', response?.message || 'اطلاعات خوابگاه ثبت شد.');
+        } catch (error) {
+          this.showAlert('danger', this.apiMessage(error));
+        } finally {
+          this.loading.saving = false;
+        }
+      },
+
+      roomDormitoryId(room) {
+        return room?.dormitory_id || room?.dormitory?.id || room?.dormitory || '';
+      },
+
+      roomsForSelectedDormitory() {
+        if (!this.selectedDormitoryId) return this.rooms;
+        return this.rooms.filter((room) => String(this.roomDormitoryId(room)) === String(this.selectedDormitoryId));
+      },
+
+      bedsForRoom(roomId = this.selectedRoomId) {
+        if (!roomId) return [];
+        return this.beds.filter((bed) => String(bed.room_id) === String(roomId));
+      },
+
+      bedCountForDormitory(dormitoryId, status = '') {
+        const roomIds = new Set(this.rooms.filter((room) => String(this.roomDormitoryId(room)) === String(dormitoryId)).map((room) => String(room.id)));
+        return this.beds.filter((bed) => roomIds.has(String(bed.room_id)) && (!status || bed.status === status)).length;
+      },
+
+      matchesText(item, query, fields) {
+        const needle = String(window.SaraUI?.toEnglishDigits?.(query || '') || query || '').toLowerCase().trim();
+        if (!needle) return true;
+        const haystack = fields.map((field) => String(item?.[field] || '')).join(' ');
+        return String(window.SaraUI?.toEnglishDigits?.(haystack) || haystack).toLowerCase().includes(needle);
+      },
+
+      filteredAccommodationRequests() {
+        return this.accommodationRequests.filter((request) => {
+          const selectedFilterDormitory = this.dormitories.find((dormitory) => String(dormitory.id) === String(this.operationFilters.dormitoryId));
+          const matchesStatus = this.operationFilters.requestStatus === 'all' || request.status === this.operationFilters.requestStatus;
+          const matchesDormitory = this.operationFilters.dormitoryId === 'all' || String(request.requested_dormitory_id) === String(this.operationFilters.dormitoryId) || request.dormitory === selectedFilterDormitory?.name;
+          return matchesStatus && matchesDormitory && this.matchesText(request, this.operationFilters.requestQuery, ['code', 'student_name', 'student_id', 'dormitory', 'semester']);
+        });
+      },
+
+      filteredBedAssignments() {
+        return this.bedAssignments.filter((assignment) => {
+          const selectedFilterDormitory = this.dormitories.find((dormitory) => String(dormitory.id) === String(this.operationFilters.dormitoryId));
+          const matchesStatus = this.operationFilters.assignmentStatus === 'all' || assignment.status === this.operationFilters.assignmentStatus;
+          const matchesDormitory = this.operationFilters.dormitoryId === 'all' || assignment.dormitory === selectedFilterDormitory?.name;
+          return matchesStatus && matchesDormitory && this.matchesText(assignment, this.operationFilters.assignmentQuery, ['student_name', 'dormitory', 'room', 'bed', 'request_id']);
+        });
+      },
+
+      filteredPayments() {
+        return this.payments.filter((payment) => {
+          const matchesStatus = this.paymentFilters.status === 'all' || payment.status === this.paymentFilters.status;
+          const dueState = this.paymentDueState(payment);
+          const matchesDue = this.paymentFilters.due === 'all' || dueState === this.paymentFilters.due;
+          return matchesStatus && matchesDue && this.matchesText(payment, this.paymentFilters.query, ['id', 'student_name', 'student_id', 'payment_type', 'transaction_ref', 'description']);
+        });
+      },
+
+      paymentDueState(payment) {
+        if (payment.status === 'paid') return 'paid';
+        if (!payment.due_date || payment.due_date === '—') return 'unknown';
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const due = new Date(payment.due_date);
+        if (Number.isNaN(due.getTime())) return 'unknown';
+        const diffDays = Math.ceil((due.getTime() - today.getTime()) / 86400000);
+        if (diffDays < 0) return 'overdue';
+        if (diffDays <= 7) return 'due-soon';
+        return 'upcoming';
+      },
+
+      paymentDueLabel(payment) {
+        return {
+          paid: 'پرداخت شده',
+          overdue: 'سررسید گذشته',
+          'due-soon': 'نزدیک سررسید',
+          upcoming: 'در مهلت',
+          unknown: 'بدون سررسید'
+        }[this.paymentDueState(payment)] || 'نامشخص';
+      },
+
+      paymentDueClass(payment) {
+        return {
+          paid: 'ss-status-badge ss-status-success',
+          overdue: 'ss-status-badge ss-status-danger',
+          'due-soon': 'ss-status-badge ss-status-warning',
+          upcoming: 'ss-status-badge ss-status-info',
+          unknown: 'ss-status-badge ss-status-muted'
+        }[this.paymentDueState(payment)] || 'ss-status-badge ss-status-muted';
+      },
+
+      openPaymentDetail(payment) {
+        this.paymentAction = {
+          status: payment.status || 'unpaid',
+          transaction_ref: payment.transaction_ref || '',
+          note: ''
+        };
+        this.dialog = { open: true, type: 'payment-detail', subject: payment };
+      },
+
+      applyPaymentShellUpdate() {
+        const payment = this.dialog.subject;
+        if (!payment) return;
+        payment.status = this.paymentAction.status || payment.status;
+        payment.transaction_ref = this.paymentAction.transaction_ref || payment.transaction_ref;
+        if (payment.status === 'paid' && !payment.paid_at) payment.paid_at = new Date().toISOString().slice(0, 10);
+        this.paymentAction.note = 'وضعیت پرداخت در فرانت‌اند به‌روزرسانی شد؛ ثبت دائمی به endpoint پرداخت‌ها وابسته است.';
+      },
+
+      openPaymentStudent(payment) {
+        const student = this.users.find((user) =>
+          String(user.id || '') === String(payment.user_id || '')
+          || String(user.student_id || '') === String(payment.student_id || '')
+          || this.fullName(user) === payment.student_name
+        );
+        if (student) {
+          this.openUserDetails(student);
+          return;
+        }
+        this.showAlert('danger', 'دانشجوی مرتبط در فهرست کاربران بارگذاری‌شده پیدا نشد.');
+      },
+
+      statusBadgeClass(type, status) {
+        const badge = window.SaraStatus?.get?.(type, status);
+        return badge?.className || 'ss-status-badge ss-status-muted';
+      },
+
+      statusBadgeLabel(type, status) {
+        const badge = window.SaraStatus?.get?.(type, status);
+        return badge?.label || status || 'نامشخص';
+      },
+
+      computedReports() {
+        const occupiedBeds = this.beds.filter((bed) => bed.status === 'occupied').length || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.occupied_beds || 0), 0);
+        const availableBeds = this.beds.filter((bed) => bed.status === 'available').length || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.available_beds || 0), 0);
+        const totalBeds = occupiedBeds + availableBeds;
+        const occupancy = totalBeds ? Math.round((occupiedBeds / totalBeds) * 100) : this.averageDormitoryOccupancy();
+        const pending = this.accommodationRequests.filter((request) => request.status === 'pending').length;
+        const approved = this.accommodationRequests.filter((request) => request.status === 'approved').length;
+        const rejected = this.accommodationRequests.filter((request) => request.status === 'rejected').length;
+        const assignedStudents = new Set(this.bedAssignments.filter((item) => ['active', 'assigned'].includes(String(item.status || '').toLowerCase())).map((item) => item.user_id || item.student_name || item.id)).size;
+
+        return [
+          { title: 'نرخ اشغال', value: totalBeds || occupancy ? `${this.toPersianNumber(occupancy || 0)}٪` : '—', note: `${this.toPersianNumber(occupiedBeds)} تخت اشغال از ${this.toPersianNumber(totalBeds)} تخت قابل محاسبه`, type: 'computed' },
+          { title: 'تخت‌های آزاد', value: this.toPersianNumber(availableBeds), note: 'محاسبه از endpoint تخت‌ها یا ظرفیت خوابگاه', type: 'computed' },
+          { title: 'درخواست‌های در انتظار', value: this.toPersianNumber(pending), note: 'از فهرست سراسری درخواست‌های اسکان', type: 'computed' },
+          { title: 'تایید / رد شده', value: `${this.toPersianNumber(approved)} / ${this.toPersianNumber(rejected)}`, note: 'تفکیک وضعیت درخواست‌های اسکان', type: 'computed' },
+          { title: 'دانشجویان تخصیص‌خورده', value: this.toPersianNumber(assignedStudents), note: 'بر پایه تاریخچه تخصیص تخت', type: 'computed' },
+          { title: 'پرداخت‌ها، تعمیرات و خواندن اطلاعیه', value: 'وابسته به API', note: 'پس از تکمیل endpointهای گزارش قابل محاسبه است.', type: 'api' }
+        ];
+      },
+
+      averageDormitoryOccupancy() {
+        const values = this.dormitories.map((item) => Number(item.occupancy || 0)).filter((value) => value > 0);
+        return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0;
+      },
+
+      openRequestDetail(request) {
+        this.dialog = {
+          open: true,
+          type: 'generic-details',
+          title: 'جزئیات درخواست اسکان',
+          fields: [
+            { label: 'کد درخواست', value: request.code || request.id },
+            { label: 'دانشجو', value: request.student_name },
+            { label: 'شماره دانشجویی', value: request.student_id },
+            { label: 'خوابگاه', value: request.dormitory },
+            { label: 'نیم‌سال', value: request.semester },
+            { label: 'نوع اتاق', value: request.preferred_room_type },
+            { label: 'وضعیت', value: this.statusBadgeLabel('accommodation', request.status) },
+            { label: 'تاریخ', value: request.request_date },
+            { label: 'یادداشت', value: request.notes || request.description }
+          ]
+        };
+      },
+
+      openAssignmentDetail(assignment) {
+        this.dialog = {
+          open: true,
+          type: 'generic-details',
+          title: 'جزئیات تخصیص تخت',
+          fields: [
+            { label: 'دانشجو', value: assignment.student_name },
+            { label: 'درخواست', value: assignment.request_id },
+            { label: 'خوابگاه', value: assignment.dormitory },
+            { label: 'اتاق', value: assignment.room },
+            { label: 'تخت', value: assignment.bed },
+            { label: 'شروع', value: assignment.start_date },
+            { label: 'پایان', value: assignment.end_date },
+            { label: 'وضعیت', value: this.statusBadgeLabel('assignment', assignment.status) },
+            { label: 'یادداشت', value: assignment.notes }
+          ]
+        };
       },
 
       filteredUsers() {

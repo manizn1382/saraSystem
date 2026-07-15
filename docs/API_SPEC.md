@@ -1444,7 +1444,8 @@ Current backend caveat: the implemented accommodation service exposes list/histo
 
 ### `PUT /api/accommodation-requests/{id}/`
 
-Status: implemented
+Status: Implemented
+Backend path: `PUT /api/accommodation/update?id={id}`
 Auth: owner for pending request edits/cancel; admin for controlled fields  
 Used by: student edit/cancel actions.
 
@@ -1470,7 +1471,9 @@ Cancel request:
 
 Server rules:
 
-- Student may edit or cancel only `pending` requests.
+- The request must be `pending`.
+- The owner may edit or cancel their own pending request.
+- Staff users may now update pending requests through this endpoint.
 - Admin review should use the review endpoint below.
 
 ### `PUT /api/accommodation-requests/review/`
@@ -1539,9 +1542,11 @@ Front-end notes:
 - Student dashboard now calls `/api/accommodation-requests/history/?user_id={id}` for request history; `assets/js/api.js` normalizes it to the current backend `/api/accommodation/history` route.
 - REST-style `/api/accommodation-requests/{id}/history/` is normalized by `assets/js/api.js` to `/api/accommodation/history?id={id}`, but the current backend does not filter by `id` yet.
 
-## Front-End Contract: Bed Assignment APIs
+## Implemented Bed Assignment APIs
 
 Entity: `BedAssignment`
+
+Current backend routes live in the dormitory service under `/api/bedAssign/...`. The front-end continues to use REST-style `/api/bed-assignments/...` aliases and `assets/js/api.js` normalizes those aliases to the current backend paths.
 
 Recommended fields:
 
@@ -1577,39 +1582,45 @@ Recommended fields:
 
 ### `GET /api/bed-assignments/`
 
-Status: implemented
+Status: Implemented
 Auth: authenticated  
 Roles: student sees own assignments; dormitory admin sees managed dormitories; system admin sees all.
+
+Backend path: `GET /api/bedAssign/detail`
 
 Query params:
 
 | Param | Description |
 | --- | --- |
+| `assign_id` | Current backend filter for one assignment. |
 | `user_id` | Student/user filter. |
 | `bed_id` | Bed filter. |
 | `room_id` | Room filter. |
-| `dormitory_id` | Dormitory filter. |
+| `dormitory_id` | Planned; not implemented by current backend. |
 | `status` | `active`, `inactive`, `ended`, `cancelled`. |
-| `active_only` | Boolean. |
+| `active_only` | Current backend treats this as an exact status value, so use `active_only=active`, not boolean `true`. |
 | `page`, `page_size` | Pagination. |
 
 ### `POST /api/bed-assignments/`
 
-Status: implemented  
+Status: Implemented
 Auth: dormitory admin or system admin  
 Used by: dormitory admin assignment modal.
+
+Backend path: `POST /api/bedAssign/create`
+
+Frontend normalization: the dashboard may use `request_id` and `bed_id`, but `assets/js/api.js` and the HTMX request normalizer submit the backend fields `request` and `bed`.
 
 Request:
 
 ```json
 {
-  "request_id": 101,
+  "request": 101,
   "user_id": 13,
-  "bed_id": 100,
+  "bed": 100,
   "start_date": "2026-09-23",
   "end_date": null,
-  "status": "active",
-  "notes": "Current semester assignment"
+  "status": "active"
 }
 ```
 
@@ -1617,9 +1628,9 @@ Server rules:
 
 - Request must be `approved`.
 - Bed must be `available`.
-- User must not have another `active` assignment.
-- Bed must not have another `active` assignment.
-- On success, set request status to `assigned` and bed status to `occupied`.
+- Current code looks up existing active user/bed assignments but does not currently return a conflict when one exists.
+- Current code does not currently set the accommodation request status to `assigned` or the bed status to `occupied`; the front end updates that state locally after success.
+- Current create serializer does not accept `notes`.
 
 Conflict response:
 
@@ -1637,15 +1648,19 @@ Use `409 Conflict`.
 
 ### `GET /api/bed-assignments/{id}/`
 
-Status: implemented  
+Status: Implemented
 Auth: visible assignment only  
 Purpose: retrieve assignment detail.
 
+Backend path: `GET /api/bedAssign/detail?assign_id={id}`
+
 ### `PATCH /api/bed-assignments/{id}/`
 
-Status: implemented
+Status: Implemented
 Auth: dormitory admin or system admin  
 Purpose: end, cancel, or update assignment notes/date.
+
+Backend path: `PATCH /api/bedAssign/update?assign_id={id}`
 
 Request examples:
 
@@ -1666,9 +1681,13 @@ Request examples:
 
 ### `GET /api/bed-assignments/current/`
 
-Status: implemented
+Status: Implemented
 Auth: authenticated student/resident  
 Purpose: retrieve current active assignment for the logged-in user.
+
+Backend path: `GET /api/bedAssign/current`
+
+Current backend caveat: the current view retrieves by `user_id` without filtering `status="active"`, so users with historical assignments may receive a non-active row or trigger a multiple-object error if more than one assignment exists.
 
 ## Front-End Contract: Payment APIs
 
@@ -2336,12 +2355,13 @@ The front end already checks several permission names. The API should treat thes
 6. There are no list/delete endpoints for `UserRole` and `RolePermission`.
 7. There are no update/delete endpoints for `Permission`.
 8. Username-only anonymous password reset is implemented at `/api/v1/users/password/reset`; older `/password/reset/username` aliases should normalize to that route.
-9. Accommodation requests and the announcements app now have partial backend implementations. Remaining missing or unmounted areas include bed assignments, payments, maintenance requests, public stats, public announcements, reports, and the `announcements.urls` include in the account service root URL config.
+9. Accommodation requests, bed assignments, and the announcements app now have partial backend implementations. Remaining missing or unmounted areas include payments, maintenance requests, public stats, public announcements, reports, and the `announcements.urls` include in the account service root URL config.
 10. Dormitory/room/bed endpoints use action-style names; RESTful aliases are recommended for long-term consistency.
 11. `PUT /api/accommodation/review?id={id}` currently rejects `pending` records, so dormitory admins cannot approve/reject newly submitted requests.
 12. Current serializers omit some model fields such as dormitory `dorm_type`, `description`, `createdAt`, `updatedAt`, room/bed `description`, and timestamps. Add them if the UI/reporting needs them.
 13. `AccommodationCreateView` validates `description` but does not pass it into `Accommodation.objects.create(...)`, so student notes may be lost and replaced by the model default.
 14. `Accommodation.requested_dorm` is a `OneToOneField`; use `ForeignKey` if multiple students can request the same dormitory.
+15. Bed assignment create currently does not persist `notes`, does not return conflicts for existing active user/bed assignments, and does not update the related bed/request statuses after success.
 
 ## Minimum API Set Needed for Full Product
 
@@ -2350,7 +2370,7 @@ For a complete SaraSystem release, implement at least these endpoint families:
 - Account/RBAC: all implemented endpoints plus missing current-user profile, username-only password reset for this version, user-role list/delete, role-permission list/delete, permission update/delete.
 - Dormitory capacity: implemented dormitory/room/bed endpoints plus REST aliases, delete dormitory, bed delete, capacity summary.
 - Accommodation: list, create, detail, update/cancel, review, history.
-- Bed assignment: list, create, detail, update/end/cancel, current assignment.
+- Bed assignment: implemented list/create/detail/update/current routes, plus remaining backend fixes for conflict enforcement, note persistence, status side effects, and current-active filtering.
 - Payments: list, create, detail, update, mark paid/unpaid; optional future gateway start/callback.
 - Maintenance: list, create, detail, update, assign, status update, comments/history.
 - Announcements: list, create, detail, update, delete/deactivate, mark read, read tracking, public list.

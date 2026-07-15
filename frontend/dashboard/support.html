@@ -53,9 +53,9 @@
           >
         </div>
         <nav class="d-grid gap-1">
-          <a class="ss-nav-link active" href="#overview">🧰 نمای کلی</a>
-          <a class="ss-nav-link" href="#queue">🛠️ صف تعمیرات</a>
-          <a class="ss-nav-link" href="#history">📜 سوابق</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#overview' }" :aria-current="activeSection === '#overview' ? 'page' : null" href="#overview" @click="activeSection = '#overview'">🧰 نمای کلی</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#queue' }" :aria-current="activeSection === '#queue' ? 'page' : null" href="#queue" @click="activeSection = '#queue'">🛠️ صف تعمیرات</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#history' }" :aria-current="activeSection === '#history' ? 'page' : null" href="#history" @click="activeSection = '#history'">📜 سوابق</a>
         </nav>
         <button
           class="btn ss-btn ss-btn-outline w-100 mt-3"
@@ -147,10 +147,22 @@
                 <option value="progress">در حال انجام</option>
                 <option value="resolved">حل شده</option>
               </select>
+              <select
+                class="form-select"
+                style="width: 170px"
+                x-model="filters.assigned"
+                @change="resetPage('maintenance')"
+                aria-label="فیلتر ارجاع"
+              >
+                <option value="all">همه ارجاع‌ها</option>
+                <option value="me">ارجاع به من</option>
+                <option value="unassigned">بدون مسئول</option>
+              </select>
             </div>
           </div>
           <div class="table-responsive">
-            <table class="table ss-table align-middle">
+            <table class="table ss-table align-middle ss-table-card-mobile">
+              <caption class="visually-hidden">صف درخواست‌های تعمیرات واحد پشتیبانی</caption>
               <thead>
                 <tr>
                   <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'title')">عنوان <span x-text="sortIcon('maintenance', 'title')"></span></button></th>
@@ -159,6 +171,7 @@
                   <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'status')">وضعیت <span x-text="sortIcon('maintenance', 'status')"></span></button></th>
                   <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'assigned_to')">مسئول <span x-text="sortIcon('maintenance', 'assigned_to')"></span></button></th>
                   <th><button class="btn btn-link p-0 text-decoration-none text-reset fw-bold" type="button" @click="setSort('maintenance', 'created_at')">تاریخ <span x-text="sortIcon('maintenance', 'created_at')"></span></button></th>
+                  <th><span class="visually-hidden">عملیات</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -186,12 +199,13 @@
                       ></span>
                     </td>
                     <td
-                      x-text="ticket.assigned_to?.name || ticket.assigned_to || '—'"
+                      x-text="assigneeText(ticket) || '—'"
                     ></td>
-                    <td x-text="ticket.created_at || '—'"></td></tr
+                    <td x-text="ticket.created_at || '—'"></td>
+                    <td><button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="openTicket(ticket)">جزئیات</button></td></tr
                 ></template>
                 <tr x-show="resourceError('maintenance') && !isResourceLoading('maintenance')">
-                  <td colspan="6">
+                  <td colspan="7">
                     <div class="ss-empty m-2">
                       <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                         <span x-text="resourceError('maintenance')"></span>
@@ -201,7 +215,7 @@
                   </td>
                 </tr>
                 <tr x-show="ticketPage().totalItems === 0 && !resourceError('maintenance')">
-                  <td colspan="6">
+                  <td colspan="7">
                     <div class="ss-empty m-2" x-text="isResourceLoading('maintenance') ? 'در حال دریافت درخواست‌های تعمیرات...' : 'درخواستی برای نمایش وجود ندارد یا API در دسترس نیست.'"></div>
                   </td>
                 </tr>
@@ -216,13 +230,111 @@
         </section>
 
         <section id="history" class="ss-card ss-glass p-3 p-md-4 mb-4">
-          <h3 class="h5 fw-bold mb-2">سوابق رسیدگی</h3>
-          <div class="ss-empty">
-            نمای جزئیات، تاریخچه وضعیت و یادداشت حل مشکل در مرحله بعد تکمیل
-            می‌شود.
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <div>
+              <h3 class="h5 fw-bold mb-1">سوابق رسیدگی</h3>
+              <p class="ss-muted small mb-0">نمای frontend-only از درخواست‌های حل‌شده و یادداشت‌های ثبت‌شده در همین نشست</p>
+            </div>
+            <span class="ss-badge-soft" x-text="`${toPersianNumber(tickets.filter((ticket) => ticket.status === 'resolved').length)} مورد حل‌شده`"></span>
+          </div>
+          <div class="row g-3">
+            <template x-for="ticket in tickets.filter((item) => item.status === 'resolved').slice(0, 6)" :key="`history-${ticket.id}`">
+              <div class="col-md-6">
+                <article class="ss-history-card">
+                  <div class="d-flex align-items-start justify-content-between gap-2">
+                    <div>
+                      <h4 class="h6 fw-bold mb-1" x-text="ticket.title"></h4>
+                      <p class="ss-muted small mb-0" x-text="locationText(ticket)"></p>
+                    </div>
+                    <span class="ss-status-badge ss-status-success">حل شده</span>
+                  </div>
+                  <p class="small mt-3 mb-3" x-text="ticket.resolution_note || 'یادداشت حل مشکل هنوز از API دریافت نشده است.'"></p>
+                  <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="openTicket(ticket)">مشاهده جزئیات</button>
+                </article>
+              </div>
+            </template>
+            <div class="col-12" x-show="tickets.filter((item) => item.status === 'resolved').length === 0">
+              <div class="ss-empty">هنوز سابقه حل‌شده‌ای برای نمایش وجود ندارد.</div>
+            </div>
           </div>
         </section>
       </main>
+    </div>
+
+    <div
+      x-cloak
+      x-show="selectedTicket"
+      x-transition.opacity
+      class="ss-dialog-backdrop"
+      role="presentation"
+      @keydown.escape.window="closeTicket()"
+      @click.self="closeTicket()"
+    >
+      <section class="ss-dialog ss-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="supportTicketTitle">
+        <header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3">
+          <div>
+            <h3 id="supportTicketTitle" class="h5 fw-bold mb-1" x-text="selectedTicket?.title || 'جزئیات درخواست تعمیرات'"></h3>
+            <p class="ss-muted small mb-0" x-text="selectedTicket ? locationText(selectedTicket) : ''"></p>
+          </div>
+          <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="closeTicket()">بستن</button>
+        </header>
+        <div class="p-3 p-md-4">
+          <div class="ss-detail-grid mb-3">
+            <div><span>اولویت</span><strong x-text="priorityText(selectedTicket?.priority)"></strong></div>
+            <div><span>وضعیت</span><strong x-text="statusText(selectedTicket?.status)"></strong></div>
+            <div><span>مسئول</span><strong x-text="assigneeText(selectedTicket || {}) || '—'"></strong></div>
+            <div><span>تاریخ ثبت</span><strong x-text="selectedTicket?.created_at || '—'"></strong></div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-lg-6">
+              <article class="ss-action-panel h-100">
+                <h4 class="h6 fw-bold mb-3">اقدام پشتیبانی</h4>
+                <div class="d-grid gap-2 mb-3">
+                  <button class="btn ss-btn ss-btn-outline" type="button" @click="assignSelectedToMe()">ارجاع به من</button>
+                </div>
+                <label class="form-label" for="support-status">وضعیت</label>
+                <select id="support-status" class="form-select mb-3" x-model="ticketAction.status">
+                  <option value="pending">در انتظار</option>
+                  <option value="assigned">ارجاع شده</option>
+                  <option value="progress">در حال انجام</option>
+                  <option value="in_progress">در حال انجام</option>
+                  <option value="resolved">حل شده</option>
+                  <option value="cancelled">لغو شده</option>
+                </select>
+                <label class="form-label" for="support-resolution">یادداشت حل مشکل</label>
+                <textarea id="support-resolution" class="form-control" rows="5" x-model.trim="ticketAction.resolution_note" placeholder="شرح اقدام انجام‌شده، قطعه تعویض‌شده یا علت بستن درخواست"></textarea>
+                <button class="btn ss-btn ss-btn-primary w-100 mt-3" type="button" @click="applyTicketUpdate()">ثبت نمایشی وضعیت</button>
+                <p x-cloak x-show="ticketAction.notice" class="alert alert-warning small mt-3 mb-0" role="status" aria-live="polite" x-text="ticketAction.notice"></p>
+              </article>
+            </div>
+            <div class="col-lg-6">
+              <article class="ss-action-panel h-100">
+                <h4 class="h6 fw-bold mb-3">خط زمانی</h4>
+                <ol class="ss-timeline">
+                  <template x-for="item in ticketTimeline()" :key="item.title">
+                    <li class="ss-timeline-item">
+                      <span class="ss-timeline-dot" aria-hidden="true"></span>
+                      <div>
+                        <div class="d-flex flex-wrap justify-content-between gap-2">
+                          <strong x-text="item.title"></strong>
+                          <small class="ss-muted" x-text="item.date"></small>
+                        </div>
+                        <p class="mb-0 ss-muted small" x-text="item.text"></p>
+                      </div>
+                    </li>
+                  </template>
+                </ol>
+              </article>
+            </div>
+          </div>
+
+          <article class="ss-action-panel mt-3">
+            <h4 class="h6 fw-bold mb-2">شرح درخواست</h4>
+            <p class="mb-0" x-text="selectedTicket?.description || 'شرحی ثبت نشده است.'"></p>
+          </article>
+        </div>
+      </section>
     </div>
 
     <div class="d-none">

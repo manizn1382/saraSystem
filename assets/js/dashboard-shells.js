@@ -212,8 +212,12 @@
       ...window.SaraPage.basePanelState(),
       ...tableMixin(),
       ...requestStateMixin(),
+      user: window.SaraAuth?.getStoredUser?.() || {},
+      activeSection: '#overview',
       tickets: [],
-      filters: { priority: 'all', status: 'all' },
+      selectedTicket: null,
+      ticketAction: { status: '', resolution_note: '', notice: '' },
+      filters: { priority: 'all', status: 'all', assigned: 'all' },
       tableState: {
         maintenance: { query: '', sort: { key: 'created_at', direction: 'desc' }, page: 1, pageSize: 10 }
       },
@@ -246,18 +250,20 @@
         document.body.addEventListener('htmx:timeout', () => this.setResourceError('maintenance', { status: 504, message: 'زمان پاسخ‌گویی سرور به پایان رسید.', retryable: true }));
       },
       filteredTickets() {
-        const filtered = this.tickets.filter((ticket) =>
-          (this.filters.priority === 'all' || ticket.priority === this.filters.priority)
-          && (this.filters.status === 'all' || ticket.status === this.filters.status)
-        );
-        return this.tablePage('maintenance', filtered, ['title', 'description', 'location', 'assigned_to', 'created_at']).items;
+        return this.ticketPage().items;
       },
       ticketPage() {
-        const filtered = this.tickets.filter((ticket) =>
+        const filtered = this.filteredTicketItems();
+        return this.tablePage('maintenance', filtered, ['title', 'description', 'location', 'assigned_to', 'created_at']);
+      },
+      filteredTicketItems() {
+        return this.tickets.filter((ticket) =>
           (this.filters.priority === 'all' || ticket.priority === this.filters.priority)
           && (this.filters.status === 'all' || ticket.status === this.filters.status)
+          && (this.filters.assigned === 'all'
+            || (this.filters.assigned === 'me' && this.isAssignedToMe(ticket))
+            || (this.filters.assigned === 'unassigned' && !this.assigneeText(ticket)))
         );
-        return this.tablePage('maintenance', filtered, ['title', 'description', 'location', 'assigned_to', 'created_at']);
       },
       updateStats() {
         const open = this.tickets.filter((ticket) => !['resolved', 'closed'].includes(ticket.status)).length;
@@ -270,6 +276,62 @@
         return ticket.location
           || [ticket.room_id ? `اتاق ${ticket.room_id}` : '', ticket.bed_id ? `تخت ${ticket.bed_id}` : ''].filter(Boolean).join('، ')
           || '—';
+      },
+      currentUserName() {
+        return `${this.user.first_name || ''} ${this.user.last_name || ''}`.trim() || this.user.username || this.user.email || 'واحد پشتیبانی';
+      },
+      assigneeText(ticket) {
+        return ticket.assigned_to?.name || ticket.assigned_to || '';
+      },
+      isAssignedToMe(ticket) {
+        const assignee = String(this.assigneeText(ticket) || '').toLowerCase();
+        const assignedId = String(ticket.assigned_to_id || '');
+        const ids = [this.user.id, this.user.user_id].filter(Boolean).map(String);
+        const names = [this.currentUserName(), this.user.username, this.user.email].filter(Boolean).map((item) => String(item).toLowerCase());
+        return Boolean((assignedId && ids.includes(assignedId)) || (assignee && names.some((name) => assignee.includes(name))));
+      },
+      openTicket(ticket) {
+        this.selectedTicket = ticket;
+        this.ticketAction = {
+          status: ticket.status || 'pending',
+          resolution_note: ticket.resolution_note || '',
+          notice: ''
+        };
+      },
+      closeTicket() {
+        this.selectedTicket = null;
+        this.ticketAction = { status: '', resolution_note: '', notice: '' };
+      },
+      assignSelectedToMe() {
+        if (!this.selectedTicket) return;
+        this.selectedTicket.assigned_to = this.currentUserName();
+        this.selectedTicket.assigned_to_id = this.user.id || this.user.user_id || '';
+        if (this.selectedTicket.status === 'pending') {
+          this.selectedTicket.status = 'assigned';
+          this.ticketAction.status = 'assigned';
+        }
+        this.ticketAction.notice = 'ارجاع در فرانت‌اند ثبت شد؛ ذخیره دائمی به API تعمیرات وابسته است.';
+        this.updateStats();
+      },
+      applyTicketUpdate() {
+        if (!this.selectedTicket) return;
+        this.selectedTicket.status = this.ticketAction.status || this.selectedTicket.status;
+        this.selectedTicket.resolution_note = this.ticketAction.resolution_note || '';
+        this.selectedTicket.updated_at = new Date().toISOString().slice(0, 10);
+        if (this.selectedTicket.status === 'resolved' && !this.selectedTicket.resolved_at) {
+          this.selectedTicket.resolved_at = this.selectedTicket.updated_at;
+        }
+        this.ticketAction.notice = 'تغییر وضعیت و یادداشت به صورت نمایشی ثبت شد؛ endpoint تعمیرات هنوز برای ذخیره نهایی لازم است.';
+        this.updateStats();
+      },
+      ticketTimeline(ticket = this.selectedTicket) {
+        if (!ticket) return [];
+        return [
+          { title: 'ثبت درخواست', date: ticket.created_at || '—', text: ticket.requested_by ? `ثبت توسط ${ticket.requested_by}` : 'درخواست در صف تعمیرات ثبت شد.' },
+          { title: 'ارجاع', date: ticket.updated_at || ticket.created_at || '—', text: this.assigneeText(ticket) ? `ارجاع به ${this.assigneeText(ticket)}` : 'هنوز به کارشناس مشخص ارجاع نشده است.' },
+          { title: 'وضعیت فعلی', date: ticket.updated_at || '—', text: this.statusText(ticket.status) },
+          { title: 'یادداشت حل مشکل', date: ticket.resolved_at || 'وابسته به API', text: ticket.resolution_note || 'یادداشت حل مشکل ثبت نشده است.' }
+        ];
       },
       priorityText(priority) {
         return window.SaraStatus?.get?.('priority', priority).label || priority || '—';
