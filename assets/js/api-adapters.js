@@ -165,8 +165,13 @@
       location: text(item.location || item.location_text || roomData.room_number || bedData.bed_number),
       priority: text(item.priority, 'medium'),
       status: text(item.status, 'pending'),
+      requested_by: fullName(item.requested_by || item.user || item.student, item.requested_by_name || item.student_name || ''),
+      assigned_to_id: id(item.assigned_to?.id || item.assigned_to_id || ''),
       assigned_to: fullName(item.assigned_to, item.assigned_to_name || item.assigned_to || ''),
-      created_at: text(item.created_at || item.request_date)
+      created_at: text(item.created_at || item.request_date),
+      updated_at: text(item.updated_at, ''),
+      resolved_at: text(item.resolved_at || item.closed_at, ''),
+      resolution_note: text(item.resolution_note || item.resolution || item.close_note || '', '')
     };
   }
 
