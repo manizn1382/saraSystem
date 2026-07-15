@@ -1444,7 +1444,8 @@ Current backend caveat: the implemented accommodation service exposes list/histo
 
 ### `PUT /api/accommodation-requests/{id}/`
 
-Status: implemented
+Status: Implemented
+Backend path: `PUT /api/accommodation/update?id={id}`
 Auth: owner for pending request edits/cancel; admin for controlled fields  
 Used by: student edit/cancel actions.
 
@@ -1470,7 +1471,9 @@ Cancel request:
 
 Server rules:
 
-- Student may edit or cancel only `pending` requests.
+- The request must be `pending`.
+- The owner may edit or cancel their own pending request.
+- Staff users may now update pending requests through this endpoint.
 - Admin review should use the review endpoint below.
 
 ### `PUT /api/accommodation-requests/review/`
