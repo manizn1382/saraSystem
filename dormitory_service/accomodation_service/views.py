@@ -132,7 +132,7 @@ class UpdateAccInfo(generics.UpdateAPIView):
                 "message": "can't find accommodation with this id"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        if accommodation.user_id != request.user.id:
+        if accommodation.user_id != request.user.id and not request.user.is_staff:
             return Response({
                 "success": False,
                 "message": "you can only edit your accommodation info"
@@ -147,6 +147,7 @@ class UpdateAccInfo(generics.UpdateAPIView):
 
 
         for field, value in request.data.items():
+            print(f'{field}:{value}')
             setattr(accommodation, field, value)
         accommodation.save()
 

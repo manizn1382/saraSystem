@@ -16,8 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from dormitory_service.api import dormUrl, roomUrl, bedUrl
-from accomodation_service import urls
+from dormitory_service.api import dormUrl, roomUrl, bedUrl, bedAssign
+from accomodation_service import urls as accUrl
 
 
 urlpatterns = [
@@ -25,5 +25,6 @@ urlpatterns = [
     path('api/dormitory/', include(dormUrl)),
     path('api/rooms/', include(roomUrl)),
     path('api/beds/', include(bedUrl)),
-    path('api/accommodation', include(urls)),
+    path('api/accommodation', include(accUrl)),
+    path('api/bedAssign', include(bedAssign))
 ]

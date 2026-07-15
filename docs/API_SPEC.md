@@ -1577,7 +1577,7 @@ Recommended fields:
 
 ### `GET /api/bed-assignments/`
 
-Status: Front-end contract  
+Status: implemented
 Auth: authenticated  
 Roles: student sees own assignments; dormitory admin sees managed dormitories; system admin sees all.
 
@@ -1595,7 +1595,7 @@ Query params:
 
 ### `POST /api/bed-assignments/`
 
-Status: Front-end contract  
+Status: implemented  
 Auth: dormitory admin or system admin  
 Used by: dormitory admin assignment modal.
 
@@ -1637,13 +1637,13 @@ Use `409 Conflict`.
 
 ### `GET /api/bed-assignments/{id}/`
 
-Status: Planned  
+Status: implemented  
 Auth: visible assignment only  
 Purpose: retrieve assignment detail.
 
 ### `PATCH /api/bed-assignments/{id}/`
 
-Status: Planned  
+Status: implemented
 Auth: dormitory admin or system admin  
 Purpose: end, cancel, or update assignment notes/date.
 
@@ -1666,7 +1666,7 @@ Request examples:
 
 ### `GET /api/bed-assignments/current/`
 
-Status: Planned  
+Status: implemented
 Auth: authenticated student/resident  
 Purpose: retrieve current active assignment for the logged-in user.
 
