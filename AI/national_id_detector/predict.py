@@ -70,18 +70,18 @@ classifier.eval()
 
 classes = ["id", "no_id"]
 
-# -----------------------
-# Predict
-# -----------------------
-image_path = "test.jpg"      # change this
 
-image = Image.open(image_path).convert("RGB")
-image = transform(image).unsqueeze(0).to(DEVICE)
+def contains_id_card(image_path):
+    image = Image.open(image_path).convert("RGB")
+    image = transform(image).unsqueeze(0).to(DEVICE)
 
-with torch.no_grad():
-    features = encoder(image)
-    output = classifier(features)
+    with torch.no_grad():
+        features = encoder(image)
+        output = classifier(features)
+        pred = output.argmax(1).item()
 
-    pred = output.argmax(1).item()
+    # ImageFolder sorts class names alphabetically.
+    # If your classes are ['id', 'no_id'], then:
+    return pred == 0
 
-print("Prediction:", classes[pred])
+
