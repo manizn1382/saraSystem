@@ -191,6 +191,9 @@
       target_dormitory_id: id(item.target_dormitory_id || item.target_dormitory?.id),
       expires_at: text(item.expires_at, ''),
       is_active: item.is_active !== false,
+      read_count: item.read_count ?? item.reads_count ?? item.readCount ?? '',
+      unread_count: item.unread_count ?? item.unreadCount ?? '',
+      readers: item.readers || item.announcement_reads || [],
       read: Boolean(item.read || item.is_read)
     };
   }

@@ -383,6 +383,12 @@
   outline-offset: 3px;
 }
 
+[dir="ltr"],
+.ltr {
+  direction: ltr;
+  unicode-bidi: plaintext;
+}
+
 @media (max-width: 991.98px) {
   .ss-table-card-mobile thead {
     display: none;

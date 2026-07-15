@@ -27,6 +27,24 @@
     });
   }
 
+  function installBootstrapModalFocusReturn(options = {}) {
+    const target = options.target || document;
+    if (!target || target.documentElement?.dataset.saraModalFocusReturn === 'true') return;
+    if (target.documentElement) target.documentElement.dataset.saraModalFocusReturn = 'true';
+
+    target.addEventListener('show.bs.modal', function (event) {
+      event.target.__saraReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    });
+
+    target.addEventListener('hidden.bs.modal', function (event) {
+      const returnTo = event.target.__saraReturnFocus;
+      if (returnTo && typeof returnTo.focus === 'function' && document.contains(returnTo)) {
+        returnTo.focus({ preventScroll: true });
+      }
+      event.target.__saraReturnFocus = null;
+    });
+  }
+
   function basePanelState() {
     return {
       alert: { type: 'info', message: '' },
@@ -58,13 +76,18 @@
   window.SaraPage = {
     parseJson,
     installHtmxErrorAlerts,
+    installBootstrapModalFocusReturn,
     basePanelState,
     bindGlobalAlert
   };
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => installHtmxErrorAlerts(), { once: true });
+    document.addEventListener('DOMContentLoaded', () => {
+      installHtmxErrorAlerts();
+      installBootstrapModalFocusReturn();
+    }, { once: true });
   } else {
     installHtmxErrorAlerts();
+    installBootstrapModalFocusReturn();
   }
 })();

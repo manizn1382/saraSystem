@@ -53,9 +53,9 @@
           >
         </div>
         <nav class="d-grid gap-1">
-          <a class="ss-nav-link active" href="#overview">🧰 نمای کلی</a>
-          <a class="ss-nav-link" href="#queue">🛠️ صف تعمیرات</a>
-          <a class="ss-nav-link" href="#history">📜 سوابق</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#overview' }" :aria-current="activeSection === '#overview' ? 'page' : null" href="#overview" @click="activeSection = '#overview'">🧰 نمای کلی</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#queue' }" :aria-current="activeSection === '#queue' ? 'page' : null" href="#queue" @click="activeSection = '#queue'">🛠️ صف تعمیرات</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#history' }" :aria-current="activeSection === '#history' ? 'page' : null" href="#history" @click="activeSection = '#history'">📜 سوابق</a>
         </nav>
         <button
           class="btn ss-btn ss-btn-outline w-100 mt-3"

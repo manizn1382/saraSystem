@@ -25,6 +25,7 @@
     <script src="../../assets/js/ui-helpers.js" defer></script>
     <script src="../../assets/js/api-adapters.js" defer></script>
     <script src="../../assets/js/status-badges.js" defer></script>
+    <script src="../../assets/js/page-helpers.js" defer></script>
     <script src="../../assets/js/validation.js" defer></script>
 
     <!-- Alpine.js -->
@@ -112,6 +113,7 @@
               <a
                 class="sidebar-link"
                 :class="{ 'active': activeSection === item.href }"
+                :aria-current="activeSection === item.href ? 'page' : null"
                 :href="item.href"
                 @click="activeSection = item.href; sidebarOpen = false"
               >

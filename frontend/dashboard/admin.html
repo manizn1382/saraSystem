@@ -39,7 +39,7 @@
         </div>
         <nav class="admin-nav" aria-label="بخش‌های مدیریت">
           <template x-for="item in [{href:'#overview',label:'نمای کلی',icon:'نمای'},{href:'#users',label:'کاربران',icon:'کاربر'},{href:'#roles',label:'نقش‌ها',icon:'نقش'},{href:'#dormitories',label:'خوابگاه‌ها',icon:'ظرفیت'},{href:'#operations',label:'عملیات',icon:'عملیات'},{href:'#reports',label:'گزارش‌ها',icon:'گزارش'}]" :key="item.href">
-            <a class="admin-nav-link" :class="{ 'active': activeSection === item.href }" :href="item.href" @click="activeSection = item.href; sidebarOpen = false"><span class="admin-nav-icon" x-text="item.icon"></span><span x-text="item.label"></span></a>
+            <a class="admin-nav-link" :class="{ 'active': activeSection === item.href }" :aria-current="activeSection === item.href ? 'page' : null" :href="item.href" @click="activeSection = item.href; sidebarOpen = false"><span class="admin-nav-icon" x-text="item.icon"></span><span x-text="item.label"></span></a>
           </template>
         </nav>
         <div class="admin-sidebar-footer"><button class="btn admin-danger-button w-100" type="button" @click="logout()">خروج از حساب</button></div>
