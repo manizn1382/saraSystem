@@ -991,8 +991,8 @@ Path values:
 
 ### `POST /api/beds/createBed/`
 
-Status: Implemented with caveat
-Auth: authenticated only in current code (`IsAuthenticated` is repeated; `IsAdminUser` is not enforced)
+Status: Implemente
+Auth: authenticated and admin
 View: `BedCreateView`  
 Purpose: create bed.
 

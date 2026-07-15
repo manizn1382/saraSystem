@@ -40,7 +40,7 @@ class BedListView(APIView):
 class BedCreateView(generics.CreateAPIView):
     serializer_class = BedSerializer
     authentication_classes = [JWTStatelessUserAuthentication]
-    permission_classes = [permissions.IsAuthenticated, permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
     def create(self, request, *args, **kwargs):
 
