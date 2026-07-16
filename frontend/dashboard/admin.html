@@ -203,7 +203,36 @@
         <section id="dormitories" class="admin-section ss-card ss-glass p-3 p-md-4 mb-3" aria-labelledby="dormitoryTitle">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3"><div><h3 id="dormitoryTitle" class="h5 fw-bold mb-1">خوابگاه‌ها و ظرفیت</h3><p class="ss-muted small mb-0">نمای مدیریتی خوابگاه‌ها، اتاق‌ها و تخت‌ها</p></div><button class="btn ss-btn ss-btn-outline" type="button" @click="loadDormitories()">بروزرسانی</button></div>
           <div x-cloak x-show="errors.dormitories" class="ss-empty admin-empty-block"><span x-text="errors.dormitories"></span></div>
-          <div class="row g-3" x-show="!errors.dormitories"><template x-for="dormitory in dormitories" :key="dormitory.id"><div class="col-md-6 col-xl-4"><article class="admin-operation"><div><h4 class="fw-bold" x-text="dormitory.name || dormitory.title"></h4><p class="ss-muted small mb-0" x-text="dormitory.address || '—'"></p></div><div class="d-flex justify-content-between ss-muted small"><span x-text="`اتاق: ${toPersianNumber(dormitory.total_rooms || dormitory.totalRoom || 0)}`"></span><span x-text="`ظرفیت آزاد: ${toPersianNumber(dormitory.available_beds || dormitory.available_capacity || 0)}`"></span></div></article></div></template><div class="col-12" x-show="loading.dormitories"><div class="ss-loading">در حال دریافت خوابگاه‌ها...</div></div><div class="col-12" x-show="!loading.dormitories && dormitories.length === 0"><div class="ss-empty">داده‌ای برای خوابگاه‌ها دریافت نشده است.</div></div></div>
+          <div class="row g-3" x-show="!errors.dormitories">
+            <template x-for="dormitory in dormitories" :key="dormitory.id">
+              <div class="col-md-6 col-xl-4">
+                <article class="admin-dorm-card" :class="{ active: String(selectedDormitoryId) === String(dormitory.id) }">
+                  <div class="d-flex align-items-start justify-content-between gap-2">
+                    <div class="min-w-0">
+                      <h4 class="admin-dorm-title" x-text="dormitory.name || dormitory.title"></h4>
+                      <p class="ss-muted small mb-0 text-truncate" x-text="dormitory.address || 'بدون آدرس ثبت‌شده'"></p>
+                    </div>
+                    <span :class="dormitoryCapacityClass(dormitory)" x-text="dormitoryCapacityLabel(dormitory)"></span>
+                  </div>
+                  <div class="admin-capacity-meter" role="meter" aria-label="درصد اشغال خوابگاه" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="dormitoryOccupancyPercent(dormitory)">
+                    <span :style="`width: ${dormitoryOccupancyPercent(dormitory)}%`"></span>
+                  </div>
+                  <div class="admin-dorm-metrics">
+                    <span><small>اتاق</small><strong x-text="toPersianNumber(dormitoryCapacityStats(dormitory).roomCount)"></strong></span>
+                    <span><small>تخت</small><strong x-text="toPersianNumber(dormitoryCapacityStats(dormitory).totalBeds)"></strong></span>
+                    <span><small>آزاد</small><strong x-text="toPersianNumber(dormitoryCapacityStats(dormitory).availableBeds)"></strong></span>
+                    <span><small>اشغال</small><strong x-text="`${toPersianNumber(dormitoryOccupancyPercent(dormitory))}٪`"></strong></span>
+                  </div>
+                  <div class="admin-dorm-actions">
+                    <button class="admin-action-button" type="button" @click="selectDormitory(dormitory)">ظرفیت</button>
+                    <button class="admin-action-button" type="button" @click="editDormitory(dormitory)">ویرایش</button>
+                  </div>
+                </article>
+              </div>
+            </template>
+            <div class="col-12" x-show="loading.dormitories"><div class="ss-loading">در حال دریافت خوابگاه‌ها...</div></div>
+            <div class="col-12" x-show="!loading.dormitories && dormitories.length === 0"><div class="ss-empty">داده‌ای برای خوابگاه‌ها دریافت نشده است.</div></div>
+          </div>
           <div class="admin-workspace-grid mt-4">
             <article class="admin-access-card">
               <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -233,16 +262,16 @@
                 </select>
               </div>
               <div class="admin-capacity-strip">
-                <span><strong x-text="toPersianNumber(roomsForSelectedDormitory().length)"></strong> اتاق</span>
-                <span><strong x-text="toPersianNumber(bedCountForDormitory(selectedDormitoryId))"></strong> تخت</span>
-                <span><strong x-text="toPersianNumber(bedCountForDormitory(selectedDormitoryId, 'available'))"></strong> آزاد</span>
-                <span><strong x-text="toPersianNumber(bedCountForDormitory(selectedDormitoryId, 'occupied'))"></strong> اشغال</span>
+                <span><strong x-text="toPersianNumber(dormitoryCapacityStats(selectedDormitory()).roomCount)"></strong> اتاق</span>
+                <span><strong x-text="toPersianNumber(dormitoryCapacityStats(selectedDormitory()).totalBeds)"></strong> تخت</span>
+                <span><strong x-text="toPersianNumber(dormitoryCapacityStats(selectedDormitory()).availableBeds)"></strong> آزاد</span>
+                <span><strong x-text="`${toPersianNumber(dormitoryOccupancyPercent(selectedDormitory()))}٪`"></strong> اشغال</span>
               </div>
               <div class="admin-mini-list mt-3">
                 <template x-for="dormitory in dormitories" :key="`manage-${dormitory.id}`">
                   <button class="admin-mini-row" type="button" :class="{ active: String(selectedDormitoryId) === String(dormitory.id) }" @click="editDormitory(dormitory)">
                     <span><strong x-text="dormitory.name"></strong><small class="d-block ss-muted" x-text="dormitory.address || 'بدون آدرس'"></small></span>
-                    <span class="ss-status-badge ss-status-info" x-text="`${toPersianNumber(dormitory.available_beds || bedCountForDormitory(dormitory.id, 'available'))} آزاد`"></span>
+                    <span :class="dormitoryCapacityClass(dormitory)" x-text="dormitoryCapacityLabel(dormitory)"></span>
                   </button>
                 </template>
               </div>

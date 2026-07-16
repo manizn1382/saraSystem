@@ -545,6 +545,58 @@
         return this.beds.filter((bed) => roomIds.has(String(bed.room_id)) && (!status || bed.status === status)).length;
       },
 
+      dormitoryCapacityStats(dormitory = {}) {
+        const toNumber = (value) => Number(window.SaraUI?.toEnglishDigits?.(value || '0') || value || 0);
+        const dormitoryId = dormitory?.id || '';
+        const rooms = dormitoryId
+          ? this.rooms.filter((room) => String(this.roomDormitoryId(room)) === String(dormitoryId))
+          : [];
+        const roomIds = new Set(rooms.map((room) => String(room.id)));
+        const beds = this.beds.filter((bed) => roomIds.has(String(bed.room_id)));
+        const roomCapacity = rooms.reduce((sum, room) => sum + toNumber(room.capacity), 0);
+        const availableBeds = beds.filter((bed) => bed.status === 'available').length
+          || toNumber(dormitory?.available_beds ?? dormitory?.available_capacity);
+        const occupiedBeds = beds.filter((bed) => bed.status === 'occupied').length
+          || toNumber(dormitory?.occupied_beds ?? dormitory?.currentOccupancy);
+        const totalBeds = beds.length
+          || roomCapacity
+          || toNumber(dormitory?.total_beds ?? dormitory?.capacity)
+          || (availableBeds + occupiedBeds);
+
+        return {
+          roomCount: rooms.length || toNumber(dormitory?.total_rooms ?? dormitory?.totalRoom),
+          totalBeds,
+          availableBeds,
+          occupiedBeds
+        };
+      },
+
+      dormitoryOccupancyPercent(dormitory = {}) {
+        const stats = this.dormitoryCapacityStats(dormitory);
+        if (stats.totalBeds) {
+          return Math.max(0, Math.min(100, Math.round((stats.occupiedBeds / stats.totalBeds) * 100)));
+        }
+        return Math.max(0, Math.min(100, Number(dormitory?.occupancy || 0)));
+      },
+
+      dormitoryCapacityLabel(dormitory = {}) {
+        const stats = this.dormitoryCapacityStats(dormitory);
+        if (!stats.totalBeds) return 'ظرفیت نامشخص';
+        if (stats.availableBeds <= 0) return 'تکمیل';
+        const occupancy = this.dormitoryOccupancyPercent(dormitory);
+        if (occupancy >= 90) return 'نزدیک تکمیل';
+        if (occupancy >= 70) return 'پرترافیک';
+        return 'دارای ظرفیت';
+      },
+
+      dormitoryCapacityClass(dormitory = {}) {
+        const label = this.dormitoryCapacityLabel(dormitory);
+        if (label === 'تکمیل' || label === 'نزدیک تکمیل') return 'ss-status-badge ss-status-danger';
+        if (label === 'پرترافیک') return 'ss-status-badge ss-status-warning';
+        if (label === 'دارای ظرفیت') return 'ss-status-badge ss-status-success';
+        return 'ss-status-badge ss-status-muted';
+      },
+
       matchesText(item, query, fields) {
         const needle = String(window.SaraUI?.toEnglishDigits?.(query || '') || query || '').toLowerCase().trim();
         if (!needle) return true;

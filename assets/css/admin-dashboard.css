@@ -206,6 +206,85 @@
   font-size: 1rem;
 }
 
+.admin-dorm-card {
+  min-height: 15.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.95rem;
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 0.95rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+.admin-dorm-card:hover,
+.admin-dorm-card.active {
+  border-color: rgba(103, 232, 249, 0.38);
+  background: rgba(56, 189, 248, 0.08);
+  transform: translateY(-1px);
+}
+
+.admin-dorm-title {
+  margin: 0 0 0.25rem;
+  color: var(--ss-text);
+  font-size: 1rem;
+  font-weight: 950;
+  line-height: 1.6;
+}
+
+.admin-capacity-meter {
+  height: 0.62rem;
+  overflow: hidden;
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.28);
+}
+
+.admin-capacity-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ss-primary), var(--ss-primary-2));
+}
+
+.admin-dorm-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.admin-dorm-metrics span {
+  min-height: 4.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.25rem;
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 0.7rem;
+  padding: 0.55rem;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.admin-dorm-metrics small {
+  color: var(--ss-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.admin-dorm-metrics strong {
+  color: var(--ss-text);
+  font-size: 1.05rem;
+  font-weight: 950;
+}
+
+.admin-dorm-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
 .admin-access-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
@@ -506,6 +585,10 @@
   .admin-capacity-strip,
   .admin-bed-list {
     grid-template-columns: 1fr;
+  }
+
+  .admin-dorm-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .admin-table-actions {
@@ -868,6 +951,9 @@
 :root[data-theme="day"] .admin-dialog-summary,
 :root[data-theme="day"] .admin-filter-strip,
 :root[data-theme="day"] .admin-operation,
+:root[data-theme="day"] .admin-dorm-card,
+:root[data-theme="day"] .admin-dorm-metrics span,
+:root[data-theme="day"] .admin-capacity-meter,
 :root[data-theme="day"] .admin-section .form-control,
 :root[data-theme="day"] .admin-section .form-select,
 :root[data-theme="day"] .admin-dialog .form-control,
@@ -1009,5 +1095,9 @@
   .admin-topbar .admin-outline-button::before {
     content: "↻";
     font-size: 1rem;
+  }
+
+  .admin-dorm-actions {
+    grid-template-columns: 1fr;
   }
 }
