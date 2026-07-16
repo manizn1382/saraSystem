@@ -14,23 +14,86 @@
   const DEMO_ACCOUNTS = {
     student: {
       accessToken: 'demo-token-student',
-      user: { username: 'student', first_name: 'Demo', last_name: 'Student', roles: ['student'] }
+      user: {
+        id: 9001,
+        username: 'student',
+        first_name: 'سارا',
+        last_name: 'دانشجو',
+        student_id: '400123456',
+        national_id: '0012345678',
+        phone: '09120000001',
+        email: 'student@sarasystem.test',
+        role: 'student',
+        roles: ['student'],
+        is_active: true,
+        is_verified: true
+      }
     },
     supervisor: {
       accessToken: 'demo-token-dormitory-admin',
-      user: { username: 'supervisor', first_name: 'Demo', last_name: 'Dormitory Admin', roles: ['dormitory_admin'] }
+      user: {
+        id: 9002,
+        username: 'supervisor',
+        first_name: 'مینا',
+        last_name: 'مسئول خوابگاه',
+        staff_id: 'DA-102',
+        phone: '09120000002',
+        email: 'supervisor@sarasystem.test',
+        assigned_dormitory: 'خوابگاه یک',
+        role: 'dormitory_admin',
+        roles: ['dormitory_admin'],
+        is_active: true,
+        is_verified: true
+      }
     },
     dormadmin: {
       accessToken: 'demo-token-dormitory-admin',
-      user: { username: 'dormadmin', first_name: 'Demo', last_name: 'Dormitory Admin', roles: ['dormitory_admin'] }
+      user: {
+        id: 9002,
+        username: 'dormadmin',
+        first_name: 'مینا',
+        last_name: 'مسئول خوابگاه',
+        staff_id: 'DA-102',
+        phone: '09120000002',
+        email: 'supervisor@sarasystem.test',
+        assigned_dormitory: 'خوابگاه یک',
+        role: 'dormitory_admin',
+        roles: ['dormitory_admin'],
+        is_active: true,
+        is_verified: true
+      }
     },
     admin: {
       accessToken: 'demo-token-admin',
-      user: { username: 'admin', first_name: 'Demo', last_name: 'System Admin', roles: ['system_admin'] }
+      user: {
+        id: 9003,
+        username: 'admin',
+        first_name: 'علی',
+        last_name: 'مدیر سیستم',
+        staff_id: 'SA-001',
+        phone: '09120000003',
+        email: 'admin@sarasystem.test',
+        role: 'system_admin',
+        roles: ['system_admin'],
+        is_active: true,
+        is_verified: true
+      }
     },
     support: {
       accessToken: 'demo-token-support',
-      user: { username: 'support', first_name: 'Demo', last_name: 'Support', roles: ['support_staff'] }
+      user: {
+        id: 9004,
+        username: 'support',
+        first_name: 'رضا',
+        last_name: 'پشتیبان',
+        staff_id: 'SP-204',
+        phone: '09120000004',
+        email: 'support@sarasystem.test',
+        role: 'support_staff',
+        roles: ['support_staff'],
+        is_active: true,
+        is_verified: true
+      }
     }
   };
 
