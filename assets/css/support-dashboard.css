@@ -350,6 +350,34 @@
   width: min(100%, 52rem);
 }
 
+.support-toolbar .form-control,
+.support-toolbar .form-select,
+.support-dialog .form-control,
+.support-dialog .form-select,
+.support-dialog textarea {
+  border-color: var(--ss-line);
+  color: var(--ss-text);
+  background-color: rgba(255, 255, 255, 0.055);
+}
+
+.support-toolbar .form-control::placeholder,
+.support-dialog .form-control::placeholder,
+.support-dialog textarea::placeholder {
+  color: var(--ss-muted);
+  opacity: 1;
+}
+
+.support-toolbar .form-control:focus,
+.support-toolbar .form-select:focus,
+.support-dialog .form-control:focus,
+.support-dialog .form-select:focus,
+.support-dialog textarea:focus {
+  border-color: var(--ss-primary);
+  color: var(--ss-text);
+  background-color: rgba(255, 255, 255, 0.075);
+  box-shadow: 0 0 0 0.2rem rgba(56, 189, 248, 0.16);
+}
+
 .support-filter-strip {
   display: flex;
   flex-wrap: wrap;
@@ -667,6 +695,33 @@
 
 :root[data-theme="day"] .support-stat-value {
   color: #075985;
+}
+
+:root[data-theme="day"] .support-toolbar .form-control,
+:root[data-theme="day"] .support-toolbar .form-select,
+:root[data-theme="day"] .support-dialog .form-control,
+:root[data-theme="day"] .support-dialog .form-select,
+:root[data-theme="day"] .support-dialog textarea {
+  border-color: rgba(3, 105, 161, 0.18);
+  color: #0f172a;
+  background-color: rgba(248, 250, 252, 0.72);
+}
+
+:root[data-theme="day"] .support-toolbar .form-control::placeholder,
+:root[data-theme="day"] .support-dialog .form-control::placeholder,
+:root[data-theme="day"] .support-dialog textarea::placeholder {
+  color: #64748b;
+}
+
+:root[data-theme="day"] .support-toolbar .form-control:focus,
+:root[data-theme="day"] .support-toolbar .form-select:focus,
+:root[data-theme="day"] .support-dialog .form-control:focus,
+:root[data-theme="day"] .support-dialog .form-select:focus,
+:root[data-theme="day"] .support-dialog textarea:focus {
+  border-color: #0284c7;
+  color: #0f172a;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 0.2rem rgba(2, 132, 199, 0.14);
 }
 
 :root[data-theme="day"] .support-filter-chip {
