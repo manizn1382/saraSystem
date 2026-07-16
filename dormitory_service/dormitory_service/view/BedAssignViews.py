@@ -92,8 +92,11 @@ class BedAssignDetail(generics.ListAPIView):
         user = self.request.user
         params = self.request.query_params
 
+        userData = self.request.auth.payload
+
         if not user.is_staff:
             queryset = queryset.filter(user_id=user.id)
+
 
         if params.get('assign_id'):
             queryset = queryset.filter(id=params.get('assign_id'))
@@ -113,6 +116,9 @@ class BedAssignDetail(generics.ListAPIView):
 
         if params.get('status'):
             queryset = queryset.filter(status=params.get('status'))
+
+        if "student" in userData.get('roles'):
+            queryset = queryset.filter(user_id=userData.get('user_id'))
 
         return queryset
 

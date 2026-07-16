@@ -13,7 +13,7 @@ from account_service.Serializer.TokenSerializer import CustomTokenObtainPairSeri
 from rest_framework.views import APIView
 from account_service.models.Permission import Permission
 from account_service.Serializer.RoleSerializer import UserRoleDelete, UserRoleDetail, ListRoleSerializer, \
-    ListPermissionSerializer, RolePermissionDetail
+    ListPermissionSerializer
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -273,7 +273,6 @@ class ListUserView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = User.objects.all()
-        print(self.request.query_params)
 
         username = self.request.query_params.get("username")
         email = self.request.query_params.get("email")

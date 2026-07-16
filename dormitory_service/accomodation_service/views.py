@@ -69,13 +69,13 @@ class ListAccommodationView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Accommodation.objects.all()
 
+        userData = self.request.auth.payload
 
         status = self.request.query_params.get("status")
         semester = self.request.query_params.get("semester")
         requested_dorm = self.request.query_params.get("requested_dorm")
         userId = self.request.query_params.get("user_id")
         studentId = self.request.query_params.get("studentId")
-
 
         if status:
             queryset = queryset.filter(status__exact=status)
@@ -112,6 +112,12 @@ class ListAccommodationView(generics.ListAPIView):
                 queryset = queryset.filter(user_id=userId)
             else:
                 queryset = None
+
+        if "student" in userData.get('roles'):
+            queryset = queryset.filter(user_id=userData.get('user_id'))
+
+        if "dorm-admin" in userData.get('roles'):
+            queryset = queryset.filter(status__exact="assigned")
 
         return queryset
 

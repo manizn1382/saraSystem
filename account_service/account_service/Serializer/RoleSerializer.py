@@ -23,7 +23,7 @@ class RoleDeleteSerializer(serializers.ModelSerializer):
 class RoleUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
-        fields = ['id', 'name', 'description']
+        fields = "__all__"
 
 
 class CreatePermissionSerializer(serializers.ModelSerializer):
@@ -53,6 +53,12 @@ class UserRoleDetail(serializers.ModelSerializer):
 class UserRoleDelete(serializers.ModelSerializer):
     class Meta:
         model = UserRole
+        fields = "__all__"
+
+
+class RolePermissionDelete(serializers.ModelSerializer):
+    class Meta:
+        model = RolePermission
         fields = "__all__"
 
 

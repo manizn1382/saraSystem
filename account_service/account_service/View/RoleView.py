@@ -1,7 +1,7 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from account_service.models import Role, Permission, RolePermission
-from account_service.Serializer.RoleSerializer import PermissionUpdate, PermissionDelete, RolePermissionDetail, RoleUpdateSerializer, RoleDeleteSerializer, \
+from account_service.Serializer.RoleSerializer import RolePermissionDelete, PermissionUpdate, PermissionDelete, RolePermissionDetail, RoleUpdateSerializer, RoleDeleteSerializer, \
     CreateRoleSerializer, CreatePermissionSerializer, CreateRolePermissionSerializer, ListRoleSerializer, \
     ListPermissionSerializer
 
@@ -118,12 +118,39 @@ class RoleDeleteView(generics.DestroyAPIView):
         }, status=status.HTTP_200_OK)
 
 
+class RolePermissionDeleteView(generics.DestroyAPIView):
+    queryset = RolePermission.objects.all()
+    serializer_class = RolePermissionDelete
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    def destroy(self, request, *args, **kwargs):
+        rolePerm_id = self.kwargs.get('pk')
+        role = Role.objects.get(id=rolePerm_id)
+        role.delete()
+        return Response({
+            'success': True,
+            'message': 'role permission deleted successfully',
+            'deleted_by': {
+                'id': request.user.id,
+                'username': request.user.username,
+            }
+        }, status=status.HTTP_200_OK)
+
+
 class UpdateRoleView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
     serializer_class = RoleUpdateSerializer
     queryset = Role.objects.all()
 
     def patch(self, request, *args, **kwargs):
+
+        role_id = self.request.query_params.get("role_id")
+
+        if not role_id:
+            return Response({
+                "success": False,
+                "message": "role id is mandatory"
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         role = self.get_object()
 
