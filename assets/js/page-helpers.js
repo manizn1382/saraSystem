@@ -8,6 +8,44 @@
     }
   }
 
+  function htmxRequestPath(event) {
+    return event.detail?.path
+      || event.detail?.pathInfo?.requestPath
+      || event.detail?.requestConfig?.path
+      || event.detail?.elt?.getAttribute?.('hx-get')
+      || event.detail?.elt?.getAttribute?.('hx-post')
+      || '';
+  }
+
+  function htmxFallbackMessage(status, data, path = '') {
+    const value = String(path || '').toLowerCase();
+    const code = Number(status);
+
+    if ([0, 404, 405, 500, 501].includes(code) && /\/api\/public\/stats\/?$/i.test(value)) {
+      return 'آمار عمومی هنوز از backend دریافت نمی‌شود و داده‌های نمایشی همین صفحه حفظ شدند.';
+    }
+
+    if ([0, 404, 405, 500, 501].includes(code) && /\/api\/announcements\/public\/?$/i.test(value)) {
+      return 'اطلاعیه‌های عمومی هنوز از backend دریافت نمی‌شوند و نمونه‌های نمایشی همین صفحه حفظ شدند.';
+    }
+
+    return window.SaraUI?.apiErrorMessage?.(status, data)
+      || data?.detail
+      || data?.message
+      || data?.error
+      || 'درخواست با خطا روبه‌رو شد.';
+  }
+
+  function htmxFallbackType(status, path = '') {
+    const value = String(path || '').toLowerCase();
+    const code = Number(status);
+    if ([0, 404, 405, 500, 501].includes(code)
+      && (/\/api\/public\/stats\/?$/i.test(value) || /\/api\/announcements\/public\/?$/i.test(value))) {
+      return 'warning';
+    }
+    return 'danger';
+  }
+
   function installHtmxErrorAlerts(options = {}) {
     const target = options.target || document.body;
     if (!target || target.dataset.saraHtmxAlerts === 'true') return;
@@ -15,14 +53,23 @@
 
     target.addEventListener('htmx:responseError', function (event) {
       const status = event.detail?.xhr?.status;
-      const message = window.SaraUI?.apiErrorMessage?.(status, parseJson(event.detail?.xhr?.responseText, null))
-        || 'درخواست با خطا روبه‌رو شد.';
-      window.dispatchEvent(new CustomEvent('sara:alert', { detail: { type: 'danger', message } }));
+      const data = parseJson(event.detail?.xhr?.responseText, null);
+      const path = htmxRequestPath(event);
+      const message = htmxFallbackMessage(status, data, path);
+      window.dispatchEvent(new CustomEvent('sara:alert', { detail: { type: htmxFallbackType(status, path), message } }));
     });
 
-    target.addEventListener('htmx:sendError', function () {
+    target.addEventListener('htmx:sendError', function (event) {
+      const path = htmxRequestPath(event);
       window.dispatchEvent(new CustomEvent('sara:alert', {
-        detail: { type: 'danger', message: 'ارتباط با سرور برقرار نشد. لطفا دوباره تلاش کنید.' }
+        detail: { type: htmxFallbackType(0, path), message: htmxFallbackMessage(0, null, path) }
+      }));
+    });
+
+    target.addEventListener('htmx:timeout', function (event) {
+      const path = htmxRequestPath(event);
+      window.dispatchEvent(new CustomEvent('sara:alert', {
+        detail: { type: htmxFallbackType(504, path), message: htmxFallbackMessage(504, null, path) }
       }));
     });
   }
