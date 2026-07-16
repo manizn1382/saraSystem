@@ -26,6 +26,8 @@
 }
 
 .admin-command-card {
+  --admin-command-accent: var(--ss-primary-2);
+  --admin-command-accent-soft: rgba(56, 189, 248, 0.13);
   height: 100%;
   min-height: 142px;
   display: flex;
@@ -56,12 +58,24 @@
   pointer-events: none;
 }
 
+.admin-command-card::after {
+  content: "";
+  position: absolute;
+  inset-inline: 1.15rem;
+  top: 0;
+  height: 4px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, transparent, var(--admin-command-accent), transparent);
+  opacity: 0.78;
+  pointer-events: none;
+}
+
 .admin-command-card:hover,
 .admin-command-card:focus {
   transform: translateY(-2px);
-  border-color: rgba(103, 232, 249, 0.35);
+  border-color: var(--admin-command-accent);
   color: var(--ss-text);
-  background: rgba(56, 189, 248, 0.085);
+  background: linear-gradient(180deg, var(--admin-command-accent-soft), var(--ss-panel));
 }
 
 .admin-command-value {
@@ -70,8 +84,8 @@
   display: inline-grid;
   place-items: center;
   border-radius: 1.05rem;
-  color: #bae6fd;
-  background: rgba(56, 189, 248, 0.13);
+  color: var(--admin-command-accent);
+  background: var(--admin-command-accent-soft);
   font-size: 1.35rem;
   font-weight: 950;
   line-height: 1;
@@ -90,12 +104,48 @@
   line-height: 1.7;
 }
 
-.admin-command-card.tone-success,
-.admin-command-card.tone-warning,
-.admin-command-card.tone-danger,
 .admin-command-card.tone-neutral {
   border-color: var(--ss-line);
   background: var(--ss-panel);
+}
+
+.admin-command-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  margin-top: 0.1rem;
+  padding-top: 0.55rem;
+  color: var(--admin-command-accent);
+  font-size: 0.78rem;
+  font-weight: 950;
+  line-height: 1.4;
+}
+
+.admin-command-action::after {
+  content: "←";
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.admin-command-card.tone-success {
+  --admin-command-accent: #67e8f9;
+  --admin-command-accent-soft: rgba(56, 189, 248, 0.13);
+}
+
+.admin-command-card.tone-warning {
+  --admin-command-accent: #facc15;
+  --admin-command-accent-soft: rgba(250, 204, 21, 0.12);
+}
+
+.admin-command-card.tone-danger {
+  --admin-command-accent: #fb7185;
+  --admin-command-accent-soft: rgba(248, 113, 113, 0.12);
+}
+
+.admin-command-card.tone-neutral {
+  --admin-command-accent: #cbd5e1;
+  --admin-command-accent-soft: rgba(148, 163, 184, 0.12);
 }
 
 .admin-toolbar {
@@ -1107,9 +1157,29 @@
   background: rgba(239, 248, 255, 0.78);
 }
 
+:root[data-theme="day"] .admin-command-card.tone-success {
+  --admin-command-accent: #0369a1;
+  --admin-command-accent-soft: rgba(186, 230, 253, 0.46);
+}
+
+:root[data-theme="day"] .admin-command-card.tone-warning {
+  --admin-command-accent: #a16207;
+  --admin-command-accent-soft: rgba(254, 240, 138, 0.44);
+}
+
+:root[data-theme="day"] .admin-command-card.tone-danger {
+  --admin-command-accent: #b91c1c;
+  --admin-command-accent-soft: rgba(254, 226, 226, 0.62);
+}
+
+:root[data-theme="day"] .admin-command-card.tone-neutral {
+  --admin-command-accent: #475569;
+  --admin-command-accent-soft: rgba(226, 232, 240, 0.58);
+}
+
 :root[data-theme="day"] .admin-command-value {
-  color: #075985;
-  background: rgba(186, 230, 253, 0.46);
+  color: var(--admin-command-accent);
+  background: var(--admin-command-accent-soft);
 }
 
 :root[data-theme="day"] .admin-user-card,
