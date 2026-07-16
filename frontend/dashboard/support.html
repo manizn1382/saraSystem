@@ -87,8 +87,15 @@
                 <h2 class="h3 fw-bold mb-0 text-truncate">داشبورد پشتیبانی</h2>
               </div>
             </div>
-            <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
               <div data-sara-theme-slot></div>
+              <button
+                id="refreshDashboard"
+                class="btn ss-btn ss-btn-primary px-4"
+                type="button"
+              >
+                بروزرسانی
+              </button>
               <div class="support-profile-menu" @keydown.escape.window="profileOpen = false">
                 <button class="btn support-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen">
                   <span class="support-avatar support-avatar-sm" x-text="userInitials()"></span>
@@ -101,13 +108,6 @@
                   <button class="btn support-danger-button w-100" type="button" @click="logout()">خروج</button>
                 </div>
               </div>
-              <button
-                id="refreshDashboard"
-                class="btn ss-btn ss-btn-primary px-4"
-                type="button"
-              >
-                بروزرسانی
-              </button>
             </div>
           </div>
         </header>
