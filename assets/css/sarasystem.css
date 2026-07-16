@@ -385,6 +385,19 @@
   background: rgba(56, 189, 248, 0.1);
 }
 
+.sidebar-nav,
+.admin-nav,
+.support-nav {
+  direction: ltr;
+  scrollbar-gutter: stable;
+}
+
+.sidebar-nav > *,
+.admin-nav > *,
+.support-nav > * {
+  direction: rtl;
+}
+
 .ss-stat {
   min-height: 138px;
   border: 1px solid var(--ss-line);
