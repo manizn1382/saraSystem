@@ -128,9 +128,12 @@
             <template x-for="stat in stats" :key="stat.label"
               ><div class="col-md-6 col-xl-3">
                 <article class="ss-stat">
-                  <span class="ss-badge-soft" x-text="stat.icon"></span
-                  ><strong class="mt-3" x-text="stat.value"></strong
-                  ><span class="ss-muted" x-text="stat.label"></span>
+                  <div class="support-stat-header">
+                    <span class="support-stat-icon" x-text="stat.icon"></span>
+                    <span class="support-stat-title" x-text="stat.label"></span>
+                  </div>
+                  <strong class="support-stat-value" x-text="stat.value"></strong>
+                  <span class="support-stat-description" x-text="stat.description"></span>
                 </article></div
             ></template>
           </div>

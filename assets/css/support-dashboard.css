@@ -282,16 +282,51 @@
 }
 
 .support-stat-grid .ss-stat {
-  min-height: 146px;
+  min-height: 158px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 0.7rem;
   border-radius: 1.2rem;
   background: rgba(255, 255, 255, 0.045);
 }
 
-.support-stat-grid .ss-stat strong {
+.support-stat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.support-stat-icon {
+  width: 2.45rem;
+  height: 2.45rem;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  border-radius: 0.9rem;
+  background: rgba(56, 189, 248, 0.1);
+  font-size: 1.12rem;
+}
+
+.support-stat-title {
+  color: var(--ss-text);
+  font-size: 0.92rem;
+  font-weight: 950;
+  line-height: 1.5;
+}
+
+.support-stat-value {
+  color: var(--ss-primary-2);
   font-size: 1.75rem;
+  line-height: 1;
+}
+
+.support-stat-description {
+  color: var(--ss-muted);
+  font-size: 0.8rem;
+  font-weight: 750;
+  line-height: 1.7;
 }
 
 .support-panel {
@@ -619,6 +654,19 @@
 :root[data-theme="day"] .support-dialog .ss-detail-grid > div,
 :root[data-theme="day"] .support-timeline-panel .ss-timeline-item > div {
   background: rgba(239, 248, 255, 0.78);
+}
+
+:root[data-theme="day"] .support-stat-icon {
+  border-color: rgba(3, 105, 161, 0.2);
+  background: rgba(186, 230, 253, 0.46);
+}
+
+:root[data-theme="day"] .support-stat-title {
+  color: #0f172a;
+}
+
+:root[data-theme="day"] .support-stat-value {
+  color: #075985;
 }
 
 :root[data-theme="day"] .support-filter-chip {

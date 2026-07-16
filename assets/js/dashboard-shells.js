@@ -227,10 +227,10 @@
         maintenance: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: '', retryable: false }
       },
       stats: [
-        { icon: '📌', value: '—', label: 'درخواست‌های باز' },
-        { icon: '🚨', value: '—', label: 'فوری' },
-        { icon: '🛠️', value: '—', label: 'در حال رسیدگی' },
-        { icon: '✅', value: '—', label: 'حل‌شده' }
+        { icon: '📌', value: '—', label: 'درخواست‌های باز', description: 'همه مواردی که هنوز بسته نشده‌اند' },
+        { icon: '🚨', value: '—', label: 'موارد فوری', description: 'نیازمند رسیدگی سریع پشتیبانی' },
+        { icon: '🛠️', value: '—', label: 'در حال رسیدگی', description: 'درخواست‌های فعال در جریان کار' },
+        { icon: '✅', value: '—', label: 'حل‌شده', description: 'موارد تکمیل‌شده و بسته‌شده' }
       ],
       init() {
         window.SaraPage.bindGlobalAlert(this);
