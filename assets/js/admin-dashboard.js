@@ -9,16 +9,23 @@
   const ROLE_LIST_ENDPOINT = '/api/accounts/roles/';
   const ROLE_UPDATE_ENDPOINT = '/api/accounts/roles';
   const ROLE_DELETE_ENDPOINT = '/api/accounts/roles';
+  const PERMISSION_ENDPOINT = '/api/accounts/permissions';
   const PERMISSION_CREATE_ENDPOINT = '/api/accounts/permissions/';
   const PERMISSION_LIST_ENDPOINT = '/api/accounts/permissions/';
-  const ROLE_PERMISSION_CREATE_ENDPOINT = '/api/accounts/role-permissions/';
-  const USER_ROLE_CREATE_ENDPOINT = '/api/accounts/user-roles/';
+  const ROLE_PERMISSION_ENDPOINT = '/api/accounts/role-permissions/';
+  const USER_ROLE_ENDPOINT = '/api/accounts/user-roles/';
   const DORMITORY_ENDPOINT = '/api/dormitories/';
   const ROOM_ENDPOINT = '/api/rooms/';
   const BED_ENDPOINT = '/api/beds/';
   const ACCOMMODATION_REQUEST_ENDPOINT = '/api/accommodation-requests/';
   const BED_ASSIGNMENT_ENDPOINT = '/api/bed-assignments/';
   const PAYMENT_ENDPOINT = '/api/payments/';
+  const BACKEND_ROLE_CHOICES = [
+    { value: 'student', label: 'دانشجو' },
+    { value: 'dorm-admin', label: 'مسئول خوابگاه' },
+    { value: 'system-admin', label: 'مدیر سامانه' },
+    { value: 'support-staff', label: 'واحد پشتیبانی' }
+  ];
 
   function asArray(data) {
     return window.SaraUI?.asList?.(data)
@@ -27,6 +34,24 @@
 
   function unwrap(data, key) {
     return data?.[key] || data?.data?.[key] || data;
+  }
+
+  function relationId(value) {
+    if (value && typeof value === 'object') return value.id ?? value.pk ?? value.user_id ?? value.role_id ?? value.permission_id ?? '';
+    return value ?? '';
+  }
+
+  function normalizeRoleKey(value = '') {
+    const source = typeof value === 'string'
+      ? value
+      : value?.name || value?.roleName || value?.code || value?.slug || '';
+    const normalized = String(source).toLowerCase().trim().replace(/[\s-]+/g, '_');
+    return normalized === 'dorm_admin' ? 'dormitory_admin' : normalized;
+  }
+
+  function roleChoiceLabel(value = '') {
+    const match = BACKEND_ROLE_CHOICES.find((choice) => choice.value === value);
+    return match ? match.label : value;
   }
 
   function normalizeUser(item = {}, index = 0) {
@@ -53,10 +78,13 @@
   }
 
   function normalizeRole(item = {}) {
-    if (typeof item === 'string') return { id: '', name: item, description: '' };
+    if (typeof item === 'string') return { id: '', name: item, key: normalizeRoleKey(item), label: roleChoiceLabel(item), description: '' };
+    const name = item.name || item.roleName || '';
     return {
       id: item.id ?? item.role_id ?? '',
-      name: item.name || item.roleName || '',
+      name,
+      key: normalizeRoleKey(name),
+      label: roleChoiceLabel(name),
       description: item.description || ''
     };
   }
@@ -68,6 +96,27 @@
       code: item.code || item.name || '',
       label: item.name || item.label || item.code || '',
       description: item.description || ''
+    };
+  }
+
+  function normalizeUserRoleAssignment(item = {}, index = 0) {
+    return {
+      id: item.id ?? item.user_role_id ?? item.pk ?? `user-role-${index + 1}`,
+      user_id: item.user_id ?? relationId(item.user) ?? '',
+      role_id: item.role_id ?? relationId(item.role) ?? '',
+      user_name: item.userName || item.user_name || item.user?.username || '',
+      role_name: item.roleName || item.role_name || item.role?.name || ''
+    };
+  }
+
+  function normalizeRolePermissionAssignment(item = {}, index = 0) {
+    return {
+      id: item.id ?? item.role_permission_id ?? item.pk ?? `role-permission-${index + 1}`,
+      role_id: item.role_id ?? relationId(item.role) ?? '',
+      permission_id: item.permission_id ?? relationId(item.permission) ?? '',
+      role_name: item.roleName || item.role_name || item.role?.name || '',
+      permission_name: item.permissionName || item.permission_name || item.permission?.name || '',
+      permission_code: item.permissionCode || item.permission_code || item.permission?.code || ''
     };
   }
 
@@ -163,6 +212,8 @@
       activeSection: '#overview',
       users: [],
       roles: [],
+      userRoleAssignments: [],
+      rolePermissionAssignments: [],
       dormitories: [],
       rooms: [],
       beds: [],
@@ -179,6 +230,8 @@
         bedAssignments: false,
         payments: false,
         permissions: false,
+        userRoleAssignments: false,
+        rolePermissionAssignments: false,
         saving: false
       },
       errors: {
@@ -190,7 +243,9 @@
         accommodationRequests: '',
         bedAssignments: '',
         payments: '',
-        permissions: ''
+        permissions: '',
+        userRoleAssignments: '',
+        rolePermissionAssignments: ''
       },
       filters: { query: '', role: 'all', status: 'all', page: 1, pageSize: 10 },
       operationFilters: {
@@ -209,8 +264,9 @@
       nationalIdReview: { image: null, loading: false, type: 'info', message: '' },
       userForm: {},
       roleForm: { name: '', description: '' },
+      roleChoices: BACKEND_ROLE_CHOICES,
       accessControl: { userId: '', roleId: '', roleName: '', notice: '' },
-      permissionForm: { name: '', code: '', description: '', permissionId: '', roleId: '', notice: '', loading: false },
+      permissionForm: { id: '', name: '', code: '', description: '', permissionId: '', roleId: '', notice: '', loading: false },
       permissionCatalog: [
         { code: 'users.manage', label: 'مدیریت کاربران' },
         { code: 'dormitories.manage', label: 'مدیریت خوابگاه‌ها' },
@@ -274,6 +330,8 @@
           this.loadUsers(),
           this.loadRoles(),
           this.loadPermissions(),
+          this.loadUserRoleAssignments(),
+          this.loadRolePermissionAssignments(),
           this.loadDormitories(),
           this.loadRooms(),
           this.loadBeds(),
@@ -308,10 +366,12 @@
           const rolesByName = new Map();
           [...remoteRoles, ...asArray(storedRoles).map(normalizeRole)].forEach((role) => {
             if (!role.name) return;
-            const current = rolesByName.get(role.name) || {};
-            rolesByName.set(role.name, {
+            const key = role.key || normalizeRoleKey(role.name);
+            const current = rolesByName.get(key) || {};
+            rolesByName.set(key, {
               ...current,
               ...role,
+              name: role.id || !current.id ? role.name : current.name,
               id: role.id || current.id || ''
             });
           });
@@ -351,15 +411,47 @@
         }
       },
 
+      async loadUserRoleAssignments() {
+        this.loading.userRoleAssignments = true;
+        this.errors.userRoleAssignments = '';
+        try {
+          this.userRoleAssignments = asArray(await window.SaraAPI.get(USER_ROLE_ENDPOINT)).map(normalizeUserRoleAssignment);
+        } catch (error) {
+          this.errors.userRoleAssignments = this.apiMessage(error);
+        } finally {
+          this.loading.userRoleAssignments = false;
+        }
+      },
+
+      async loadRolePermissionAssignments() {
+        this.loading.rolePermissionAssignments = true;
+        this.errors.rolePermissionAssignments = '';
+        try {
+          this.rolePermissionAssignments = asArray(await window.SaraAPI.get(ROLE_PERMISSION_ENDPOINT)).map(normalizeRolePermissionAssignment);
+        } catch (error) {
+          this.errors.rolePermissionAssignments = this.apiMessage(error);
+        } finally {
+          this.loading.rolePermissionAssignments = false;
+        }
+      },
+
+      refreshRbac() {
+        this.loadRoles();
+        this.loadPermissions();
+        this.loadUserRoleAssignments();
+        this.loadRolePermissionAssignments();
+      },
+
       persistRoles() {
         localStorage.setItem('sarasystem.account.roles', JSON.stringify(this.roles.filter((role) => role.id)));
       },
 
       syncRolesFromUsers() {
-        const existing = new Map(this.roles.map((role) => [role.name, role]));
+        const existing = new Map(this.roles.map((role) => [role.key || normalizeRoleKey(role.name), role]));
         this.users.forEach((user) => {
           this.rolesFor(user).forEach((roleName) => {
-            if (!existing.has(roleName)) existing.set(roleName, normalizeRole(roleName));
+            const key = normalizeRoleKey(roleName);
+            if (!existing.has(key)) existing.set(key, normalizeRole(roleName));
           });
         });
         this.roles = Array.from(existing.values()).filter((role) => role.name);
@@ -914,7 +1006,9 @@
             item.first_name, item.last_name, item.username, item.email, item.student_id, item.national_id, item.phone
           ].join(' ').toLowerCase().includes(query);
           const userRoles = this.rolesFor(item);
-          const matchesRole = this.filters.role === 'all' || userRoles.includes(this.filters.role);
+          const selectedRole = normalizeRoleKey(this.filters.role);
+          const matchesRole = this.filters.role === 'all'
+            || userRoles.map(normalizeRoleKey).includes(selectedRole);
           const matchesStatus = this.filters.status === 'all'
             || (this.filters.status === 'active' && item.is_active !== false)
             || (this.filters.status === 'inactive' && item.is_active === false)
@@ -968,6 +1062,45 @@
       roleLabel(user) {
         const roles = this.rolesFor(user);
         return roles.length ? roles.join('، ') : '—';
+      },
+
+      roleDisplayName(value) {
+        return roleChoiceLabel(value?.name || value || '');
+      },
+
+      roleOptionLabel(role) {
+        return `${this.roleDisplayName(role.name)} · ${role.name}${role.id ? ` · ${role.id}` : ''}`;
+      },
+
+      roleChoicesForForm() {
+        const current = this.roleForm.name;
+        const choices = [...this.roleChoices];
+        if (current && !choices.some((choice) => choice.value === current)) {
+          choices.push({ value: current, label: current });
+        }
+        return choices;
+      },
+
+      userRoleUserLabel(assignment) {
+        const user = this.users.find((item) => String(item.id) === String(assignment.user_id));
+        return user ? `${this.fullName(user)} · ${user.email || user.username || user.id}` : assignment.user_name || assignment.user_id || '—';
+      },
+
+      userRoleRoleLabel(assignment) {
+        const role = this.roles.find((item) => String(item.id) === String(assignment.role_id));
+        return role ? this.roleOptionLabel(role) : assignment.role_name || assignment.role_id || '—';
+      },
+
+      rolePermissionRoleLabel(assignment) {
+        const role = this.roles.find((item) => String(item.id) === String(assignment.role_id));
+        return role ? this.roleOptionLabel(role) : assignment.role_name || assignment.role_id || '—';
+      },
+
+      rolePermissionPermissionLabel(assignment) {
+        const permission = this.permissionCatalog.find((item) => String(item.id) === String(assignment.permission_id));
+        return permission
+          ? `${permission.label || permission.code} · ${permission.code || permission.id}`
+          : assignment.permission_name || assignment.permission_code || assignment.permission_id || '—';
       },
 
       fullName(user) {
@@ -1088,7 +1221,7 @@
         }
         this.roleForm = role
           ? { id: role.id, name: role.name || '', description: role.description || '' }
-          : { name: '', description: '' };
+          : { name: this.roleChoices[0]?.value || 'student', description: '' };
         this.dialog = { open: true, type: 'role-form', subject: role };
       },
 
@@ -1110,12 +1243,13 @@
 
         this.loading.saving = true;
         try {
-          const data = await window.SaraAPI.post(USER_ROLE_CREATE_ENDPOINT, {
+          const data = await window.SaraAPI.post(USER_ROLE_ENDPOINT, {
             user: user.id,
             role: this.accessControl.roleId
           });
           const role = this.roles.find((item) => String(item.id) === String(this.accessControl.roleId));
           user.roles = Array.from(new Set([...(user.roles || []), role?.name || data?.userRole?.roleName].filter(Boolean)));
+          await this.loadUserRoleAssignments();
           this.accessControl.notice = data?.message || 'نقش برای کاربر ثبت شد.';
           this.updateStats();
         } catch (error) {
@@ -1290,6 +1424,27 @@
         }
       },
 
+      editPermission(permission) {
+        if (!permission?.id) {
+          this.permissionForm.notice = 'این مجوز از API شناسه ندارد و ویرایش آن ممکن نیست.';
+          return;
+        }
+        this.permissionForm.id = permission.id;
+        this.permissionForm.permissionId = permission.id;
+        this.permissionForm.name = permission.label || permission.name || '';
+        this.permissionForm.code = permission.code || '';
+        this.permissionForm.description = permission.description || '';
+        this.permissionForm.notice = 'مجوز انتخاب‌شده برای ویرایش در فرم قرار گرفت.';
+      },
+
+      resetPermissionForm() {
+        this.permissionForm.id = '';
+        this.permissionForm.name = '';
+        this.permissionForm.code = '';
+        this.permissionForm.description = '';
+        this.permissionForm.notice = '';
+      },
+
       async createPermission() {
         if (!this.permissionForm.name || !this.permissionForm.code) {
           this.permissionForm.notice = 'نام و کد مجوز الزامی است.';
@@ -1298,15 +1453,17 @@
 
         this.permissionForm.loading = true;
         try {
-          const response = await window.SaraAPI.post(PERMISSION_CREATE_ENDPOINT, {
+          const payload = {
             name: this.permissionForm.name,
             code: this.permissionForm.code,
             description: this.permissionForm.description || ''
-          });
-          const permission = normalizePermission(response?.permission || {
-            code: this.permissionForm.code,
-            name: this.permissionForm.name,
-            description: this.permissionForm.description || ''
+          };
+          const response = this.permissionForm.id
+            ? await window.SaraAPI.patch(`${PERMISSION_ENDPOINT}/${encodeURIComponent(this.permissionForm.id)}/`, payload)
+            : await window.SaraAPI.post(PERMISSION_CREATE_ENDPOINT, payload);
+          const permission = normalizePermission(response?.data || response?.permission || {
+            id: this.permissionForm.id || '',
+            ...payload
           });
           const permissionKey = permission.id || permission.code;
           this.permissionCatalog = [
@@ -1314,7 +1471,8 @@
             ...this.permissionCatalog.filter((item) => String(item.id || item.code) !== String(permissionKey))
           ];
           if (permission.id) this.permissionForm.permissionId = permission.id;
-          this.permissionForm.notice = response?.message || 'مجوز جدید ثبت شد. اگر API شناسه برگرداند، برای اتصال به نقش استفاده می‌شود.';
+          this.permissionForm.notice = response?.message || (this.permissionForm.id ? 'مجوز به‌روزرسانی شد.' : 'مجوز جدید ثبت شد. اگر API شناسه برگرداند، برای اتصال به نقش استفاده می‌شود.');
+          this.permissionForm.id = '';
           this.permissionForm.name = '';
           this.permissionForm.code = '';
           this.permissionForm.description = '';
@@ -1333,10 +1491,11 @@
 
         this.permissionForm.loading = true;
         try {
-          const response = await window.SaraAPI.post(ROLE_PERMISSION_CREATE_ENDPOINT, {
+          const response = await window.SaraAPI.post(ROLE_PERMISSION_ENDPOINT, {
             role: this.permissionForm.roleId,
             permission: this.permissionForm.permissionId
           });
+          await this.loadRolePermissionAssignments();
           this.permissionForm.notice = response?.message || 'مجوز به نقش متصل شد.';
         } catch (error) {
           this.permissionForm.notice = this.apiMessage(error);

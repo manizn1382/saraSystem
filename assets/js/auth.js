@@ -82,7 +82,8 @@
       ? role
       : role?.code || role?.name || role?.slug || '';
 
-    return String(value).toLowerCase().trim().replace(/[\s-]+/g, '_');
+    const normalized = String(value).toLowerCase().trim().replace(/[\s-]+/g, '_');
+    return normalized === 'dorm_admin' ? 'dormitory_admin' : normalized;
   }
 
   function normalizePermission(permission) {
