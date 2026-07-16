@@ -631,6 +631,66 @@
         });
       },
 
+      selectedOperationDormitoryName() {
+        if (this.operationFilters.dormitoryId === 'all') return '';
+        return this.dormitories.find((dormitory) => String(dormitory.id) === String(this.operationFilters.dormitoryId))?.name || this.operationFilters.dormitoryId;
+      },
+
+      requestFilterChips() {
+        const chips = [];
+        const query = this.operationFilters.requestQuery.trim();
+        const dormitory = this.selectedOperationDormitoryName();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.operationFilters.requestStatus !== 'all') chips.push(`وضعیت: ${this.statusBadgeLabel('accommodation', this.operationFilters.requestStatus)}`);
+        if (dormitory) chips.push(`خوابگاه: ${dormitory}`);
+        return chips;
+      },
+
+      clearRequestFilters() {
+        this.operationFilters.requestQuery = '';
+        this.operationFilters.requestStatus = 'all';
+        this.operationFilters.dormitoryId = 'all';
+      },
+
+      assignmentFilterChips() {
+        const chips = [];
+        const query = this.operationFilters.assignmentQuery.trim();
+        const dormitory = this.selectedOperationDormitoryName();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.operationFilters.assignmentStatus !== 'all') chips.push(`وضعیت: ${this.statusBadgeLabel('assignment', this.operationFilters.assignmentStatus)}`);
+        if (dormitory) chips.push(`خوابگاه: ${dormitory}`);
+        return chips;
+      },
+
+      clearAssignmentFilters() {
+        this.operationFilters.assignmentQuery = '';
+        this.operationFilters.assignmentStatus = 'all';
+        this.operationFilters.dormitoryId = 'all';
+      },
+
+      paymentDueFilterLabel(value) {
+        return {
+          overdue: 'سررسید گذشته',
+          'due-soon': 'نزدیک سررسید',
+          upcoming: 'در مهلت',
+          paid: 'پرداخت شده',
+          unknown: 'بدون سررسید'
+        }[value] || value;
+      },
+
+      paymentFilterChips() {
+        const chips = [];
+        const query = this.paymentFilters.query.trim();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.paymentFilters.status !== 'all') chips.push(`وضعیت: ${this.statusBadgeLabel('payment', this.paymentFilters.status)}`);
+        if (this.paymentFilters.due !== 'all') chips.push(`سررسید: ${this.paymentDueFilterLabel(this.paymentFilters.due)}`);
+        return chips;
+      },
+
+      clearPaymentFilters() {
+        this.paymentFilters = { query: '', status: 'all', due: 'all' };
+      },
+
       paymentDueState(payment) {
         if (payment.status === 'paid') return 'paid';
         if (!payment.due_date || payment.due_date === '—') return 'unknown';

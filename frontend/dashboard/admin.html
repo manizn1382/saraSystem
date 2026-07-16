@@ -317,6 +317,13 @@
                 <div class="col-md-3"><select class="form-select" x-model="operationFilters.requestStatus"><option value="all">همه وضعیت‌ها</option><option value="pending">در انتظار</option><option value="approved">تایید شده</option><option value="rejected">رد شده</option><option value="assigned">تخصیص داده شده</option></select></div>
                 <div class="col-md-4"><select class="form-select" x-model="operationFilters.dormitoryId"><option value="all">همه خوابگاه‌ها</option><template x-for="dormitory in dormitories" :key="`req-dorm-${dormitory.id}`"><option :value="dormitory.id" x-text="dormitory.name"></option></template></select></div>
               </div>
+              <div class="admin-filter-strip mb-3">
+                <span class="admin-result-count" x-text="`${toPersianNumber(filteredAccommodationRequests().length)} نتیجه از ${toPersianNumber(accommodationRequests.length)} درخواست`"></span>
+                <div class="admin-filter-chips" x-show="requestFilterChips().length">
+                  <template x-for="chip in requestFilterChips()" :key="chip"><span class="admin-filter-chip" x-text="chip"></span></template>
+                  <button class="admin-filter-reset" type="button" @click="clearRequestFilters()">پاک‌سازی فیلترها</button>
+                </div>
+              </div>
               <div x-cloak x-show="errors.accommodationRequests" class="alert alert-warning small" role="alert" x-text="errors.accommodationRequests"></div>
               <div class="table-responsive">
                 <table class="table ss-table align-middle ss-table-card-mobile">
@@ -338,6 +345,13 @@
               <div class="row g-2 mb-3">
                 <div class="col-md-7"><input class="form-control" type="search" x-model.debounce.250ms="operationFilters.assignmentQuery" placeholder="جستجوی دانشجو، خوابگاه، اتاق یا تخت" /></div>
                 <div class="col-md-5"><select class="form-select" x-model="operationFilters.assignmentStatus"><option value="all">همه وضعیت‌ها</option><option value="active">فعال</option><option value="assigned">تخصیص داده شده</option><option value="ended">پایان یافته</option><option value="cancelled">لغو شده</option></select></div>
+              </div>
+              <div class="admin-filter-strip mb-3">
+                <span class="admin-result-count" x-text="`${toPersianNumber(filteredBedAssignments().length)} نتیجه از ${toPersianNumber(bedAssignments.length)} تخصیص`"></span>
+                <div class="admin-filter-chips" x-show="assignmentFilterChips().length">
+                  <template x-for="chip in assignmentFilterChips()" :key="chip"><span class="admin-filter-chip" x-text="chip"></span></template>
+                  <button class="admin-filter-reset" type="button" @click="clearAssignmentFilters()">پاک‌سازی فیلترها</button>
+                </div>
               </div>
               <div x-cloak x-show="errors.bedAssignments" class="alert alert-warning small" role="alert" x-text="errors.bedAssignments"></div>
               <div class="table-responsive">
@@ -368,6 +382,13 @@
               <div class="col-md-5"><input class="form-control" type="search" x-model.debounce.250ms="paymentFilters.query" placeholder="جستجوی دانشجو، شناسه پرداخت یا مرجع تراکنش" /></div>
               <div class="col-md-3"><select class="form-select" x-model="paymentFilters.status"><option value="all">همه وضعیت‌ها</option><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option><option value="pending">در انتظار</option><option value="overdue">معوق</option><option value="cancelled">لغو شده</option></select></div>
               <div class="col-md-4"><select class="form-select" x-model="paymentFilters.due"><option value="all">همه سررسیدها</option><option value="overdue">سررسید گذشته</option><option value="due-soon">نزدیک سررسید</option><option value="upcoming">در مهلت</option><option value="paid">پرداخت شده</option><option value="unknown">بدون سررسید</option></select></div>
+            </div>
+            <div class="admin-filter-strip mb-3">
+              <span class="admin-result-count" x-text="`${toPersianNumber(filteredPayments().length)} نتیجه از ${toPersianNumber(payments.length)} پرداخت`"></span>
+              <div class="admin-filter-chips" x-show="paymentFilterChips().length">
+                <template x-for="chip in paymentFilterChips()" :key="chip"><span class="admin-filter-chip" x-text="chip"></span></template>
+                <button class="admin-filter-reset" type="button" @click="clearPaymentFilters()">پاک‌سازی فیلترها</button>
+              </div>
             </div>
             <div x-cloak x-show="errors.payments" class="alert alert-warning small" role="alert" x-text="errors.payments"></div>
             <div class="table-responsive">
