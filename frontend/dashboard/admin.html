@@ -377,6 +377,17 @@
       <section class="admin-dialog" x-show="dialog.type === 'details'" role="dialog" aria-modal="true" aria-labelledby="userDetailTitle">
         <header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3"><h3 id="userDetailTitle" class="h5 fw-bold mb-0">جزئیات کاربر</h3><button class="admin-action-button" type="button" @click="closeDialog()">بستن</button></header>
         <div class="p-3">
+          <div class="admin-dialog-summary mb-3">
+            <div class="admin-dialog-summary-main">
+              <span class="admin-dialog-avatar" x-text="fullName(dialog.subject).slice(0, 2)"></span>
+              <div class="min-w-0">
+                <strong class="admin-dialog-summary-title" x-text="fullName(dialog.subject)"></strong>
+                <span class="admin-dialog-summary-meta" x-text="roleLabel(dialog.subject)"></span>
+                <span class="admin-dialog-summary-meta" dir="ltr" x-text="dialog.subject?.email || '—'"></span>
+              </div>
+            </div>
+            <span class="ss-status-badge" :class="statusClass(dialog.subject)" x-text="statusLabel(dialog.subject)"></span>
+          </div>
           <dl class="admin-detail-list">
             <template x-for="field in [{label:'نام کامل',value:fullName(dialog.subject)},{label:'نام کاربری',value:dialog.subject?.username},{label:'ایمیل',value:dialog.subject?.email},{label:'شماره دانشجویی',value:dialog.subject?.student_id},{label:'کد ملی',value:dialog.subject?.national_id},{label:'شماره تماس',value:dialog.subject?.phone},{label:'جنسیت',value:dialog.subject?.gender},{label:'نقش‌ها',value:roleLabel(dialog.subject)},{label:'وضعیت',value:statusLabel(dialog.subject)},{label:'تاریخ ایجاد',value:dialog.subject?.created_at}]" :key="field.label"><div class="admin-detail-item"><dt x-text="field.label"></dt><dd x-text="field.value || '—'"></dd></div></template>
           </dl>
