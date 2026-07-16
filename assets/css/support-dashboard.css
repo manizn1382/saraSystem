@@ -354,6 +354,63 @@
   border-radius: 1.1rem;
 }
 
+.support-dialog-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.support-dialog-summary-main {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
+}
+
+.support-dialog-avatar {
+  width: 3.2rem;
+  height: 3.2rem;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 1rem;
+  color: #06162b;
+  background: linear-gradient(135deg, var(--ss-primary), var(--ss-primary-2));
+  font-weight: 950;
+}
+
+.support-dialog-summary-title,
+.support-dialog-summary-meta {
+  display: block;
+}
+
+.support-dialog-summary-title {
+  color: var(--ss-text);
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+
+.support-dialog-summary-meta {
+  color: var(--ss-muted);
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.support-dialog-summary-badges {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
 .support-dialog header {
   border-color: var(--ss-line-soft) !important;
 }
@@ -366,6 +423,38 @@
 
 .support-dialog .ss-detail-grid > div {
   min-height: 5rem;
+}
+
+.support-action-panel,
+.support-timeline-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.support-action-button-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+}
+
+.support-resolution-field {
+  min-height: 9.5rem;
+  resize: vertical;
+}
+
+.support-timeline-panel .ss-timeline {
+  gap: 1rem;
+}
+
+.support-timeline-panel .ss-timeline-item {
+  align-items: start;
+}
+
+.support-timeline-panel .ss-timeline-item > div {
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.025);
 }
 
 .support-dialog .ss-detail-grid .ss-status-badge,
@@ -394,8 +483,10 @@
 :root[data-theme="day"] .support-history-strip,
 :root[data-theme="day"] .support-history-meta span,
 :root[data-theme="day"] .support-filter-strip,
+:root[data-theme="day"] .support-dialog-summary,
 :root[data-theme="day"] .support-dialog .ss-action-panel,
-:root[data-theme="day"] .support-dialog .ss-detail-grid > div {
+:root[data-theme="day"] .support-dialog .ss-detail-grid > div,
+:root[data-theme="day"] .support-timeline-panel .ss-timeline-item > div {
   background: rgba(239, 248, 255, 0.78);
 }
 
@@ -488,6 +579,14 @@
 
   .support-history-meta {
     grid-template-columns: 1fr;
+  }
+
+  .support-dialog-summary {
+    align-items: stretch;
+  }
+
+  .support-dialog-summary-badges {
+    justify-content: flex-start;
   }
 
   .support-section-header {

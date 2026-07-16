@@ -315,6 +315,20 @@
           <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="closeTicket()">بستن</button>
         </header>
         <div class="p-3 p-md-4">
+          <div class="support-dialog-summary mb-3">
+            <div class="support-dialog-summary-main">
+              <span class="support-dialog-avatar">تعم</span>
+              <div class="min-w-0">
+                <strong class="support-dialog-summary-title" x-text="selectedTicket?.title || 'درخواست تعمیرات'"></strong>
+                <span class="support-dialog-summary-meta" x-text="selectedTicket ? locationText(selectedTicket) : '—'"></span>
+                <span class="support-dialog-summary-meta" x-text="selectedTicket?.created_at || 'تاریخ نامشخص'"></span>
+              </div>
+            </div>
+            <div class="support-dialog-summary-badges">
+              <span :class="priorityClass(selectedTicket?.priority)" x-text="priorityText(selectedTicket?.priority)"></span>
+              <span :class="statusClass(selectedTicket?.status)" x-text="statusText(selectedTicket?.status)"></span>
+            </div>
+          </div>
           <div class="ss-detail-grid mb-3">
             <div><span>اولویت</span><strong :class="priorityClass(selectedTicket?.priority)" x-text="priorityText(selectedTicket?.priority)"></strong></div>
             <div><span>وضعیت</span><strong :class="statusClass(selectedTicket?.status)" x-text="statusText(selectedTicket?.status)"></strong></div>
@@ -324,9 +338,9 @@
 
           <div class="row g-3">
             <div class="col-lg-6">
-              <article class="ss-action-panel h-100">
+              <article class="ss-action-panel support-action-panel h-100">
                 <h4 class="h6 fw-bold mb-3">اقدام پشتیبانی</h4>
-                <div class="d-grid gap-2 mb-3">
+                <div class="support-action-button-grid mb-3">
                   <button class="btn ss-btn ss-btn-outline" type="button" @click="assignSelectedToMe()" :disabled="ticketAction.loading">ارجاع به من</button>
                 </div>
                 <label class="form-label" for="support-status">وضعیت</label>
@@ -339,7 +353,7 @@
                   <option value="cancelled">لغو شده</option>
                 </select>
                 <label class="form-label" for="support-resolution">یادداشت حل مشکل</label>
-                <textarea id="support-resolution" class="form-control" rows="5" x-model.trim="ticketAction.resolution_note" placeholder="شرح اقدام انجام‌شده، قطعه تعویض‌شده یا علت بستن درخواست"></textarea>
+                <textarea id="support-resolution" class="form-control support-resolution-field" rows="5" x-model.trim="ticketAction.resolution_note" placeholder="شرح اقدام انجام‌شده، قطعه تعویض‌شده یا علت بستن درخواست"></textarea>
                 <button class="btn ss-btn ss-btn-primary w-100 mt-3" type="button" @click="applyTicketUpdate()" :disabled="ticketAction.loading">
                   <span x-show="ticketAction.loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                   <span x-text="ticketAction.loading ? 'در حال ثبت...' : 'ثبت وضعیت'"></span>
@@ -348,7 +362,7 @@
               </article>
             </div>
             <div class="col-lg-6">
-              <article class="ss-action-panel h-100">
+              <article class="ss-action-panel support-timeline-panel h-100">
                 <h4 class="h6 fw-bold mb-3">خط زمانی</h4>
                 <ol class="ss-timeline">
                   <template x-for="item in ticketTimeline()" :key="item.title">
