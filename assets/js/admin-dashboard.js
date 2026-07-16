@@ -673,6 +673,57 @@
         ];
       },
 
+      adminQueueItems() {
+        const pendingRequests = this.accommodationRequests.filter((request) => String(request.status || '').toLowerCase() === 'pending');
+        const approvedRequests = this.accommodationRequests.filter((request) => String(request.status || '').toLowerCase() === 'approved');
+        const assignedRequestIds = new Set(this.bedAssignments.map((assignment) => String(assignment.request_id || '')).filter(Boolean));
+        const approvedUnassigned = approvedRequests.filter((request) =>
+          ![request.id, request.code].some((value) => assignedRequestIds.has(String(value || '')))
+        );
+        const unverifiedUsers = this.users.filter((user) => user.is_verified === false);
+        const freeBeds = this.beds.filter((bed) => String(bed.status || '').toLowerCase() === 'available').length
+          || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.available_beds || 0), 0);
+        const overduePayments = this.payments.filter((payment) => this.paymentDueState(payment) === 'overdue');
+
+        return [
+          {
+            title: 'درخواست‌های در انتظار بررسی',
+            value: this.toPersianNumber(pendingRequests.length),
+            note: 'نیازمند تصمیم مدیر خوابگاه یا پیگیری ظرفیت',
+            href: '#operations',
+            tone: pendingRequests.length ? 'warning' : 'success'
+          },
+          {
+            title: 'تاییدشده بدون تخصیص',
+            value: this.toPersianNumber(approvedUnassigned.length),
+            note: 'درخواست‌هایی که هنوز به تخت فعال وصل نشده‌اند',
+            href: '#operations',
+            tone: approvedUnassigned.length ? 'danger' : 'success'
+          },
+          {
+            title: 'حساب‌های تاییدنشده',
+            value: this.toPersianNumber(unverifiedUsers.length),
+            note: 'کاربران نیازمند بازبینی هویت یا فعال‌سازی نهایی',
+            href: '#users',
+            tone: unverifiedUsers.length ? 'warning' : 'success'
+          },
+          {
+            title: 'تخت آزاد قابل تخصیص',
+            value: this.toPersianNumber(freeBeds),
+            note: 'بر اساس فهرست تخت‌ها یا ظرفیت گزارش‌شده خوابگاه',
+            href: '#dormitories',
+            tone: freeBeds ? 'success' : 'danger'
+          },
+          {
+            title: 'پرداخت‌های سررسید گذشته',
+            value: this.toPersianNumber(overduePayments.length),
+            note: 'نمایشی تا زمان آماده‌شدن endpoint پرداخت‌ها',
+            href: '#operations',
+            tone: overduePayments.length ? 'danger' : 'neutral'
+          }
+        ];
+      },
+
       averageDormitoryOccupancy() {
         const values = this.dormitories.map((item) => Number(item.occupancy || 0)).filter((value) => value > 0);
         return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0;

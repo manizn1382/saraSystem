@@ -85,6 +85,15 @@
               </div>
             </template>
           </div>
+          <div class="admin-command-grid mt-3" aria-label="اولویت‌های مدیریتی">
+            <template x-for="item in adminQueueItems()" :key="item.title">
+              <a class="admin-command-card" :class="`tone-${item.tone}`" :href="item.href">
+                <span class="admin-command-value" x-text="item.value"></span>
+                <span class="admin-command-title" x-text="item.title"></span>
+                <span class="admin-command-note" x-text="item.note"></span>
+              </a>
+            </template>
+          </div>
         </section>
 
         <section id="users" class="admin-section ss-card ss-glass p-3 p-md-4 mb-3" aria-labelledby="usersTitle">

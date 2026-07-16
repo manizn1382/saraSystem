@@ -18,6 +18,73 @@
   font-size: 1.7rem;
 }
 
+.admin-command-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-command-card {
+  min-height: 9.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 1rem;
+  padding: 1rem;
+  color: var(--ss-soft);
+  background: rgba(255, 255, 255, 0.035);
+  text-decoration: none;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.admin-command-card:hover,
+.admin-command-card:focus {
+  transform: translateY(-2px);
+  border-color: rgba(103, 232, 249, 0.35);
+  color: var(--ss-text);
+  background: rgba(56, 189, 248, 0.085);
+}
+
+.admin-command-value {
+  color: var(--ss-primary-2);
+  font-size: 1.75rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.admin-command-title {
+  color: var(--ss-text);
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.admin-command-note {
+  color: var(--ss-muted);
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+
+.admin-command-card.tone-success {
+  border-color: rgba(34, 197, 94, 0.24);
+  background: rgba(34, 197, 94, 0.075);
+}
+
+.admin-command-card.tone-warning {
+  border-color: rgba(250, 204, 21, 0.26);
+  background: rgba(250, 204, 21, 0.07);
+}
+
+.admin-command-card.tone-danger {
+  border-color: rgba(248, 113, 113, 0.28);
+  background: rgba(239, 68, 68, 0.075);
+}
+
+.admin-command-card.tone-neutral {
+  border-color: rgba(148, 163, 184, 0.22);
+}
+
 .admin-toolbar {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(130px, max-content));
@@ -300,6 +367,10 @@
 }
 
 @media (max-width: 1199.98px) {
+  .admin-command-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .admin-operation-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -311,6 +382,10 @@
 }
 
 @media (max-width: 767.98px) {
+  .admin-command-grid {
+    grid-template-columns: 1fr;
+  }
+
   .admin-toolbar,
   .admin-detail-list {
     grid-template-columns: 1fr;
@@ -656,6 +731,7 @@
 
 :root[data-theme="day"] .admin-user-card,
 :root[data-theme="day"] .admin-stat-grid .ss-stat,
+:root[data-theme="day"] .admin-command-card,
 :root[data-theme="day"] .admin-operation,
 :root[data-theme="day"] .admin-section .form-control,
 :root[data-theme="day"] .admin-section .form-select,
