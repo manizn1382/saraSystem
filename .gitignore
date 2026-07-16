@@ -1,4 +1,16 @@
 frontend/sarasystem_frontend_checklist.md
 docs/sarasystem_agent_implementation_brief.txt
+docs/LOCAL_setup.md
+requirements-local-*
+
 C:\User_Files\software_engineering\AI_branch\saraSystem\AI\national_id_detector\dataset
+
+# Local development environments and generated caches
+.venv/
+.venv-*/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
 
