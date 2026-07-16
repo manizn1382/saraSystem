@@ -1045,6 +1045,70 @@
   background: rgba(3, 105, 161, 0.08);
 }
 
+:root[data-theme="day"] .admin-primary-button {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0369a1, #0e7490);
+  box-shadow: 0 14px 28px rgba(3, 105, 161, 0.18);
+}
+
+:root[data-theme="day"] .admin-primary-button:hover,
+:root[data-theme="day"] .admin-primary-button:focus {
+  color: #ffffff;
+  background: linear-gradient(135deg, #075985, #155e75);
+}
+
+:root[data-theme="day"] .admin-outline-button,
+:root[data-theme="day"] .admin-icon-button,
+:root[data-theme="day"] .admin-action-button {
+  border-color: rgba(3, 105, 161, 0.28);
+  color: #075985;
+  background: rgba(186, 230, 253, 0.42);
+}
+
+:root[data-theme="day"] .admin-outline-button:hover,
+:root[data-theme="day"] .admin-outline-button:focus,
+:root[data-theme="day"] .admin-icon-button:hover,
+:root[data-theme="day"] .admin-icon-button:focus,
+:root[data-theme="day"] .admin-action-button:hover,
+:root[data-theme="day"] .admin-action-button:focus {
+  border-color: rgba(3, 105, 161, 0.42);
+  color: #0c4a6e;
+  background: rgba(125, 211, 252, 0.42);
+}
+
+:root[data-theme="day"] .admin-danger-button {
+  border-color: rgba(185, 28, 28, 0.24);
+  color: #991b1b;
+  background: rgba(254, 226, 226, 0.78);
+}
+
+:root[data-theme="day"] .admin-danger-button:hover,
+:root[data-theme="day"] .admin-danger-button:focus,
+:root[data-theme="day"] .admin-action-button.danger:hover,
+:root[data-theme="day"] .admin-action-button.danger:focus {
+  border-color: #b91c1c;
+  color: #ffffff;
+  background: #b91c1c;
+}
+
+:root[data-theme="day"] .admin-avatar,
+:root[data-theme="day"] .admin-dialog-avatar {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0369a1, #0891b2);
+}
+
+:root[data-theme="day"] .admin-nav-icon {
+  color: #075985;
+  background: rgba(186, 230, 253, 0.62);
+}
+
+:root[data-theme="day"] .admin-command-card:hover,
+:root[data-theme="day"] .admin-command-card:focus {
+  border-color: rgba(3, 105, 161, 0.28);
+  color: var(--ss-text);
+  background: rgba(186, 230, 253, 0.56);
+}
+
 :root[data-theme="day"] .admin-nav-link.active,
 :root[data-theme="day"] .admin-nav-link:hover {
   color: #075985;
