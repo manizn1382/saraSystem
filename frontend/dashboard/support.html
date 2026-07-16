@@ -37,21 +37,26 @@
     ></script>
   </head>
   <body class="ss-page support-page" x-data="supportPanel()">
+    <div class="support-sidebar-backdrop" :class="{ 'show': sidebarOpen }" @click="sidebarOpen = false" aria-hidden="true"></div>
     <div class="ss-dashboard-layout support-shell">
       <aside
         class="ss-dashboard-sidebar ss-glass ss-sidebar support-sidebar"
+        :class="{ 'open': sidebarOpen }"
         aria-label="منوی واحد پشتیبانی"
       >
         <div class="support-sidebar-header">
-          <a href="../index.html" class="support-brand" aria-label="بازگشت به صفحه اصلی سراسیستم">
-            <span class="support-brand-logo">
-              <img src="../../assets/logo_with_outline.png" alt="لوگوی سراسیستم" onerror="this.classList.add('d-none')" />
-            </span>
-            <span>
-              <span class="support-brand-title">سراسیستم</span>
-              <span class="support-brand-subtitle">واحد پشتیبانی خوابگاه</span>
-            </span>
-          </a>
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <a href="../index.html" class="support-brand" aria-label="بازگشت به صفحه اصلی سراسیستم">
+              <span class="support-brand-logo">
+                <img src="../../assets/logo_with_outline.png" alt="لوگوی سراسیستم" onerror="this.classList.add('d-none')" />
+              </span>
+              <span>
+                <span class="support-brand-title">سراسیستم</span>
+                <span class="support-brand-subtitle">واحد پشتیبانی خوابگاه</span>
+              </span>
+            </a>
+            <button class="support-icon-button d-lg-none" type="button" aria-label="بستن منوی کناری" @click="sidebarOpen = false">×</button>
+          </div>
         </div>
         <div class="support-user-card">
           <span class="support-avatar">پ</span>
@@ -61,17 +66,13 @@
           </div>
         </div>
         <nav class="support-nav">
-          <a class="ss-nav-link" :class="{ active: activeSection === '#overview' }" :aria-current="activeSection === '#overview' ? 'page' : null" href="#overview" @click="activeSection = '#overview'">🧰 نمای کلی</a>
-          <a class="ss-nav-link" :class="{ active: activeSection === '#queue' }" :aria-current="activeSection === '#queue' ? 'page' : null" href="#queue" @click="activeSection = '#queue'">🛠️ صف تعمیرات</a>
-          <a class="ss-nav-link" :class="{ active: activeSection === '#history' }" :aria-current="activeSection === '#history' ? 'page' : null" href="#history" @click="activeSection = '#history'">📜 سوابق</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#overview' }" :aria-current="activeSection === '#overview' ? 'page' : null" href="#overview" @click="activeSection = '#overview'; sidebarOpen = false">🧰 نمای کلی</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#queue' }" :aria-current="activeSection === '#queue' ? 'page' : null" href="#queue" @click="activeSection = '#queue'; sidebarOpen = false">🛠️ صف تعمیرات</a>
+          <a class="ss-nav-link" :class="{ active: activeSection === '#history' }" :aria-current="activeSection === '#history' ? 'page' : null" href="#history" @click="activeSection = '#history'; sidebarOpen = false">📜 سوابق</a>
         </nav>
-        <button
-          class="btn ss-btn ss-btn-outline w-100 mt-auto"
-          type="button"
-          @click="logout()"
-        >
-          خروج
-        </button>
+        <div class="support-sidebar-footer">
+          <button class="btn support-danger-button w-100" type="button" @click="logout()">خروج از حساب</button>
+        </div>
       </aside>
 
       <main class="min-w-0">
@@ -79,9 +80,12 @@
           <div
             class="d-flex flex-wrap align-items-center justify-content-between gap-3"
           >
-            <div>
-              <div class="support-breadcrumb mb-1">سراسیستم / واحد پشتیبانی / <span x-text="activeSection === '#queue' ? 'صف تعمیرات' : activeSection === '#history' ? 'سوابق رسیدگی' : 'نمای کلی'"></span></div>
-              <h2 class="h3 fw-bold mb-0">داشبورد پشتیبانی</h2>
+            <div class="d-flex align-items-center gap-3 min-w-0">
+              <button class="support-icon-button d-lg-none" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
+              <div class="min-w-0">
+                <div class="support-breadcrumb mb-1">سراسیستم / واحد پشتیبانی / <span x-text="activeSection === '#queue' ? 'صف تعمیرات' : activeSection === '#history' ? 'سوابق رسیدگی' : 'نمای کلی'"></span></div>
+                <h2 class="h3 fw-bold mb-0 text-truncate">داشبورد پشتیبانی</h2>
+              </div>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
               <div data-sara-theme-slot></div>

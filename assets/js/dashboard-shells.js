@@ -213,6 +213,7 @@
       ...tableMixin(),
       ...requestStateMixin(),
       user: window.SaraAuth?.getStoredUser?.() || {},
+      sidebarOpen: false,
       activeSection: '#overview',
       tickets: [],
       selectedTicket: null,
