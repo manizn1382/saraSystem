@@ -31,7 +31,7 @@
   justify-content: space-between;
   gap: 0.65rem;
   border: 1px solid var(--ss-line-soft);
-  border-radius: 1rem;
+  border-radius: 1.35rem;
   padding: 1rem;
   color: var(--ss-soft);
   background: rgba(255, 255, 255, 0.035);
@@ -882,20 +882,25 @@
 .admin-hero {
   padding: clamp(1.35rem, 3vw, 2.4rem);
   border: 1px solid var(--ss-line);
-  border-radius: 1.35rem;
-  background: var(--ss-panel);
+  border-radius: 2rem;
+  background:
+    radial-gradient(circle at 10% 5%, rgba(56, 189, 248, 0.26), transparent 34%),
+    radial-gradient(circle at 75% 80%, rgba(20, 184, 166, 0.2), transparent 34%),
+    linear-gradient(135deg, rgba(13, 43, 81, 0.92), rgba(7, 25, 50, 0.86));
   box-shadow: var(--ss-shadow);
 }
 
 .admin-eyebrow {
   display: inline-flex;
-  margin-bottom: 0.8rem;
-  padding: 0.28rem 0.62rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.85rem;
   border: 1px solid rgba(103, 232, 249, 0.25);
   border-radius: 999px;
-  color: var(--ss-primary-2);
+  color: #bae6fd;
   background: rgba(56, 189, 248, 0.1);
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 800;
 }
 
@@ -904,7 +909,7 @@
   margin-bottom: 0.7rem;
   color: var(--ss-text);
   font-size: clamp(1.45rem, 3vw, 2.25rem);
-  font-weight: 900;
+  font-weight: 950;
   line-height: 1.35;
 }
 
@@ -915,14 +920,34 @@
 }
 
 .admin-stat-grid .ss-stat {
-  min-height: 146px;
-  border-radius: 1.15rem;
-  background: rgba(255, 255, 255, 0.045);
+  position: relative;
+  min-height: 142px;
+  overflow: hidden;
+  border-radius: 1.6rem;
+  padding: 1.15rem;
+  background: var(--ss-panel);
+  box-shadow: var(--ss-shadow);
+  backdrop-filter: blur(20px);
+}
+
+.admin-stat-grid .ss-stat::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4rem;
+  top: -4rem;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.12);
+  pointer-events: none;
 }
 
 .admin-section.ss-card {
-  border-radius: 1.2rem;
+  border: 1px solid var(--ss-line);
+  border-radius: 1.6rem;
   background: var(--ss-panel);
+  box-shadow: var(--ss-shadow);
+  backdrop-filter: blur(20px);
 }
 
 .admin-section .form-control,
@@ -1014,9 +1039,16 @@
 }
 
 :root[data-theme="day"] .admin-topbar,
+:root[data-theme="day"] .admin-hero,
+:root[data-theme="day"] .admin-section.ss-card,
 :root[data-theme="day"] .admin-profile-dropdown,
 :root[data-theme="day"] .admin-dialog {
   background: var(--ss-panel-solid);
+}
+
+:root[data-theme="day"] .admin-eyebrow {
+  color: #164e63;
+  background: rgba(186, 230, 253, 0.42);
 }
 
 :root[data-theme="day"] .admin-user-card,
@@ -1236,7 +1268,7 @@
   }
 
   .admin-hero {
-    border-radius: 1rem;
+    border-radius: 1.35rem;
   }
 
   .admin-topbar .admin-profile-button:not(.btn-ss-primary) {

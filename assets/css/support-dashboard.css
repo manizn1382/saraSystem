@@ -237,23 +237,26 @@
   gap: 1rem;
   align-items: end;
   border: 1px solid var(--ss-line);
-  border-radius: 1.35rem;
+  border-radius: 2rem;
   padding: clamp(1.35rem, 3vw, 2.35rem);
   background:
-    linear-gradient(135deg, rgba(56, 189, 248, 0.13), transparent 52%),
-    var(--ss-panel);
+    radial-gradient(circle at 10% 5%, rgba(56, 189, 248, 0.26), transparent 34%),
+    radial-gradient(circle at 75% 80%, rgba(20, 184, 166, 0.2), transparent 34%),
+    linear-gradient(135deg, rgba(13, 43, 81, 0.92), rgba(7, 25, 50, 0.86));
   box-shadow: var(--ss-shadow);
 }
 
 .support-eyebrow {
   display: inline-flex;
-  margin-bottom: 0.75rem;
-  padding: 0.28rem 0.65rem;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem 0.85rem;
   border: 1px solid rgba(103, 232, 249, 0.25);
   border-radius: 999px;
-  color: var(--ss-primary-2);
+  color: #bae6fd;
   background: rgba(56, 189, 248, 0.1);
-  font-size: 0.78rem;
+  font-size: 0.85rem;
   font-weight: 900;
 }
 
@@ -279,13 +282,30 @@
 }
 
 .support-stat-grid .ss-stat {
+  position: relative;
   min-height: 158px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 0.7rem;
-  border-radius: 1.2rem;
-  background: rgba(255, 255, 255, 0.045);
+  overflow: hidden;
+  border-radius: 1.6rem;
+  padding: 1.15rem;
+  background: var(--ss-panel);
+  box-shadow: var(--ss-shadow);
+  backdrop-filter: blur(20px);
+}
+
+.support-stat-grid .ss-stat::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -4rem;
+  top: -4rem;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.12);
+  pointer-events: none;
 }
 
 .support-stat-header {
@@ -327,8 +347,11 @@
 }
 
 .support-panel {
-  border-radius: 1.25rem;
+  border: 1px solid var(--ss-line);
+  border-radius: 1.6rem;
   background: var(--ss-panel);
+  box-shadow: var(--ss-shadow);
+  backdrop-filter: blur(20px);
 }
 
 .support-section-header {
@@ -681,6 +704,11 @@
   background: rgba(239, 248, 255, 0.78);
 }
 
+:root[data-theme="day"] .support-eyebrow {
+  color: #164e63;
+  background: rgba(186, 230, 253, 0.42);
+}
+
 :root[data-theme="day"] .support-stat-icon {
   border-color: rgba(3, 105, 161, 0.2);
   background: rgba(186, 230, 253, 0.46);
@@ -902,6 +930,12 @@
 @media (max-width: 575.98px) {
   .support-topbar {
     border-radius: 1.25rem;
+  }
+
+  .support-hero,
+  .support-stat-grid .ss-stat,
+  .support-panel {
+    border-radius: 1.35rem;
   }
 
   .support-toolbar,
