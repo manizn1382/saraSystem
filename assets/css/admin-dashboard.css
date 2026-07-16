@@ -810,9 +810,26 @@
   line-height: 1.6;
 }
 
+.admin-primary-value {
+  display: block;
+  color: var(--ss-text);
+  font-weight: 900;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 .admin-identity-value {
   color: var(--ss-soft);
   font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
+.admin-ltr-value {
+  display: inline-block;
+  color: var(--ss-soft);
+  direction: ltr;
+  font-weight: 850;
+  unicode-bidi: plaintext;
   overflow-wrap: anywhere;
 }
 
@@ -941,13 +958,25 @@
   }
 
   .admin-section .ss-table-card-mobile td[data-label="کاربر"],
-  .admin-section .ss-table-card-mobile td[data-label="نقش"] {
+  .admin-section .ss-table-card-mobile td[data-label="نقش"],
+  .admin-section .ss-table-card-mobile td[data-label="دانشجو"],
+  .admin-section .ss-table-card-mobile td[data-label="اتاق"],
+  .admin-section .ss-table-card-mobile td[data-label="مکان"],
+  .admin-section .ss-table-card-mobile td[data-label="پرداخت"] {
     grid-template-columns: 1fr;
   }
 
   .admin-section .ss-table-card-mobile td[data-label="کاربر"]::before,
-  .admin-section .ss-table-card-mobile td[data-label="نقش"]::before {
+  .admin-section .ss-table-card-mobile td[data-label="نقش"]::before,
+  .admin-section .ss-table-card-mobile td[data-label="دانشجو"]::before,
+  .admin-section .ss-table-card-mobile td[data-label="اتاق"]::before,
+  .admin-section .ss-table-card-mobile td[data-label="مکان"]::before,
+  .admin-section .ss-table-card-mobile td[data-label="پرداخت"]::before {
     margin-bottom: -0.2rem;
+  }
+
+  .admin-section .ss-table-card-mobile td[data-label="عملیات"] > .admin-action-button {
+    width: 100%;
   }
 
   .admin-section .ss-table-card-mobile td[data-label="عملیات"] .admin-table-actions {
