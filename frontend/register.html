@@ -134,6 +134,7 @@
                 </label>
                 <input
                   x-model.trim="form.national_id"
+                  @input="resetNationalIdVerification()"
                   :class="{ 'is-invalid': errors.national_id }"
                   type="text"
                   class="form-control form-control-lg"
@@ -175,6 +176,51 @@
                   x-text="errors.student_id"
                 ></div>
                 <div id="studentIdHelp" class="form-text">این مقدار در پروفایل حساب سرویس account ذخیره می‌شود.</div>
+              </div>
+
+              <div class="col-12">
+                <div class="border rounded-3 p-3">
+                  <div class="row g-3 align-items-end">
+                    <div class="col-md-8">
+                      <label for="nationalIdCardImage" class="form-label fw-semibold">
+                        تصویر کارت ملی
+                      </label>
+                      <input
+                        class="form-control form-control-lg"
+                        id="nationalIdCardImage"
+                        type="file"
+                        accept="image/*"
+                        @change="handleNationalIdImage($event)"
+                      />
+                    </div>
+                    <div class="col-md-4">
+                      <button
+                        class="btn btn-ss btn-ss-outline w-100"
+                        type="button"
+                        :disabled="nationalIdVerification.loading"
+                        @click="verifyNationalIdCard()"
+                      >
+                        <span
+                          x-cloak
+                          x-show="nationalIdVerification.loading"
+                          class="spinner-border spinner-border-sm ms-2"
+                          aria-hidden="true"
+                        ></span>
+                        <span x-text="nationalIdVerification.loading ? 'در حال بررسی...' : 'بررسی کارت ملی'"></span>
+                      </button>
+                    </div>
+                  </div>
+                  <div
+                    x-cloak
+                    x-show="nationalIdVerification.message"
+                    class="alert mt-3 mb-0 py-2 small"
+                    :class="nationalIdAlertClass()"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <span x-text="nationalIdVerification.message"></span>
+                  </div>
+                </div>
               </div>
 
               <div class="col-12 col-md-6">

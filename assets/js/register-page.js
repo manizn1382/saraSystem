@@ -36,6 +36,13 @@ function registerPage() {
         acceptedTerms: false,
         showPassword: false,
         showPasswordConfirm: false,
+        nationalIdImage: null,
+        nationalIdVerification: {
+          loading: false,
+          type: "info",
+          message: "",
+          verified: false
+        },
 
         init() {
           document.body.addEventListener("htmx:beforeRequest", (event) => {
@@ -107,6 +114,59 @@ function registerPage() {
           if (!this.validateForm()) {
             event.preventDefault();
             event.stopImmediatePropagation();
+          }
+        },
+
+        handleNationalIdImage(event) {
+          this.nationalIdImage = event?.target?.files?.[0] || null;
+          this.resetNationalIdVerification();
+        },
+
+        resetNationalIdVerification() {
+          this.nationalIdVerification = {
+            loading: false,
+            type: "info",
+            message: "",
+            verified: false
+          };
+        },
+
+        async verifyNationalIdCard() {
+          const nationalId = this.toEnglishDigits(this.form.national_id || "");
+
+          if (!nationalId || !this.isDigits(nationalId) || nationalId.length !== 10) {
+            this.showNationalIdStatus("warning", "ابتدا کد ملی معتبر ۱۰ رقمی را وارد کنید.");
+            return;
+          }
+
+          if (!this.nationalIdImage) {
+            this.showNationalIdStatus("warning", "ابتدا تصویر کارت ملی را انتخاب کنید.");
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append("id", nationalId);
+          formData.append("image", this.nationalIdImage);
+
+          this.nationalIdVerification.loading = true;
+          this.showNationalIdStatus("info", "در حال بررسی کارت ملی...");
+
+          try {
+            const response = await window.SaraAPI.post("/api/national-id/verify/", formData, {
+              auth: false,
+              retryOnUnauthorized: false,
+              redirectOnExpired: false
+            });
+            const succeeded = response?.success !== false;
+            this.showNationalIdStatus(
+              succeeded ? "success" : "warning",
+              response?.log || response?.message || (succeeded ? "کارت ملی تأیید شد." : "کد ملی با تصویر کارت تطبیق ندارد.")
+            );
+            this.nationalIdVerification.verified = succeeded;
+          } catch (error) {
+            this.showNationalIdStatus("danger", error.message || "ارتباط با سرویس تأیید کارت ملی برقرار نشد.");
+          } finally {
+            this.nationalIdVerification.loading = false;
           }
         },
 
@@ -334,6 +394,23 @@ function registerPage() {
         showAlert(type, message) {
           this.alert.type = type;
           this.alert.message = message;
+        },
+
+        showNationalIdStatus(type, message) {
+          this.nationalIdVerification = {
+            ...this.nationalIdVerification,
+            type,
+            message
+          };
+        },
+
+        nationalIdAlertClass() {
+          return {
+            success: "alert-success",
+            warning: "alert-warning",
+            danger: "alert-danger",
+            info: "alert-info"
+          }[this.nationalIdVerification.type] || "alert-info";
         }
       };
     }
