@@ -10,10 +10,12 @@
     /^\/api\/v1\/users\/(?:create|login|logout|token\/refresh|password\/change|password\/reset|password\/reset\/username|changePassword|editProfile|adminUpdate|list|current|status\/change)\/?$/i,
     /^\/api\/v1\/users\/current\/studentId\/?$/i,
     /^\/api\/v1\/users\/delete\/[^/]+\/?$/i,
-    /^\/api\/v1\/role\/(?:create|list)\/?$/i,
-    /^\/api\/v1\/role\/(?:delete|update)\/[^/]+\/?$/i,
-    /^\/api\/v1\/permission\/(?:create|list)\/?$/i,
-    /^\/api\/v1\/(?:rolePermission|userRole)\/create\/?$/i
+    /^\/api\/v1\/role\/(?:create|list|update)\/?$/i,
+    /^\/api\/v1\/role\/delete\/[^/]+\/?$/i,
+    /^\/api\/v1\/permission\/(?:create|list|update)\/?$/i,
+    /^\/api\/v1\/permission\/delete\/[^/]+\/?$/i,
+    /^\/api\/v1\/(?:rolePermission|userRole)\/(?:create|detail)\/?$/i,
+    /^\/api\/v1\/(?:rolePermission|userRole)\/delete\/[^/]+\/?$/i
   ];
 
   function configure(options = {}) {
@@ -137,7 +139,7 @@
 
     const accountRoleMatch = value.match(/^\/api\/accounts\/roles\/([^/?#]+)\/?$/i);
     if (accountRoleMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
-      return appendUrlTail(`/api/v1/role/update/${encodeURIComponent(accountRoleMatch[1])}`, tail);
+      return appendUrlTail(`/api/v1/role/update?role_id=${encodeURIComponent(accountRoleMatch[1])}`, tail);
     }
     if (accountRoleMatch && requestMethod === 'DELETE') {
       return appendUrlTail(`/api/v1/role/delete/${encodeURIComponent(accountRoleMatch[1])}`, tail);
@@ -146,8 +148,29 @@
     if (/^\/api\/accounts\/permissions\/?$/i.test(value)) {
       return appendUrlTail(requestMethod === 'POST' ? '/api/v1/permission/create' : '/api/v1/permission/list', tail);
     }
-    if (/^\/api\/accounts\/role-permissions\/?$/i.test(value)) return appendUrlTail('/api/v1/rolePermission/create', tail);
-    if (/^\/api\/accounts\/user-roles\/?$/i.test(value)) return appendUrlTail('/api/v1/userRole/create', tail);
+    const accountPermissionMatch = value.match(/^\/api\/accounts\/permissions\/([^/?#]+)\/?$/i);
+    if (accountPermissionMatch && ['PUT', 'PATCH'].includes(requestMethod)) {
+      return appendUrlTail(`/api/v1/permission/update?permission_id=${encodeURIComponent(accountPermissionMatch[1])}`, tail);
+    }
+    if (accountPermissionMatch && requestMethod === 'DELETE') {
+      return appendUrlTail(`/api/v1/permission/delete/${encodeURIComponent(accountPermissionMatch[1])}`, tail);
+    }
+
+    if (/^\/api\/accounts\/role-permissions\/?$/i.test(value)) {
+      return appendUrlTail(requestMethod === 'POST' ? '/api/v1/rolePermission/create' : '/api/v1/rolePermission/detail', tail);
+    }
+    const accountRolePermissionMatch = value.match(/^\/api\/accounts\/role-permissions\/([^/?#]+)\/?$/i);
+    if (accountRolePermissionMatch && requestMethod === 'DELETE') {
+      return appendUrlTail(`/api/v1/rolePermission/delete/${encodeURIComponent(accountRolePermissionMatch[1])}`, tail);
+    }
+
+    if (/^\/api\/accounts\/user-roles\/?$/i.test(value)) {
+      return appendUrlTail(requestMethod === 'POST' ? '/api/v1/userRole/create' : '/api/v1/userRole/detail', tail);
+    }
+    const accountUserRoleMatch = value.match(/^\/api\/accounts\/user-roles\/([^/?#]+)\/?$/i);
+    if (accountUserRoleMatch && requestMethod === 'DELETE') {
+      return appendUrlTail(`/api/v1/userRole/delete/${encodeURIComponent(accountUserRoleMatch[1])}`, tail);
+    }
 
     if (ACCOUNT_V1_PATHS.some((pattern) => pattern.test(value))) {
       return appendUrlTail(value.replace(/\/$/, ''), tail);
