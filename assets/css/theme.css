@@ -5,6 +5,46 @@
   color-scheme: dark;
 }
 
+:root:not([data-theme="day"]) select,
+:root:not([data-theme="day"]) select option,
+:root:not([data-theme="day"]) select optgroup {
+  color: #f8fafc !important;
+  background-color: #0d2749 !important;
+}
+
+:root:not([data-theme="day"]) select option:checked,
+:root:not([data-theme="day"]) select option:hover,
+:root:not([data-theme="day"]) select option:focus {
+  color: #ffffff !important;
+  background-color: #0b3569 !important;
+}
+
+:root:not([data-theme="day"]) .dropdown-menu {
+  --bs-dropdown-color: #f8fafc;
+  --bs-dropdown-bg: #0d2749;
+  --bs-dropdown-border-color: rgba(125, 211, 252, 0.22);
+  --bs-dropdown-link-color: #e2e8f0;
+  --bs-dropdown-link-hover-color: #ffffff;
+  --bs-dropdown-link-hover-bg: rgba(56, 189, 248, 0.14);
+  --bs-dropdown-link-active-color: #06162b;
+  --bs-dropdown-link-active-bg: #67e8f9;
+  --bs-dropdown-link-disabled-color: #64748b;
+  border-color: rgba(125, 211, 252, 0.22) !important;
+  color: #f8fafc !important;
+  background-color: #0d2749 !important;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+}
+
+:root:not([data-theme="day"]) .dropdown-item {
+  color: #e2e8f0 !important;
+}
+
+:root:not([data-theme="day"]) .dropdown-item:hover,
+:root:not([data-theme="day"]) .dropdown-item:focus {
+  color: #ffffff !important;
+  background-color: rgba(56, 189, 248, 0.14) !important;
+}
+
 :root[data-theme="day"] {
   color-scheme: light;
   --ss-bg: #e8f4ff;
