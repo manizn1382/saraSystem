@@ -940,11 +940,13 @@
     font-weight: 900;
   }
 
-  .admin-section .ss-table-card-mobile td[data-label="کاربر"] {
+  .admin-section .ss-table-card-mobile td[data-label="کاربر"],
+  .admin-section .ss-table-card-mobile td[data-label="نقش"] {
     grid-template-columns: 1fr;
   }
 
-  .admin-section .ss-table-card-mobile td[data-label="کاربر"]::before {
+  .admin-section .ss-table-card-mobile td[data-label="کاربر"]::before,
+  .admin-section .ss-table-card-mobile td[data-label="نقش"]::before {
     margin-bottom: -0.2rem;
   }
 
