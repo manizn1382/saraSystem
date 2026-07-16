@@ -11,6 +11,10 @@
     .form-control,.form-select{border-color:rgba(255,255,255,.16);color:#f8fafc;background:rgba(255,255,255,.08)}
     .form-control:focus,.form-select:focus{border-color:#67e8f9;box-shadow:0 0 0 .25rem rgba(56,189,248,.18);color:#fff;background:rgba(255,255,255,.11)}
     .form-control::placeholder{color:#94a3b8}
+    .account-upload-panel{display:grid;gap:.85rem;border:1px solid rgba(125,211,252,.22);border-radius:1rem;padding:1rem;background:rgba(56,189,248,.055)}
+    .account-upload-panel .form-text{color:#94a3b8}
+    .account-upload-panel .form-control:disabled{border-color:rgba(125,211,252,.16);color:#94a3b8;background:rgba(148,163,184,.08);opacity:1}
+    .account-upload-panel .btn:disabled{border-color:rgba(125,211,252,.18);color:#94a3b8;background:rgba(56,189,248,.045);opacity:1}
     .info-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;border:1px solid rgba(255,255,255,.1);border-radius:1rem;padding:.85rem 1rem;background:rgba(255,255,255,.055)}
     .status-badge{display:inline-flex;align-items:center;border-radius:999px;padding:.35rem .7rem;font-weight:900;font-size:.78rem}
     .badge-active{border:1px solid rgba(34,197,94,.25);background:rgba(34,197,94,.14);color:#dcfce7}

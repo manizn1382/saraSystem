@@ -191,19 +191,28 @@
                     <option value="other">سایر</option>
                   </select>
                 </div>
-                <div class="col-md-6">
-                  <label class="form-label" for="profileImage"
-                    >تصویر پروفایل، اختیاری</label
-                  >
-                  <input
-                    class="form-control form-control-lg"
-                    id="profileImage"
-                    type="file"
-                    accept="image/*"
-                    disabled
-                    @change="profileImage = $event.target.files[0] || null"
-                  />
-                  <div class="form-text">API فعلی حساب کاربری تصویر پروفایل دریافت نمی‌کند.</div>
+                <div class="col-12">
+                  <div class="account-upload-panel">
+                    <label class="form-label mb-1" for="profileImage"
+                      >تصویر پروفایل، اختیاری</label
+                    >
+                    <input
+                      class="form-control form-control-lg"
+                      id="profileImage"
+                      type="file"
+                      accept="image/*"
+                      disabled
+                      @change="profileImage = $event.target.files[0] || null"
+                    />
+                    <button
+                      class="btn btn-ss btn-ss-outline w-100"
+                      type="button"
+                      disabled
+                    >
+                      بارگذاری تصویر پروفایل
+                    </button>
+                    <div class="form-text">API فعلی حساب کاربری تصویر پروفایل دریافت نمی‌کند.</div>
+                  </div>
                 </div>
               </div>
 
