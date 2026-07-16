@@ -12,6 +12,14 @@
   background-color: #0d2749 !important;
 }
 
+:root:not([data-theme="day"]) .form-select {
+  --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23e2e8f0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-image: var(--bs-form-select-bg-img) !important;
+  background-position: left 0.75rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px 12px !important;
+}
+
 :root:not([data-theme="day"]) select option:checked,
 :root:not([data-theme="day"]) select option:hover,
 :root:not([data-theme="day"]) select option:focus {
@@ -212,6 +220,14 @@
   background: rgba(239, 248, 255, 0.96) !important;
 }
 
+:root[data-theme="day"] .form-select {
+  --bs-form-select-bg-img: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%230b2540' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+  background-image: var(--bs-form-select-bg-img) !important;
+  background-position: left 0.75rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px 12px !important;
+}
+
 :root[data-theme="day"] .form-control::placeholder,
 :root[data-theme="day"] textarea::placeholder {
   color: #7c98ad !important;
@@ -224,6 +240,13 @@
   color: var(--ss-text) !important;
   background: #f1f9ff !important;
   box-shadow: 0 0 0 0.25rem rgba(2, 132, 199, 0.14) !important;
+}
+
+:root[data-theme="day"] .form-select:focus {
+  background-image: var(--bs-form-select-bg-img) !important;
+  background-position: left 0.75rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px 12px !important;
 }
 
 :root[data-theme="day"] .table,
