@@ -556,20 +556,20 @@ Response item:
 }
 ```
 
-### `PATCH /api/v1/role/update/{id}`
+### `PATCH /api/v1/role/update`
 
-Status: Implemented  
-Auth: admin  
-View: `UpdateRoleView`  
+Status: Implemented with caveat
+Auth: admin
+View: `UpdateRoleView`
 Purpose: update role name and/or description.
 
-Front-end base constant: `/api/v1/role/update`, called as `/api/v1/role/update/{id}`.
+Current backend path: `PATCH /api/v1/role/update?role_id={id}`. The view checks the `role_id` query parameter but still calls `get_object()` without a URL `pk`, so it may fail until the view fetches the role by `role_id` directly or restores the path parameter.
 
 Request:
 
 ```json
 {
-  "name": "dormitory_admin",
+  "name": "dorm-admin",
   "description": "Dormitory supervisor"
 }
 ```
@@ -583,7 +583,7 @@ Response:
   "updated_fields": ["name", "description"],
   "role": {
     "id": 2,
-    "name": "dormitory_admin",
+    "name": "dorm-admin",
     "description": "Dormitory supervisor"
   }
 }
@@ -690,6 +690,25 @@ Response `201`:
 }
 ```
 
+### `GET /api/v1/userRole/detail`
+
+Status: Implemented
+Auth: admin
+View: `userRoleDetailView`
+Purpose: list user-role assignments with optional filters.
+
+Query params: `user_id`, `role_id`.
+
+Response item:
+
+```json
+{
+  "id": 1,
+  "user": 10,
+  "role": 2
+}
+```
+
 ### `POST /api/v1/rolePermission/create`
 
 Status: Implemented  
@@ -716,6 +735,25 @@ Response `201`:
     "permissionName": "View accommodation requests",
     "roleName": "student"
   }
+}
+```
+
+### `GET /api/v1/rolePermission/detail`
+
+Status: Implemented
+Auth: admin
+View: `RolePermissionDetailView`
+Purpose: list role-permission assignments with optional filters.
+
+Query params: `role_id`, `permission_id`.
+
+Response item:
+
+```json
+{
+  "id": 1,
+  "role": 2,
+  "permission": 1
 }
 ```
 
@@ -1089,12 +1127,18 @@ Query strings and hash fragments are preserved during normalization, so filtered
 | `/api/v1/users/changePassword` | `/api/v1/users/password/change` |
 | `GET /api/accounts/roles/` | `/api/v1/role/list` |
 | `POST /api/accounts/roles/` | `/api/v1/role/create` |
-| `PUT/PATCH /api/accounts/roles/{id}/` | `/api/v1/role/update/{id}` |
+| `PUT/PATCH /api/accounts/roles/{id}/` | `/api/v1/role/update?role_id={id}` |
 | `DELETE /api/accounts/roles/{id}/` | `/api/v1/role/delete/{id}` |
 | `GET /api/accounts/permissions/` | `/api/v1/permission/list` |
 | `POST /api/accounts/permissions/` | `/api/v1/permission/create` |
-| `/api/accounts/role-permissions/` | `/api/v1/rolePermission/create` |
-| `/api/accounts/user-roles/` | `/api/v1/userRole/create` |
+| `PATCH /api/accounts/permissions/{id}/` | `/api/v1/permission/update?permission_id={id}` |
+| `DELETE /api/accounts/permissions/{id}/` | `/api/v1/permission/delete/{id}` |
+| `GET /api/accounts/role-permissions/` | `/api/v1/rolePermission/detail` |
+| `POST /api/accounts/role-permissions/` | `/api/v1/rolePermission/create` |
+| `DELETE /api/accounts/role-permissions/{id}/` | `/api/v1/rolePermission/delete/{id}` |
+| `GET /api/accounts/user-roles/` | `/api/v1/userRole/detail` |
+| `POST /api/accounts/user-roles/` | `/api/v1/userRole/create` |
+| `DELETE /api/accounts/user-roles/{id}/` | `/api/v1/userRole/delete/{id}` |
 
 For `PUT/PATCH /api/accounts/users/{id}/` and `PATCH /api/accounts/users/{id}/status/`, `assets/js/api.js` injects the path `{id}` into plain JSON request bodies because the current backend expects `id` in the body for `/api/v1/users/adminUpdate` and `/api/v1/users/status/change`. FormData and string bodies are not modified.
 
@@ -1194,45 +1238,53 @@ Validation and handling notes:
 - The backend should invalidate existing refresh/access tokens for the user after a successful change, if token blacklisting/session invalidation is available.
 - Because this flow allows account takeover by username, it should be removed or replaced once email/SMS/admin verification becomes viable.
 
-### `GET /api/v1/userRole/list`
+### `GET /api/v1/userRole/detail`
 
-Status: implemented 
-Auth: admin  
+Status: implemented
+Auth: admin
 Purpose: list user-role assignments.
 
-Query params: `user`, `role`, `page`, `page_size`.
+Query params: `user_id`, `role_id`, `page`, `page_size`.
 
 ### `DELETE /api/v1/userRole/delete/{id}`
 
-Status: implemented  
-Auth: admin  
+Status: Implemented with caveat
+Auth: admin
 Purpose: remove role from user.
 
-### `GET /api/v1/rolePermission/list`
+Current backend caveat: the URL pattern is declared as `delete/<int:id>` without the leading separator used by sibling child routes, so it may resolve as `/api/v1/userRoledelete/{id}` instead of `/api/v1/userRole/delete/{id}`. Do not wire destructive front-end actions until the route is corrected.
+
+### `GET /api/v1/rolePermission/detail`
 
 Status: implemented  
 Auth: admin  
 Purpose: list role-permission assignments.
 
-Query params: `role`, `permission`, `page`, `page_size`.
+Query params: `role_id`, `permission_id`, `page`, `page_size`.
 
 ### `DELETE /api/v1/rolePermission/delete/{id}`
 
-Status: implemented
-Auth: admin  
+Status: Implemented with caveat
+Auth: admin
 Purpose: detach permission from role. The front-end checklist calls this out as missing.
 
-### `PATCH /api/v1/permission/update/{id}`
+Current backend caveat: `RolePermissionDeleteView` reads `pk` while the URL provides `id`, then fetches/deletes a `Role` instead of the selected `RolePermission`. Do not wire destructive front-end actions until the view is corrected.
+
+### `PATCH /api/v1/permission/update`
 
 Status: implemented  
 Auth: admin  
 Purpose: update permission metadata.
 
+Query params: `permission_id`.
+
 ### `DELETE /api/v1/permission/delete/{id}`
 
-Status: implemented  
-Auth: admin  
+Status: Implemented with caveat
+Auth: admin
 Purpose: delete permission.
+
+Current backend caveat: `PermissionDeleteView` fetches the permission but then references `instance.permission_id`, which does not exist on the `Permission` model. Do not wire destructive front-end actions until the response code is corrected.
 
 ## RESTful Dormitory API Aliases
 
@@ -2379,11 +2431,14 @@ The front end already checks several permission names. The API should treat thes
 | --- | --- |
 | `student` | Student/resident self-service. |
 | `resident` | Alias/extended role for housed student. |
+| `dorm-admin` | Current account-service role choice for dormitory supervisor/admin. |
 | `dormitory_admin` | Dormitory supervisor/admin. |
 | `dormitory_supervisor` | Alias accepted by front-end. |
 | `supervisor` | Alias accepted by front-end. |
+| `system-admin` | Current account-service role choice for full system administration. |
 | `system_admin` | Full system administration. |
 | `university_manager` | Manager reporting/oversight role. |
+| `support-staff` | Current account-service role choice for maintenance support. |
 | `support_staff` | Maintenance support role. |
 | `support` | Alias accepted by front-end. |
 | `admin` | Generic Django staff/admin alias. |
@@ -2395,8 +2450,8 @@ The front end already checks several permission names. The API should treat thes
 3. `BedCreateView` currently repeats `IsAuthenticated` in `permission_classes` and does not require `IsAdminUser`, so authenticated non-admin users may be able to create beds.
 4. The face-recognition AI service does not enforce JWT auth or configure CORS; browser calls need either CORS support or same-origin gateway/proxying.
 5. `AI/national_id_detector/` now exposes a prototype `/verify` Flask route on port `5001`; add CORS/same-origin gatewaying, auth/rate limiting, and account-service persistence before treating it as a production verification authority.
-6. There are no list/delete endpoints for `UserRole` and `RolePermission`.
-7. There are no update/delete endpoints for `Permission`.
+6. `PATCH /api/v1/role/update?role_id={id}` currently checks `role_id` but still calls `get_object()` without a URL `pk`, so role updates may fail until the view is corrected.
+7. `UserRole`, `RolePermission`, and `Permission` now have list/detail or update/delete routes, but destructive delete routes have the caveats documented above and should not be wired to front-end delete buttons yet.
 8. Username-only anonymous password reset is implemented at `/api/v1/users/password/reset`; older `/password/reset/username` aliases should normalize to that route.
 9. Accommodation requests, bed assignments, maintenance requests, and the announcements app now have partial backend implementations. Remaining missing or unmounted areas include payments, public stats, public announcements, reports, and the `announcements.urls` include in the account service root URL config.
 10. Dormitory/room/bed endpoints use action-style names; RESTful aliases are recommended for long-term consistency.
