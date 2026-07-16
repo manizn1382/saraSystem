@@ -582,6 +582,39 @@
   overflow-wrap: anywhere;
 }
 
+.admin-command-card,
+.admin-operation,
+.admin-dorm-card,
+.admin-access-card,
+.admin-report-card,
+.admin-detail-item {
+  border-color: var(--ss-line);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(16px);
+}
+
+.admin-command-card,
+.admin-operation,
+.admin-dorm-card,
+.admin-access-card,
+.admin-report-card {
+  border-radius: 1.35rem;
+}
+
+.admin-detail-item {
+  border-radius: 1rem;
+  padding: 0.8rem;
+}
+
+.admin-filter-strip,
+.admin-dialog-summary,
+.admin-dorm-metrics span {
+  border-color: var(--ss-line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.045);
+}
+
 .admin-empty-block {
   min-height: 176px;
   display: grid;
@@ -1075,6 +1108,19 @@
 :root[data-theme="day"] .admin-dialog .form-select,
 :root[data-theme="day"] .admin-dialog textarea {
   background: rgba(239, 248, 255, 0.78);
+}
+
+:root[data-theme="day"] .admin-command-card,
+:root[data-theme="day"] .admin-operation,
+:root[data-theme="day"] .admin-dorm-card,
+:root[data-theme="day"] .admin-access-card,
+:root[data-theme="day"] .admin-report-card,
+:root[data-theme="day"] .admin-detail-item,
+:root[data-theme="day"] .admin-filter-strip,
+:root[data-theme="day"] .admin-dialog-summary,
+:root[data-theme="day"] .admin-dorm-metrics span {
+  border-color: var(--ss-line);
+  box-shadow: 0 14px 32px rgba(8, 47, 73, 0.1);
 }
 
 :root[data-theme="day"] .admin-filter-chip {
