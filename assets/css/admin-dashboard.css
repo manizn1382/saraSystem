@@ -688,10 +688,14 @@
   font-weight: 950;
 }
 
-.admin-brand-subtitle,
-.admin-breadcrumb {
+.admin-brand-subtitle {
   color: var(--ss-muted);
   font-size: 0.78rem;
+}
+
+.admin-breadcrumb {
+  color: var(--ss-muted);
+  font-size: 0.86rem;
 }
 
 .admin-user-card {
@@ -791,10 +795,15 @@
 }
 
 .admin-topbar {
+  position: sticky;
   top: 1.25rem;
   z-index: 900;
-  border-radius: 1.35rem;
-  background: rgba(13, 39, 73, 0.86);
+  min-height: 76px;
+  border: 1px solid var(--ss-line);
+  border-radius: 1.6rem;
+  background: rgba(7, 29, 55, 0.8);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(18px);
 }
 
 .admin-topbar h2 {
@@ -858,15 +867,16 @@
 .admin-profile-dropdown {
   position: absolute;
   z-index: 60;
-  top: calc(100% + 0.7rem);
+  top: calc(100% + 0.8rem);
   left: 0;
-  width: 250px;
-  padding: 1rem;
+  width: min(300px, calc(100vw - 2rem));
+  padding: 0.8rem;
   border: 1px solid var(--ss-line);
-  border-radius: 0.9rem;
+  border-radius: 1.25rem;
   color: var(--ss-text);
-  background: var(--ss-panel-solid);
+  background: rgba(7, 29, 55, 0.96);
   box-shadow: var(--ss-shadow);
+  backdrop-filter: blur(20px);
 }
 
 .admin-hero {
@@ -1123,18 +1133,21 @@
 
 @media (max-width: 991.98px) {
   .admin-shell.ss-dashboard-layout {
-    display: block;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     padding: 0.85rem;
   }
 
   .admin-sidebar {
     position: fixed;
     z-index: 1050;
-    inset: 0 0 0 auto;
-    width: min(310px, calc(100vw - 3.5rem));
-    height: 100vh;
-    transform: translateX(110%);
-    transition: transform 0.22s ease;
+    top: 0.85rem;
+    bottom: 0.85rem;
+    right: 0.85rem;
+    width: min(320px, calc(100vw - 1.7rem));
+    height: auto;
+    transform: translateX(calc(100% + 1.5rem));
+    transition: transform 0.24s ease;
   }
 
   .admin-sidebar.open {
@@ -1148,7 +1161,8 @@
     display: block;
     visibility: hidden;
     opacity: 0;
-    background: rgba(2, 10, 23, 0.62);
+    background: rgba(0, 0, 0, 0.48);
+    backdrop-filter: blur(3px);
     transition: opacity 0.22s ease, visibility 0.22s ease;
   }
 
@@ -1158,9 +1172,7 @@
   }
 
   .admin-topbar {
-    position: sticky;
     top: 0.85rem;
-    z-index: 900;
   }
 
   .admin-section .ss-table-card-mobile tr {
@@ -1219,6 +1231,10 @@
 }
 
 @media (max-width: 575.98px) {
+  .admin-topbar {
+    border-radius: 1.25rem;
+  }
+
   .admin-hero {
     border-radius: 1rem;
   }
