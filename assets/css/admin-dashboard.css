@@ -424,11 +424,27 @@
   background: rgba(255, 255, 255, 0.025);
 }
 
+.admin-report-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.admin-report-state {
+  color: var(--ss-muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.admin-report-value,
 .admin-report-card strong {
   color: var(--ss-primary-2);
   font-size: 1.65rem;
+  line-height: 1.25;
 }
 
+.admin-report-title,
 .admin-report-card h4 {
   margin: 0;
   font-size: 1rem;
@@ -437,6 +453,11 @@
 
 .admin-report-card.api-dependent {
   border-style: dashed;
+  background: rgba(148, 163, 184, 0.04);
+}
+
+.admin-report-card.api-dependent .admin-report-value {
+  color: var(--ss-muted);
 }
 
 #reports > .admin-operation-grid {
@@ -539,6 +560,8 @@
 
 .admin-detail-item dd {
   margin: 0;
+  color: var(--ss-text);
+  font-weight: 850;
   overflow-wrap: anywhere;
 }
 
@@ -954,6 +977,8 @@
 :root[data-theme="day"] .admin-dorm-card,
 :root[data-theme="day"] .admin-dorm-metrics span,
 :root[data-theme="day"] .admin-capacity-meter,
+:root[data-theme="day"] .admin-report-card,
+:root[data-theme="day"] .admin-detail-item,
 :root[data-theme="day"] .admin-section .form-control,
 :root[data-theme="day"] .admin-section .form-select,
 :root[data-theme="day"] .admin-dialog .form-control,

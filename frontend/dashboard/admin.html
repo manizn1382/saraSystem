@@ -421,9 +421,12 @@
           <div class="admin-report-grid mt-4">
             <template x-for="report in computedReports()" :key="report.title">
               <article class="admin-report-card" :class="{ 'api-dependent': report.type === 'api' }">
-                <span class="ss-badge-soft" x-text="report.type === 'api' ? 'API' : 'محاسبه'"></span>
-                <strong x-text="report.value"></strong>
-                <h4 x-text="report.title"></h4>
+                <div class="admin-report-head">
+                  <span class="ss-badge-soft" x-text="report.type === 'api' ? 'API' : 'محاسبه'"></span>
+                  <span class="admin-report-state" x-text="report.type === 'api' ? 'وابسته به سرویس' : 'آماده'"></span>
+                </div>
+                <strong class="admin-report-value" x-text="report.value"></strong>
+                <h4 class="admin-report-title" x-text="report.title"></h4>
                 <p class="ss-muted small mb-0" x-text="report.note"></p>
               </article>
             </template>
@@ -512,6 +515,17 @@
           <button class="admin-action-button" type="button" @click="closeDialog()">بستن</button>
         </header>
         <div class="p-3">
+          <div class="admin-dialog-summary mb-3">
+            <div class="admin-dialog-summary-main">
+              <span class="admin-dialog-avatar">پرد</span>
+              <div class="min-w-0">
+                <strong class="admin-dialog-summary-title" x-text="dialog.subject?.student_name || 'پرداخت دانشجویی'"></strong>
+                <span class="admin-dialog-summary-meta" x-text="dialog.subject?.payment_type || '—'"></span>
+                <span class="admin-dialog-summary-meta" dir="ltr" x-text="dialog.subject?.id || '—'"></span>
+              </div>
+            </div>
+            <span :class="statusBadgeClass('payment', dialog.subject?.status)" x-text="statusBadgeLabel('payment', dialog.subject?.status)"></span>
+          </div>
           <dl class="admin-detail-list mb-3">
             <template x-for="field in [{label:'دانشجو',value:dialog.subject?.student_name},{label:'شماره دانشجویی',value:dialog.subject?.student_id},{label:'نوع پرداخت',value:dialog.subject?.payment_type},{label:'مبلغ',value:dialog.subject?.amount},{label:'سررسید',value:dialog.subject?.due_date},{label:'پرداخت در',value:dialog.subject?.paid_at},{label:'مرجع تراکنش',value:dialog.subject?.transaction_ref},{label:'وضعیت',value:statusBadgeLabel('payment', dialog.subject?.status)}]" :key="field.label">
               <div class="admin-detail-item"><dt x-text="field.label"></dt><dd x-text="field.value || '—'"></dd></div>
@@ -533,6 +547,17 @@
           <button class="admin-action-button" type="button" @click="closeDialog()">بستن</button>
         </header>
         <div class="p-3">
+          <div class="admin-dialog-summary mb-3">
+            <div class="admin-dialog-summary-main">
+              <span class="admin-dialog-avatar" x-text="dialogSummaryInitials()"></span>
+              <div class="min-w-0">
+                <strong class="admin-dialog-summary-title" x-text="dialog.summary?.title || dialog.title || 'جزئیات'"></strong>
+                <span class="admin-dialog-summary-meta" x-text="dialog.summary?.meta || 'نمای جزئیات مدیریتی'"></span>
+                <span class="admin-dialog-summary-meta" dir="ltr" x-text="dialog.summary?.code || '—'"></span>
+              </div>
+            </div>
+            <span :class="dialogSummaryStatusClass()" x-text="dialogSummaryStatusLabel()"></span>
+          </div>
           <dl class="admin-detail-list">
             <template x-for="field in dialog.fields || []" :key="field.label">
               <div class="admin-detail-item">

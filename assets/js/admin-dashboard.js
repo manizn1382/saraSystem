@@ -765,6 +765,20 @@
         return badge?.label || status || 'نامشخص';
       },
 
+      dialogSummaryInitials() {
+        return String(this.dialog.summary?.title || this.dialog.title || 'جزئیات').trim().slice(0, 2) || 'جز';
+      },
+
+      dialogSummaryStatusClass() {
+        if (!this.dialog.summary?.statusType) return 'ss-status-badge ss-status-muted';
+        return this.statusBadgeClass(this.dialog.summary.statusType, this.dialog.summary.status);
+      },
+
+      dialogSummaryStatusLabel() {
+        if (!this.dialog.summary?.statusType) return 'اطلاعات';
+        return this.statusBadgeLabel(this.dialog.summary.statusType, this.dialog.summary.status);
+      },
+
       computedReports() {
         const occupiedBeds = this.beds.filter((bed) => bed.status === 'occupied').length || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.occupied_beds || 0), 0);
         const availableBeds = this.beds.filter((bed) => bed.status === 'available').length || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.available_beds || 0), 0);
@@ -846,6 +860,13 @@
           open: true,
           type: 'generic-details',
           title: 'جزئیات درخواست اسکان',
+          summary: {
+            title: request.student_name || request.code || 'درخواست اسکان',
+            meta: [request.dormitory, request.semester].filter(Boolean).join(' · ') || 'درخواست اسکان',
+            code: request.code || request.id || '',
+            statusType: 'accommodation',
+            status: request.status
+          },
           fields: [
             { label: 'کد درخواست', value: request.code || request.id },
             { label: 'دانشجو', value: request.student_name },
@@ -865,6 +886,13 @@
           open: true,
           type: 'generic-details',
           title: 'جزئیات تخصیص تخت',
+          summary: {
+            title: assignment.student_name || 'تخصیص تخت',
+            meta: [assignment.dormitory, assignment.room ? `اتاق ${assignment.room}` : '', assignment.bed ? `تخت ${assignment.bed}` : ''].filter(Boolean).join(' · ') || 'تخصیص تخت',
+            code: assignment.request_id || assignment.id || '',
+            statusType: 'assignment',
+            status: assignment.status
+          },
           fields: [
             { label: 'دانشجو', value: assignment.student_name },
             { label: 'درخواست', value: assignment.request_id },
