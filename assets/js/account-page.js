@@ -8,6 +8,9 @@ function accountPage() {
         identityLoading: false,
         identityAction: '',
         identityStatus: { type: 'info', message: '' },
+        nationalIdImage: null,
+        nationalIdLoading: false,
+        nationalIdStatus: { type: 'info', message: '' },
         isDemo: false,
         accountStatus: { label: 'نامشخص', className: 'badge-neutral', message: '' },
         alert: { type: 'info', message: '' },
@@ -171,6 +174,72 @@ function accountPage() {
 
         showIdentityStatus(type, message) {
           this.identityStatus = { type, message };
+        },
+
+        handleNationalIdCardImage(event) {
+          this.nationalIdImage = event?.target?.files?.[0] || null;
+          this.nationalIdStatus.message = '';
+        },
+
+        async verifyNationalIdCard() {
+          const nationalId = this.profileNationalId();
+
+          if (this.isDemo) {
+            this.showNationalIdStatus('warning', 'در حالت نمایشی درخواست به سرویس تأیید کارت ملی ارسال نمی‌شود.');
+            return;
+          }
+
+          if (!nationalId) {
+            this.showNationalIdStatus('warning', 'کد ملی حساب برای بررسی کارت ملی در دسترس نیست.');
+            return;
+          }
+
+          if (!this.nationalIdImage) {
+            this.showNationalIdStatus('warning', 'ابتدا تصویر کارت ملی را انتخاب کنید.');
+            return;
+          }
+
+          const formData = new FormData();
+          formData.append('id', nationalId);
+          formData.append('image', this.nationalIdImage);
+
+          this.nationalIdLoading = true;
+          this.showNationalIdStatus('info', 'در حال بررسی کارت ملی...');
+
+          try {
+            const response = await window.SaraAPI.post('/api/national-id/verify/', formData, {
+              auth: false,
+              retryOnUnauthorized: false,
+              redirectOnExpired: false
+            });
+            const succeeded = response?.success !== false;
+            this.showNationalIdStatus(
+              succeeded ? 'success' : 'warning',
+              response?.log || response?.message || (succeeded ? 'کارت ملی تأیید شد.' : 'کد ملی با تصویر کارت تطبیق ندارد.')
+            );
+          } catch (error) {
+            this.showNationalIdStatus('danger', error.message || 'ارتباط با سرویس تأیید کارت ملی برقرار نشد.');
+          } finally {
+            this.nationalIdLoading = false;
+          }
+        },
+
+        profileNationalId() {
+          const nationalId = this.profile.national_id || this.profile.nationalId || this.profile.profile?.nationalId || '';
+          return window.SaraUI?.toEnglishDigits?.(nationalId) || String(nationalId);
+        },
+
+        nationalIdAlertClass() {
+          return {
+            success: 'alert-success',
+            warning: 'alert-warning',
+            danger: 'alert-danger',
+            info: 'alert-info'
+          }[this.nationalIdStatus.type] || 'alert-info';
+        },
+
+        showNationalIdStatus(type, message) {
+          this.nationalIdStatus = { type, message };
         },
 
         profilePayload() {
