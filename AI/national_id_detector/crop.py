@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import os
 
 def order_points(pts):
     """Order points as: top-left, top-right, bottom-right, bottom-left"""
@@ -42,60 +42,87 @@ def four_point_transform(image, pts):
     return warped
 
 
-# -----------------------------
-# Read image
-# -----------------------------
-image = cv2.imread("2.jpg")
-orig = image.copy()
+def crop_id_card(img_path):
 
-# Resize for faster processing
-ratio = image.shape[0] / 800.0
-image = cv2.resize(image, (int(image.shape[1] / ratio), 800))
+    # -----------------------------
+    # Read image
+    # -----------------------------
+    image = cv2.imread(img_path)
+    orig = image.copy()
 
-# Convert to grayscale
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Resize for faster processing
+    ratio = image.shape[0] / 800.0
+    image = cv2.resize(image, (int(image.shape[1] / ratio), 800))
 
-# Blur
-gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    # Convert to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-# Edge detection
-edges = cv2.Canny(gray, 50, 150)
+    # Blur
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
 
-# Morphological closing
-kernel = np.ones((5, 5), np.uint8)
-edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+    # Edge detection
+    edges = cv2.Canny(gray, 50, 150)
 
-# Find contours
-contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    # Morphological closing
+    kernel = np.ones((5, 5), np.uint8)
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
-contours = sorted(contours, key=cv2.contourArea, reverse=True)
+    # Find contours
+    contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-card = None
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
-for cnt in contours:
-    peri = cv2.arcLength(cnt, True)
-    approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
+    card = None
 
-    if len(approx) == 4:
-        card = approx
-        break
+    for cnt in contours:
+        peri = cv2.arcLength(cnt, True)
+        approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
 
-if card is None:
-    raise Exception("No ID card detected.")
+        if len(approx) == 4:
+            card = approx
+            break
 
-# Scale contour back to original size
-card = card.reshape(4, 2) * ratio
+    if card is None:
+        raise Exception("No ID card detected.")
 
-# Perspective transform
-warped = four_point_transform(orig, card)
+    # Scale contour back to original size
+    card = card.reshape(4, 2) * ratio
 
-# Save result
-cv2.imwrite("cropped_id_card.jpg", warped)
+    # Perspective transform
+    warped = four_point_transform(orig, card)
 
-print("Saved: cropped_id_card.jpg")
+    # Save result
+    cv2.imwrite("cropped_id_card.jpg", warped)
 
-# # Show
-# cv2.imshow("Detected Card", warped)
-# cv2.waitKey(0)
-# cv2.destroyAllWindows()
+    print("Saved: cropped_id_card.jpg")
+
+
+def crop_id_part(
+    image_path,
+    output_path = "cropped_id_part.jpg",
+    x = 1000,   # left
+    y = 250,    # top
+    w = 600,    # width
+    h = 90,     # height
+    pad_x=25,
+    pad_y=30,):
+
+    img = cv2.imread(image_path)
+    if img is None:
+        raise ValueError("Could not read image.")
+
+    H, W = img.shape[:2]
+
+    # Expand crop
+    x1 = max(0, x - pad_x)
+    y1 = max(0, y - pad_y)
+    x2 = min(W, x + w + pad_x)
+    y2 = min(H, y + h + pad_y)
+
+    cropped = img[y1:y2, x1:x2]
+
+    cv2.imwrite(output_path, cropped)
+    return cropped
+
+crop_id_part("cropped_id_card.jpg")
 
