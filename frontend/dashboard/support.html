@@ -171,6 +171,15 @@
               </select>
             </div>
           </div>
+          <div class="support-filter-strip mb-3">
+            <span class="support-result-count" x-text="`${toPersianNumber(filteredTicketItems().length)} نتیجه از ${toPersianNumber(tickets.length)} درخواست`"></span>
+            <div class="support-filter-chips" x-show="supportFilterChips().length">
+              <template x-for="chip in supportFilterChips()" :key="chip">
+                <span class="support-filter-chip" x-text="chip"></span>
+              </template>
+              <button class="support-filter-reset" type="button" @click="clearSupportFilters()">پاک‌سازی فیلترها</button>
+            </div>
+          </div>
           <div class="table-responsive">
             <table class="table ss-table align-middle ss-table-card-mobile support-ticket-table">
               <caption class="visually-hidden">صف درخواست‌های تعمیرات واحد پشتیبانی</caption>

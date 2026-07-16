@@ -265,6 +265,25 @@
             || (this.filters.assigned === 'unassigned' && !this.assigneeText(ticket)))
         );
       },
+      supportFilterChips() {
+        const chips = [];
+        const query = this.tableState.maintenance?.query?.trim();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.filters.priority !== 'all') chips.push(`اولویت: ${this.priorityText(this.filters.priority)}`);
+        if (this.filters.status !== 'all') chips.push(`وضعیت: ${this.statusText(this.filters.status)}`);
+        if (this.filters.assigned !== 'all') {
+          chips.push({
+            me: 'ارجاع: به من',
+            unassigned: 'ارجاع: بدون مسئول'
+          }[this.filters.assigned] || this.filters.assigned);
+        }
+        return chips;
+      },
+      clearSupportFilters() {
+        this.tableState.maintenance.query = '';
+        this.filters = { priority: 'all', status: 'all', assigned: 'all' };
+        this.resetPage('maintenance');
+      },
       updateStats() {
         const open = this.tickets.filter((ticket) => !['resolved', 'closed'].includes(ticket.status)).length;
         this.stats[0].value = this.toPersianNumber(open);

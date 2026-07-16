@@ -194,6 +194,61 @@
   width: min(100%, 52rem);
 }
 
+.support-filter-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.support-result-count {
+  color: var(--ss-soft);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.support-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.support-filter-chip,
+.support-filter-reset {
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.support-filter-chip {
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  color: #dff7ff;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.support-filter-reset {
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.support-filter-reset:hover,
+.support-filter-reset:focus {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.16);
+}
+
 .support-ticket-table th {
   color: var(--ss-muted);
   font-size: 0.78rem;
@@ -270,9 +325,20 @@
 :root[data-theme="day"] .support-user-card,
 :root[data-theme="day"] .support-stat-grid .ss-stat,
 :root[data-theme="day"] .support-history-card,
+:root[data-theme="day"] .support-filter-strip,
 :root[data-theme="day"] .support-dialog .ss-action-panel,
 :root[data-theme="day"] .support-dialog .ss-detail-grid > div {
   background: rgba(239, 248, 255, 0.78);
+}
+
+:root[data-theme="day"] .support-filter-chip {
+  color: #075985;
+  background: rgba(186, 230, 253, 0.6);
+}
+
+:root[data-theme="day"] .support-filter-reset {
+  color: #991b1b;
+  background: rgba(254, 226, 226, 0.72);
 }
 
 :root[data-theme="day"] .support-nav .ss-nav-link:hover,
