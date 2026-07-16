@@ -4,6 +4,7 @@
   const DEFAULT_ACCOUNTS_BASE_URL = 'http://127.0.0.1:8001';
   const DEFAULT_DORMITORY_BASE_URL = 'http://127.0.0.1:8000';
   const DEFAULT_AI_BASE_URL = 'http://127.0.0.1:5000';
+  const DEFAULT_NATIONAL_ID_BASE_URL = 'http://127.0.0.1:5001';
   const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504]);
   const ACCOUNT_V1_PATHS = [
     /^\/api\/v1\/users\/(?:create|login|logout|token\/refresh|password\/change|password\/reset|password\/reset\/username|changePassword|editProfile|adminUpdate|list|current|status\/change)\/?$/i,
@@ -20,6 +21,7 @@
     if (options.accountsBaseUrl) window.SARA_ACCOUNTS_API_BASE_URL = options.accountsBaseUrl;
     if (options.dormitoryBaseUrl) window.SARA_DORMITORY_API_BASE_URL = options.dormitoryBaseUrl;
     if (options.aiBaseUrl) window.SARA_AI_API_BASE_URL = options.aiBaseUrl;
+    if (options.nationalIdBaseUrl) window.SARA_NATIONAL_ID_API_BASE_URL = options.nationalIdBaseUrl;
   }
 
   function splitUrlPath(value = '') {
@@ -285,6 +287,7 @@
     if (/^\/api\/face\/register\/?$/i.test(value)) return '/register';
     if (/^\/api\/face\/verify\/?$/i.test(value)) return '/verify';
     if (/^\/api\/face\/delete\/?$/i.test(value)) return '/delete';
+    if (/^\/api\/national-id\/verify\/?$/i.test(value)) return '/verify';
 
     return value;
   }
@@ -307,6 +310,11 @@
   function isAiPath(path = '') {
     const { path: value } = splitUrlPath(path);
     return /^\/api\/face\/(?:register|verify|delete)\/?$/i.test(value);
+  }
+
+  function isNationalIdPath(path = '') {
+    const { path: value } = splitUrlPath(path);
+    return /^\/api\/national-id\/verify\/?$/i.test(value);
   }
 
   function isAnnouncementPath(path = '') {
@@ -349,12 +357,26 @@
       && /^\/(?:register|verify|delete)\/?$/i.test(requestPathname(path));
   }
 
+  function isResolvedNationalIdServicePath(path = '') {
+    const origin = requestOrigin(path);
+    if (!origin) return false;
+    const nationalIdBase = window.SARA_NATIONAL_ID_API_BASE_URL
+      || localStorage.getItem('sarasystem.nationalIdApiBaseUrl')
+      || DEFAULT_NATIONAL_ID_BASE_URL;
+    return origin === requestOrigin(nationalIdBase)
+      && /^\/verify\/?$/i.test(requestPathname(path));
+  }
+
   function isAiRequestPath(path = '', normalizedPath = '') {
     return isAiPath(path)
       || isAiPath(normalizedPath)
+      || isNationalIdPath(path)
+      || isNationalIdPath(normalizedPath)
       || /^\/(?:register|verify|delete)\/?$/i.test(requestPathname(normalizedPath))
       || isResolvedAiServicePath(path)
-      || isResolvedAiServicePath(normalizedPath);
+      || isResolvedAiServicePath(normalizedPath)
+      || isResolvedNationalIdServicePath(path)
+      || isResolvedNationalIdServicePath(normalizedPath);
   }
 
   function isPublicRequestPath(path = '', normalizedPath = '') {
@@ -386,6 +408,12 @@
   function apiBaseUrl(path = '', method = 'GET') {
     const originalValue = String(path || '');
     const value = normalizeApiPath(path, method);
+    if (isNationalIdPath(originalValue)) {
+      return window.SARA_NATIONAL_ID_API_BASE_URL
+        || localStorage.getItem('sarasystem.nationalIdApiBaseUrl')
+        || DEFAULT_NATIONAL_ID_BASE_URL;
+    }
+
     if (isAiPath(originalValue)) {
       return window.SARA_AI_API_BASE_URL
         || localStorage.getItem('sarasystem.aiApiBaseUrl')
@@ -755,6 +783,7 @@
     normalizeHtmxParameters,
     isAccountPath,
     isAiPath,
+    isNationalIdPath,
     isAnnouncementPath,
     isPublicApiPath,
     shouldAttachAuthHeader,
