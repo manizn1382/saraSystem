@@ -128,6 +128,15 @@
             </div>
             <button class="btn ss-btn ss-btn-outline" type="button" @click="loadUsers()" :disabled="loading.users">بارگذاری مجدد</button>
           </div>
+          <div class="admin-filter-strip mb-3">
+            <span class="admin-result-count" x-text="`${toPersianNumber(filteredUsers().length)} نتیجه از ${toPersianNumber(users.length)} کاربر`"></span>
+            <div class="admin-filter-chips" x-show="userFilterChips().length">
+              <template x-for="chip in userFilterChips()" :key="chip">
+                <span class="admin-filter-chip" x-text="chip"></span>
+              </template>
+              <button class="admin-filter-reset" type="button" @click="clearUserFilters()">پاک‌سازی فیلترها</button>
+            </div>
+          </div>
 
           <div x-cloak x-show="errors.users" class="alert alert-danger d-flex justify-content-between align-items-center gap-2" role="alert">
             <span x-text="errors.users"></span><button type="button" class="btn btn-sm btn-outline-danger" @click="loadUsers()">تلاش مجدد</button>

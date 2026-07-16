@@ -92,6 +92,61 @@
   align-items: end;
 }
 
+.admin-filter-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--ss-line-soft);
+  border-radius: 1rem;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.admin-result-count {
+  color: var(--ss-soft);
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.admin-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.admin-filter-chip,
+.admin-filter-reset {
+  min-height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.admin-filter-chip {
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  color: #dff7ff;
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.admin-filter-reset {
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.admin-filter-reset:hover,
+.admin-filter-reset:focus {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.16);
+}
+
 .admin-table-actions {
   display: flex;
   flex-wrap: wrap;
@@ -794,6 +849,7 @@
 :root[data-theme="day"] .admin-stat-grid .ss-stat,
 :root[data-theme="day"] .admin-command-card,
 :root[data-theme="day"] .admin-dialog-summary,
+:root[data-theme="day"] .admin-filter-strip,
 :root[data-theme="day"] .admin-operation,
 :root[data-theme="day"] .admin-section .form-control,
 :root[data-theme="day"] .admin-section .form-select,
@@ -801,6 +857,16 @@
 :root[data-theme="day"] .admin-dialog .form-select,
 :root[data-theme="day"] .admin-dialog textarea {
   background: rgba(239, 248, 255, 0.78);
+}
+
+:root[data-theme="day"] .admin-filter-chip {
+  color: #075985;
+  background: rgba(186, 230, 253, 0.6);
+}
+
+:root[data-theme="day"] .admin-filter-reset {
+  color: #991b1b;
+  background: rgba(254, 226, 226, 0.72);
 }
 
 :root[data-theme="day"] .admin-profile-button {

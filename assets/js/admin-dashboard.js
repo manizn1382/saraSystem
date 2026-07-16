@@ -783,6 +783,28 @@
         });
       },
 
+      userFilterChips() {
+        const chips = [];
+        const query = this.filters.query.trim();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.filters.role !== 'all') chips.push(`نقش: ${this.filters.role}`);
+        if (this.filters.status !== 'all') {
+          chips.push({
+            active: 'وضعیت: فعال',
+            inactive: 'وضعیت: غیرفعال',
+            unverified: 'وضعیت: تاییدنشده'
+          }[this.filters.status] || this.filters.status);
+        }
+        return chips;
+      },
+
+      clearUserFilters() {
+        this.filters.query = '';
+        this.filters.role = 'all';
+        this.filters.status = 'all';
+        this.resetPage();
+      },
+
       pagedUsers() {
         const items = this.filteredUsers();
         const totalPages = this.totalPages();
