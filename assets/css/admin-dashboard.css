@@ -127,6 +127,10 @@
   padding: 0.25rem 0.7rem;
   font-size: 0.75rem;
   font-weight: 900;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
 }
 
 .admin-filter-chip {
@@ -161,6 +165,8 @@
   color: var(--ss-soft);
   background: transparent;
   font-weight: 800;
+  line-height: 1.4;
+  text-align: center;
 }
 
 .admin-action-button:hover {
@@ -298,6 +304,7 @@
 }
 
 .admin-access-card {
+  min-width: 0;
   border: 1px solid var(--ss-line-soft);
   border-radius: 0.9rem;
   padding: 1rem;
@@ -533,6 +540,8 @@
 .admin-dialog-summary-title {
   color: var(--ss-text);
   font-weight: 950;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .admin-dialog-summary-meta {
@@ -562,6 +571,7 @@
   margin: 0;
   color: var(--ss-text);
   font-weight: 850;
+  line-height: 1.7;
   overflow-wrap: anywhere;
 }
 
@@ -1008,6 +1018,14 @@
   background: rgba(186, 230, 253, 0.72);
 }
 
+:root[data-theme="day"] .admin-dorm-card:hover,
+:root[data-theme="day"] .admin-dorm-card.active,
+:root[data-theme="day"] .admin-mini-row.active,
+:root[data-theme="day"] .admin-mini-row:hover {
+  border-color: rgba(3, 105, 161, 0.28);
+  background: rgba(186, 230, 253, 0.56);
+}
+
 @media (max-width: 991.98px) {
   .admin-shell.ss-dashboard-layout {
     display: block;
@@ -1051,6 +1069,10 @@
 
   .admin-section .ss-table-card-mobile tr {
     background: rgba(255, 255, 255, 0.035);
+  }
+
+  :root[data-theme="day"] .admin-section .ss-table-card-mobile tr {
+    background: rgba(239, 248, 255, 0.78);
   }
 
   .admin-section .ss-table-card-mobile td[data-label] {
@@ -1120,6 +1142,18 @@
   .admin-topbar .admin-outline-button::before {
     content: "↻";
     font-size: 1rem;
+  }
+
+  .admin-filter-chips {
+    justify-content: flex-start;
+  }
+
+  .admin-dialog-summary {
+    align-items: stretch;
+  }
+
+  .admin-dialog-summary > .ss-status-badge {
+    align-self: flex-start;
   }
 
   .admin-dorm-actions {

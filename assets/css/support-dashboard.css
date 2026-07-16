@@ -8,6 +8,7 @@
   gap: 1.25rem;
   margin-inline: auto;
   padding: 1.25rem;
+  overflow-x: hidden;
 }
 
 .support-sidebar {
@@ -38,6 +39,7 @@
   display: grid;
   place-items: center;
   flex: 0 0 auto;
+  background: transparent;
 }
 
 .support-brand-logo img {
@@ -229,6 +231,10 @@
   padding: 0.25rem 0.7rem;
   font-size: 0.75rem;
   font-weight: 900;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-align: center;
+  white-space: normal;
 }
 
 .support-filter-chip {
@@ -393,6 +399,7 @@
 .support-dialog-summary-title {
   color: var(--ss-text);
   font-weight: 950;
+  line-height: 1.6;
   overflow-wrap: anywhere;
 }
 
@@ -409,6 +416,10 @@
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.45rem;
+}
+
+.support-dialog-summary-badges .ss-status-badge {
+  max-width: 100%;
 }
 
 .support-dialog header {
@@ -506,6 +517,14 @@
   background: rgba(186, 230, 253, 0.72);
 }
 
+:root[data-theme="day"] .support-brand-logo {
+  background: transparent !important;
+}
+
+:root[data-theme="day"] .support-brand-logo img {
+  filter: drop-shadow(0 10px 24px rgba(3, 105, 161, 0.16)) !important;
+}
+
 @media (max-width: 1199.98px) {
   .support-toolbar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -586,6 +605,10 @@
   }
 
   .support-dialog-summary-badges {
+    justify-content: flex-start;
+  }
+
+  .support-filter-chips {
     justify-content: flex-start;
   }
 
