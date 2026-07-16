@@ -204,6 +204,18 @@
   padding-block: 0.95rem;
 }
 
+.support-ticket-title {
+  display: block;
+  color: var(--ss-text);
+  line-height: 1.6;
+}
+
+.support-ticket-desc {
+  max-width: 34rem;
+  overflow-wrap: anywhere;
+  line-height: 1.8;
+}
+
 .support-ticket-table tbody tr {
   transition: background-color 0.16s ease;
 }
@@ -283,6 +295,37 @@
   .support-hero-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     min-width: 0;
+  }
+
+  .support-ticket-table tr {
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .support-ticket-table td[data-label] {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: start;
+    padding-block: 0.7rem;
+  }
+
+  .support-ticket-table td[data-label]::before {
+    content: attr(data-label);
+    color: var(--ss-muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .support-ticket-table td[data-label="عنوان"] {
+    grid-template-columns: 1fr;
+  }
+
+  .support-ticket-table td[data-label="عنوان"]::before {
+    margin-bottom: -0.2rem;
+  }
+
+  .support-ticket-table td[data-label="عملیات"] .btn {
+    width: 100%;
   }
 }
 

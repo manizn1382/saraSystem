@@ -427,10 +427,13 @@
         return window.SaraStatus?.get?.('priority', priority).label || priority || '—';
       },
       priorityClass(priority) {
-        return window.SaraStatus?.get?.('priority', priority).className?.replace('ss-status-badge ', '') || '';
+        return window.SaraStatus?.get?.('priority', priority).className || 'ss-status-badge ss-status-muted';
       },
       statusText(status) {
         return window.SaraStatus?.get?.('maintenance', status).label || status || '—';
+      },
+      statusClass(status) {
+        return window.SaraStatus?.get?.('maintenance', status).className || 'ss-status-badge ss-status-muted';
       }
     };
   }

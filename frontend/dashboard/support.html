@@ -188,32 +188,32 @@
               <tbody>
                 <template x-for="ticket in filteredTickets()" :key="ticket.id"
                   ><tr>
-                    <td>
-                      <strong x-text="ticket.title"></strong>
+                    <td data-label="عنوان">
+                      <strong class="support-ticket-title" x-text="ticket.title"></strong>
                       <div
-                        class="ss-muted small"
+                        class="ss-muted small support-ticket-desc"
                         x-text="ticket.description || '—'"
                       ></div>
                     </td>
-                    <td x-text="locationText(ticket)"></td>
-                    <td>
+                    <td data-label="مکان" x-text="locationText(ticket)"></td>
+                    <td data-label="اولویت">
                       <span
-                        class="ss-badge-soft"
                         :class="priorityClass(ticket.priority)"
                         x-text="priorityText(ticket.priority)"
                       ></span>
                     </td>
-                    <td>
+                    <td data-label="وضعیت">
                       <span
-                        class="ss-badge-soft"
+                        :class="statusClass(ticket.status)"
                         x-text="statusText(ticket.status)"
                       ></span>
                     </td>
                     <td
+                      data-label="مسئول"
                       x-text="assigneeText(ticket) || '—'"
                     ></td>
-                    <td x-text="ticket.created_at || '—'"></td>
-                    <td><button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="openTicket(ticket)">جزئیات</button></td></tr
+                    <td data-label="تاریخ" x-text="ticket.created_at || '—'"></td>
+                    <td data-label="عملیات"><button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="openTicket(ticket)">جزئیات</button></td></tr
                 ></template>
                 <tr x-show="resourceError('maintenance') && !isResourceLoading('maintenance')">
                   <td colspan="7">
