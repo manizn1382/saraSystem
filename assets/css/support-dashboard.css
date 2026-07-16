@@ -243,6 +243,23 @@
   background: rgba(255, 255, 255, 0.035);
 }
 
+.support-dialog .ss-detail-grid > div {
+  min-height: 5rem;
+}
+
+.support-dialog .ss-detail-grid .ss-status-badge,
+.support-detail-value {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.45rem;
+}
+
+.support-detail-value {
+  color: var(--ss-text);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
 :root[data-theme="day"] .support-topbar,
 :root[data-theme="day"] .support-hero,
 :root[data-theme="day"] .support-panel,

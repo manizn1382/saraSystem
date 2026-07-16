@@ -291,10 +291,10 @@
         </header>
         <div class="p-3 p-md-4">
           <div class="ss-detail-grid mb-3">
-            <div><span>اولویت</span><strong x-text="priorityText(selectedTicket?.priority)"></strong></div>
-            <div><span>وضعیت</span><strong x-text="statusText(selectedTicket?.status)"></strong></div>
-            <div><span>مسئول</span><strong x-text="assigneeText(selectedTicket || {}) || '—'"></strong></div>
-            <div><span>تاریخ ثبت</span><strong x-text="selectedTicket?.created_at || '—'"></strong></div>
+            <div><span>اولویت</span><strong :class="priorityClass(selectedTicket?.priority)" x-text="priorityText(selectedTicket?.priority)"></strong></div>
+            <div><span>وضعیت</span><strong :class="statusClass(selectedTicket?.status)" x-text="statusText(selectedTicket?.status)"></strong></div>
+            <div><span>مسئول</span><strong class="support-detail-value" x-text="assigneeText(selectedTicket || {}) || '—'"></strong></div>
+            <div><span>تاریخ ثبت</span><strong class="support-detail-value" x-text="selectedTicket?.created_at || '—'"></strong></div>
           </div>
 
           <div class="row g-3">
