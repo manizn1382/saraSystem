@@ -128,26 +128,6 @@
   line-height: 1;
 }
 
-.admin-command-card.tone-success {
-  --admin-command-accent: #67e8f9;
-  --admin-command-accent-soft: rgba(56, 189, 248, 0.13);
-}
-
-.admin-command-card.tone-warning {
-  --admin-command-accent: #facc15;
-  --admin-command-accent-soft: rgba(250, 204, 21, 0.12);
-}
-
-.admin-command-card.tone-danger {
-  --admin-command-accent: #fb7185;
-  --admin-command-accent-soft: rgba(248, 113, 113, 0.12);
-}
-
-.admin-command-card.tone-neutral {
-  --admin-command-accent: #cbd5e1;
-  --admin-command-accent-soft: rgba(148, 163, 184, 0.12);
-}
-
 .admin-toolbar {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(130px, max-content));
@@ -1144,26 +1124,6 @@
 :root[data-theme="day"] .admin-command-card.tone-danger,
 :root[data-theme="day"] .admin-command-card.tone-neutral {
   background: rgba(239, 248, 255, 0.78);
-}
-
-:root[data-theme="day"] .admin-command-card.tone-success {
-  --admin-command-accent: #0369a1;
-  --admin-command-accent-soft: rgba(186, 230, 253, 0.46);
-}
-
-:root[data-theme="day"] .admin-command-card.tone-warning {
-  --admin-command-accent: #a16207;
-  --admin-command-accent-soft: rgba(254, 240, 138, 0.44);
-}
-
-:root[data-theme="day"] .admin-command-card.tone-danger {
-  --admin-command-accent: #b91c1c;
-  --admin-command-accent-soft: rgba(254, 226, 226, 0.62);
-}
-
-:root[data-theme="day"] .admin-command-card.tone-neutral {
-  --admin-command-accent: #475569;
-  --admin-command-accent-soft: rgba(226, 232, 240, 0.58);
 }
 
 :root[data-theme="day"] .admin-command-value {
