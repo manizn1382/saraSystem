@@ -139,11 +139,11 @@
               <tbody>
                 <template x-for="item in pagedUsers()" :key="item.row_id">
                   <tr>
-                    <td><strong x-text="fullName(item)"></strong><small class="d-block ss-muted" dir="ltr" x-text="item.email || '—'"></small></td>
-                    <td><span x-text="item.student_id || item.national_id || '—'"></span></td>
-                    <td><span class="ss-badge-soft" x-text="roleLabel(item)"></span></td>
-                    <td><span class="ss-status-badge" :class="statusClass(item)" x-text="statusLabel(item)"></span></td>
-                    <td><div class="admin-table-actions">
+                    <td data-label="کاربر"><strong class="admin-user-name" x-text="fullName(item)"></strong><small class="d-block ss-muted" dir="ltr" x-text="item.email || '—'"></small></td>
+                    <td data-label="شناسه‌ها"><span class="admin-identity-value" x-text="item.student_id || item.national_id || '—'"></span></td>
+                    <td data-label="نقش"><span class="ss-badge-soft" x-text="roleLabel(item)"></span></td>
+                    <td data-label="وضعیت"><span class="ss-status-badge" :class="statusClass(item)" x-text="statusLabel(item)"></span></td>
+                    <td data-label="عملیات"><div class="admin-table-actions">
                       <button class="admin-action-button" type="button" title="جزئیات" @click="openUserDetails(item)">جزئیات</button>
                       <button class="admin-action-button" type="button" title="ویرایش" :disabled="loading.saving || !item.id" @click="openUserForm(item)">ویرایش</button>
                       <button class="admin-action-button" type="button" title="تغییر وضعیت" :disabled="loading.saving" @click="toggleUserActivity(item)" x-text="item.is_active === false ? 'فعال‌سازی' : 'غیرفعال‌سازی'"></button>

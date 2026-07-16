@@ -700,6 +700,18 @@
   padding-block: 0.9rem;
 }
 
+.admin-user-name {
+  display: block;
+  color: var(--ss-text);
+  line-height: 1.6;
+}
+
+.admin-identity-value {
+  color: var(--ss-soft);
+  font-weight: 850;
+  overflow-wrap: anywhere;
+}
+
 .admin-operation {
   border-radius: 0.95rem;
   transition: border-color 0.18s ease, background 0.18s ease;
@@ -791,6 +803,42 @@
   .admin-topbar {
     position: sticky;
     top: 0.85rem;
+  }
+
+  .admin-section .ss-table-card-mobile tr {
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .admin-section .ss-table-card-mobile td[data-label] {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.7rem;
+    align-items: start;
+    padding-block: 0.7rem;
+  }
+
+  .admin-section .ss-table-card-mobile td[data-label]::before {
+    content: attr(data-label);
+    color: var(--ss-muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .admin-section .ss-table-card-mobile td[data-label="کاربر"] {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-section .ss-table-card-mobile td[data-label="کاربر"]::before {
+    margin-bottom: -0.2rem;
+  }
+
+  .admin-section .ss-table-card-mobile td[data-label="عملیات"] .admin-table-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-section .ss-table-card-mobile td[data-label="عملیات"] .admin-action-button {
+    width: 100%;
   }
 }
 
