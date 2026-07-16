@@ -101,6 +101,67 @@
   font-weight: 950;
 }
 
+.support-avatar-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 0.65rem;
+  font-size: 0.78rem;
+}
+
+.support-profile-menu {
+  position: relative;
+}
+
+.support-profile-button {
+  min-height: 2.6rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 13rem;
+  border: 0;
+  border-radius: 0.8rem;
+  padding: 0.25rem 0.55rem 0.25rem 0.3rem;
+  color: var(--ss-text);
+  background: rgba(255, 255, 255, 0.06);
+  font-weight: 800;
+}
+
+.support-profile-button:hover,
+.support-profile-button:focus {
+  color: var(--ss-text);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.support-profile-dropdown {
+  position: absolute;
+  z-index: 950;
+  top: calc(100% + 0.7rem);
+  left: 0;
+  width: min(260px, calc(100vw - 1.7rem));
+  padding: 1rem;
+  border: 1px solid var(--ss-line);
+  border-radius: 0.9rem;
+  color: var(--ss-text);
+  background: var(--ss-panel-solid);
+  box-shadow: var(--ss-shadow);
+}
+
+.support-profile-action {
+  min-height: 2.6rem;
+  border: 1px solid rgba(125, 211, 252, 0.3);
+  border-radius: 0.8rem;
+  color: var(--ss-soft);
+  background: rgba(56, 189, 248, 0.08);
+  font-weight: 900;
+}
+
+.support-profile-action:hover,
+.support-profile-action:focus {
+  color: var(--ss-text);
+  border-color: rgba(103, 232, 249, 0.5);
+  background: rgba(56, 189, 248, 0.14);
+}
+
 .support-nav {
   display: grid;
   gap: 0.3rem;
@@ -542,7 +603,8 @@
 :root[data-theme="day"] .support-topbar,
 :root[data-theme="day"] .support-hero,
 :root[data-theme="day"] .support-panel,
-:root[data-theme="day"] .support-dialog {
+:root[data-theme="day"] .support-dialog,
+:root[data-theme="day"] .support-profile-dropdown {
   background: var(--ss-panel);
 }
 
@@ -604,6 +666,30 @@
 :root[data-theme="day"] .support-avatar {
   color: #ffffff;
   background: linear-gradient(135deg, #0369a1, #0891b2);
+}
+
+:root[data-theme="day"] .support-profile-button {
+  color: #0f172a;
+  background: rgba(239, 248, 255, 0.82);
+}
+
+:root[data-theme="day"] .support-profile-button:hover,
+:root[data-theme="day"] .support-profile-button:focus {
+  color: #075985;
+  background: rgba(186, 230, 253, 0.64);
+}
+
+:root[data-theme="day"] .support-profile-action {
+  color: #075985;
+  border-color: rgba(3, 105, 161, 0.25);
+  background: rgba(186, 230, 253, 0.46);
+}
+
+:root[data-theme="day"] .support-profile-action:hover,
+:root[data-theme="day"] .support-profile-action:focus {
+  color: #0c4a6e;
+  border-color: rgba(3, 105, 161, 0.42);
+  background: rgba(125, 211, 252, 0.42);
 }
 
 :root[data-theme="day"] .support-brand-logo {

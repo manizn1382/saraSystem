@@ -214,6 +214,7 @@
       ...requestStateMixin(),
       user: window.SaraAuth?.getStoredUser?.() || {},
       sidebarOpen: false,
+      profileOpen: false,
       activeSection: '#overview',
       tickets: [],
       selectedTicket: null,
@@ -302,6 +303,16 @@
       },
       currentUserName() {
         return `${this.user.first_name || ''} ${this.user.last_name || ''}`.trim() || this.user.username || this.user.email || 'واحد پشتیبانی';
+      },
+      userInitials() {
+        const first = (this.user.first_name || this.user.firstName || this.user.username || this.user.email || 'پ').trim().charAt(0);
+        const last = (this.user.last_name || this.user.lastName || '').trim().charAt(0);
+        return `${first}${last}`.toUpperCase();
+      },
+      accountPath() {
+        const params = new URLSearchParams({ from: 'support' });
+        if (window.SaraAuth?.isDemoMode?.()) params.set('demo', 'support');
+        return `../account.html?${params.toString()}`;
       },
       currentUserId() {
         return this.user.id || this.user.user_id || this.user.pk || '';

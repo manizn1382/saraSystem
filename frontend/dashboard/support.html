@@ -89,6 +89,18 @@
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
               <div data-sara-theme-slot></div>
+              <div class="support-profile-menu" @keydown.escape.window="profileOpen = false">
+                <button class="btn support-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen">
+                  <span class="support-avatar support-avatar-sm" x-text="userInitials()"></span>
+                  <span class="d-none d-md-inline text-truncate" x-text="currentUserName()"></span>
+                </button>
+                <div x-cloak x-show="profileOpen" x-transition class="support-profile-dropdown" @click.outside="profileOpen = false">
+                  <strong class="d-block text-truncate" x-text="currentUserName()"></strong>
+                  <span class="d-block support-brand-subtitle mb-3" dir="ltr" x-text="user.email || '—'"></span>
+                  <a class="btn support-profile-action w-100 mb-2" :href="accountPath()" @click="profileOpen = false">مشاهده پروفایل</a>
+                  <button class="btn support-danger-button w-100" type="button" @click="logout()">خروج</button>
+                </div>
+              </div>
               <button
                 id="refreshDashboard"
                 class="btn ss-btn ss-btn-primary px-4"
