@@ -11,6 +11,7 @@
     <script src="../../assets/js/theme.js"></script>
     <link href="../../assets/css/sarasystem.css" rel="stylesheet" />
     <link href="../../assets/css/theme.css" rel="stylesheet" />
+    <link href="../../assets/css/support-dashboard.css" rel="stylesheet" />
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
     <script
       src="https://unpkg.com/htmx-ext-json-enc@2.0.1/json-enc.js"
@@ -35,30 +36,37 @@
       defer
     ></script>
   </head>
-  <body class="ss-page" x-data="supportPanel()">
-    <div class="ss-dashboard-layout">
+  <body class="ss-page support-page" x-data="supportPanel()">
+    <div class="ss-dashboard-layout support-shell">
       <aside
-        class="ss-dashboard-sidebar ss-glass ss-sidebar"
+        class="ss-dashboard-sidebar ss-glass ss-sidebar support-sidebar"
         aria-label="منوی واحد پشتیبانی"
       >
-        <div
-          class="d-flex align-items-center justify-content-between gap-2 mb-3"
-        >
-          <div>
-            <h1 class="h5 fw-bold mb-1">سراسیستم</h1>
-            <span class="ss-muted small">پنل واحد پشتیبانی</span>
-          </div>
-          <a class="btn ss-btn ss-btn-outline btn-sm" href="../index.html"
-            >خانه</a
-          >
+        <div class="support-sidebar-header">
+          <a href="../index.html" class="support-brand" aria-label="بازگشت به صفحه اصلی سراسیستم">
+            <span class="support-brand-logo">
+              <img src="../../assets/logo_with_outline.png" alt="لوگوی سراسیستم" onerror="this.classList.add('d-none')" />
+            </span>
+            <span>
+              <span class="support-brand-title">سراسیستم</span>
+              <span class="support-brand-subtitle">واحد پشتیبانی خوابگاه</span>
+            </span>
+          </a>
         </div>
-        <nav class="d-grid gap-1">
+        <div class="support-user-card">
+          <span class="support-avatar">پ</span>
+          <div class="min-w-0">
+            <strong class="d-block text-truncate" x-text="currentUserName()"></strong>
+            <span class="d-block support-brand-subtitle">کارشناس رسیدگی</span>
+          </div>
+        </div>
+        <nav class="support-nav">
           <a class="ss-nav-link" :class="{ active: activeSection === '#overview' }" :aria-current="activeSection === '#overview' ? 'page' : null" href="#overview" @click="activeSection = '#overview'">🧰 نمای کلی</a>
           <a class="ss-nav-link" :class="{ active: activeSection === '#queue' }" :aria-current="activeSection === '#queue' ? 'page' : null" href="#queue" @click="activeSection = '#queue'">🛠️ صف تعمیرات</a>
           <a class="ss-nav-link" :class="{ active: activeSection === '#history' }" :aria-current="activeSection === '#history' ? 'page' : null" href="#history" @click="activeSection = '#history'">📜 سوابق</a>
         </nav>
         <button
-          class="btn ss-btn ss-btn-outline w-100 mt-3"
+          class="btn ss-btn ss-btn-outline w-100 mt-auto"
           type="button"
           @click="logout()"
         >
@@ -67,12 +75,12 @@
       </aside>
 
       <main class="min-w-0">
-        <header class="ss-topbar ss-glass p-3 p-md-4 mb-3">
+        <header class="ss-topbar ss-glass support-topbar p-3 p-md-4 mb-3">
           <div
             class="d-flex flex-wrap align-items-center justify-content-between gap-3"
           >
             <div>
-              <div class="ss-muted small mb-1">سراسیستم / واحد پشتیبانی</div>
+              <div class="support-breadcrumb mb-1">سراسیستم / واحد پشتیبانی / <span x-text="activeSection === '#queue' ? 'صف تعمیرات' : activeSection === '#history' ? 'سوابق رسیدگی' : 'نمای کلی'"></span></div>
               <h2 class="h3 fw-bold mb-0">داشبورد پشتیبانی</h2>
             </div>
             <div class="d-flex flex-wrap align-items-center gap-2">
@@ -89,11 +97,18 @@
         </header>
 
         <section id="overview" class="mb-3">
-          <div class="alert alert-info rounded-4 border-0" role="note">
-            این صفحه مسیر پایه واحد پشتیبانی را آماده می‌کند. جزئیات کامل ارجاع،
-            تغییر وضعیت و یادداشت حل مشکل در مرحله پشتیبانی تکمیل می‌شود.
-          </div>
-          <div class="row g-3">
+          <article class="support-hero mb-3">
+            <div>
+              <span class="support-eyebrow">مرکز رسیدگی تعمیرات</span>
+              <h1 class="support-hero-title">کنترل صف خرابی‌ها، ارجاع و وضعیت رسیدگی</h1>
+              <p class="support-hero-copy mb-0">درخواست‌های باز، فوری، در حال انجام و حل‌شده را در یک نمای عملیاتی دنبال کنید.</p>
+            </div>
+            <div class="support-hero-actions">
+              <a class="btn ss-btn ss-btn-outline" href="#queue">مشاهده صف</a>
+              <button class="btn ss-btn ss-btn-primary" id="refreshDashboardHero" type="button">بروزرسانی</button>
+            </div>
+          </article>
+          <div class="row g-3 support-stat-grid">
             <template x-for="stat in stats" :key="stat.label"
               ><div class="col-md-6 col-xl-3">
                 <article class="ss-stat">
@@ -105,18 +120,17 @@
           </div>
         </section>
 
-        <section id="queue" class="ss-card ss-glass p-3 p-md-4 mb-3">
-          <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
+        <section id="queue" class="ss-card ss-glass support-panel p-3 p-md-4 mb-3">
+          <div class="support-section-header mb-3">
             <div>
               <h3 class="h5 fw-bold mb-1">صف درخواست‌های تعمیرات</h3>
               <p class="ss-muted mb-0 small">
-                نمایش اولیه داده‌های `/api/maintenance-requests/`
+                اولویت، وضعیت، ارجاع و تاریخ ثبت درخواست‌ها
               </p>
             </div>
-            <div class="d-flex flex-wrap gap-2">
+            <div class="support-toolbar">
               <input
                 class="form-control"
-                style="width: 220px"
                 type="search"
                 placeholder="جستجوی عنوان، مکان یا مسئول"
                 x-model.debounce.300ms="tableState.maintenance.query"
@@ -124,7 +138,6 @@
               />
               <select
                 class="form-select"
-                style="width: 155px"
                 x-model="filters.priority"
                 @change="resetPage('maintenance')"
                 aria-label="فیلتر اولویت"
@@ -137,7 +150,6 @@
               </select>
               <select
                 class="form-select"
-                style="width: 155px"
                 x-model="filters.status"
                 @change="resetPage('maintenance')"
                 aria-label="فیلتر وضعیت"
@@ -149,7 +161,6 @@
               </select>
               <select
                 class="form-select"
-                style="width: 170px"
                 x-model="filters.assigned"
                 @change="resetPage('maintenance')"
                 aria-label="فیلتر ارجاع"
@@ -161,7 +172,7 @@
             </div>
           </div>
           <div class="table-responsive">
-            <table class="table ss-table align-middle ss-table-card-mobile">
+            <table class="table ss-table align-middle ss-table-card-mobile support-ticket-table">
               <caption class="visually-hidden">صف درخواست‌های تعمیرات واحد پشتیبانی</caption>
               <thead>
                 <tr>
@@ -229,8 +240,8 @@
           </div>
         </section>
 
-        <section id="history" class="ss-card ss-glass p-3 p-md-4 mb-4">
-          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+        <section id="history" class="ss-card ss-glass support-panel p-3 p-md-4 mb-4">
+          <div class="support-section-header mb-3">
             <div>
               <h3 class="h5 fw-bold mb-1">سوابق رسیدگی</h3>
               <p class="ss-muted small mb-0">نمای frontend-only از درخواست‌های حل‌شده و یادداشت‌های ثبت‌شده در همین نشست</p>
@@ -240,7 +251,7 @@
           <div class="row g-3">
             <template x-for="ticket in tickets.filter((item) => item.status === 'resolved').slice(0, 6)" :key="`history-${ticket.id}`">
               <div class="col-md-6">
-                <article class="ss-history-card">
+                <article class="ss-history-card support-history-card">
                   <div class="d-flex align-items-start justify-content-between gap-2">
                     <div>
                       <h4 class="h6 fw-bold mb-1" x-text="ticket.title"></h4>
@@ -270,7 +281,7 @@
       @keydown.escape.window="closeTicket()"
       @click.self="closeTicket()"
     >
-      <section class="ss-dialog ss-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="supportTicketTitle">
+      <section class="ss-dialog ss-dialog-wide support-dialog" role="dialog" aria-modal="true" aria-labelledby="supportTicketTitle">
         <header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3">
           <div>
             <h3 id="supportTicketTitle" class="h5 fw-bold mb-1" x-text="selectedTicket?.title || 'جزئیات درخواست تعمیرات'"></h3>
@@ -344,7 +355,7 @@
       <div
         data-resource="maintenance"
         hx-get="/api/maintenance-requests/"
-        hx-trigger="load, click from:#refreshDashboard, click from:#retryMaintenance"
+        hx-trigger="load, click from:#refreshDashboard, click from:#refreshDashboardHero, click from:#retryMaintenance"
         hx-swap="none"
         hx-timeout="15000"
         hx-headers='{"Accept":"application/json"}'
