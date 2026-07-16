@@ -252,6 +252,9 @@
       filteredTickets() {
         return this.ticketPage().items;
       },
+      resolvedTickets() {
+        return this.tickets.filter((ticket) => ticket.status === 'resolved');
+      },
       ticketPage() {
         const filtered = this.filteredTicketItems();
         return this.tablePage('maintenance', filtered, ['title', 'description', 'location', 'assigned_to', 'created_at']);

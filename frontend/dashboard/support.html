@@ -255,25 +255,41 @@
               <h3 class="h5 fw-bold mb-1">سوابق رسیدگی</h3>
               <p class="ss-muted small mb-0">نمای frontend-only از درخواست‌های حل‌شده و یادداشت‌های ثبت‌شده در همین نشست</p>
             </div>
-            <span class="ss-badge-soft" x-text="`${toPersianNumber(tickets.filter((ticket) => ticket.status === 'resolved').length)} مورد حل‌شده`"></span>
+            <span class="ss-badge-soft" x-text="`${toPersianNumber(resolvedTickets().length)} مورد حل‌شده`"></span>
+          </div>
+          <div class="support-history-strip mb-3">
+            <span class="support-result-count" x-text="`${toPersianNumber(resolvedTickets().length)} سابقه از ${toPersianNumber(tickets.length)} درخواست`"></span>
+            <span class="support-history-note">یادداشت‌ها و خط زمانی تا زمان تکمیل endpoint تاریخچه از داده‌های همین نشست ساخته می‌شوند.</span>
           </div>
           <div class="row g-3">
-            <template x-for="ticket in tickets.filter((item) => item.status === 'resolved').slice(0, 6)" :key="`history-${ticket.id}`">
+            <template x-for="ticket in resolvedTickets().slice(0, 6)" :key="`history-${ticket.id}`">
               <div class="col-md-6">
                 <article class="ss-history-card support-history-card">
                   <div class="d-flex align-items-start justify-content-between gap-2">
                     <div>
+                      <span class="support-history-kicker" x-text="ticket.resolved_at || ticket.updated_at || ticket.created_at || 'تاریخ نامشخص'"></span>
                       <h4 class="h6 fw-bold mb-1" x-text="ticket.title"></h4>
                       <p class="ss-muted small mb-0" x-text="locationText(ticket)"></p>
                     </div>
-                    <span class="ss-status-badge ss-status-success">حل شده</span>
+                    <span :class="statusClass(ticket.status)" x-text="statusText(ticket.status)"></span>
                   </div>
-                  <p class="small mt-3 mb-3" x-text="ticket.resolution_note || 'یادداشت حل مشکل هنوز از API دریافت نشده است.'"></p>
+                  <div class="support-history-meta">
+                    <span><small>اولویت</small><strong :class="priorityClass(ticket.priority)" x-text="priorityText(ticket.priority)"></strong></span>
+                    <span><small>مسئول</small><strong x-text="assigneeText(ticket) || 'بدون مسئول'"></strong></span>
+                    <span><small>ثبت</small><strong x-text="ticket.created_at || '—'"></strong></span>
+                  </div>
+                  <p class="support-history-resolution" x-text="ticket.resolution_note || 'یادداشت حل مشکل هنوز از API دریافت نشده است.'"></p>
                   <button class="btn ss-btn ss-btn-outline btn-sm" type="button" @click="openTicket(ticket)">مشاهده جزئیات</button>
                 </article>
               </div>
             </template>
-            <div class="col-12" x-show="tickets.filter((item) => item.status === 'resolved').length === 0">
+            <div class="col-12" x-show="isResourceLoading('maintenance')">
+              <div class="ss-empty">در حال دریافت سوابق تعمیرات...</div>
+            </div>
+            <div class="col-12" x-show="resourceError('maintenance') && !isResourceLoading('maintenance')">
+              <div class="ss-empty" x-text="resourceError('maintenance')"></div>
+            </div>
+            <div class="col-12" x-show="resolvedTickets().length === 0 && !resourceError('maintenance') && !isResourceLoading('maintenance')">
               <div class="ss-empty">هنوز سابقه حل‌شده‌ای برای نمایش وجود ندارد.</div>
             </div>
           </div>
