@@ -55,7 +55,7 @@
                 <span class="support-brand-subtitle">واحد پشتیبانی خوابگاه</span>
               </span>
             </a>
-            <button class="support-icon-button d-lg-none" type="button" aria-label="بستن منوی کناری" @click="sidebarOpen = false">×</button>
+            <button class="btn btn-ss btn-ss-outline d-lg-none px-3" type="button" aria-label="بستن منوی کناری" @click="sidebarOpen = false">×</button>
           </div>
         </div>
         <div class="support-user-card">
@@ -71,20 +71,20 @@
           <a class="ss-nav-link" :class="{ active: activeSection === '#history' }" :aria-current="activeSection === '#history' ? 'page' : null" href="#history" @click="activeSection = '#history'; sidebarOpen = false">📜 سوابق</a>
         </nav>
         <div class="support-sidebar-footer">
-          <button class="btn support-danger-button w-100" type="button" @click="logout()">خروج از حساب</button>
+          <button class="btn btn-ss btn-ss-danger w-100" type="button" @click="logout()">خروج از حساب</button>
         </div>
       </aside>
 
       <main class="support-main min-w-0">
-        <header class="ss-topbar ss-glass support-topbar p-3 p-md-4 mb-3">
+        <header class="ss-topbar ss-glass support-topbar px-3 px-md-4 py-3 mb-3">
           <div
-            class="d-flex flex-wrap align-items-center justify-content-between gap-3"
+            class="d-flex align-items-center justify-content-between gap-3"
           >
             <div class="d-flex align-items-center gap-3 min-w-0">
               <button class="btn btn-ss btn-ss-outline d-lg-none px-3" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
               <div class="min-w-0">
                 <div class="support-breadcrumb mb-1">سراسیستم / واحد پشتیبانی / <span x-text="activeSection === '#queue' ? 'صف تعمیرات' : activeSection === '#history' ? 'سوابق رسیدگی' : 'نمای کلی'"></span></div>
-                <h2 class="h3 fw-bold mb-0 text-truncate">داشبورد پشتیبانی</h2>
+                <h2 class="h4 fw-bold mb-0 text-truncate">داشبورد پشتیبانی</h2>
               </div>
             </div>
             <div class="d-flex align-items-center gap-2">

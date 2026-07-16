@@ -228,7 +228,8 @@
 }
 
 .support-topbar h2 {
-  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  font-weight: 950;
+  letter-spacing: -0.03em;
 }
 
 .support-hero {

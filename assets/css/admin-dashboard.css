@@ -881,18 +881,6 @@
   border-top: 1px solid var(--ss-line-soft);
 }
 
-.admin-sidebar-footer .admin-danger-button,
-.admin-sidebar-header .admin-icon-button {
-  min-height: 44px;
-  border-radius: 1rem;
-  font-weight: 900;
-}
-
-.admin-sidebar-header .admin-icon-button {
-  width: 44px;
-  height: 44px;
-}
-
 .admin-topbar {
   position: sticky;
   top: 1.25rem;
@@ -906,7 +894,8 @@
 }
 
 .admin-topbar h2 {
-  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  font-weight: 950;
+  letter-spacing: -0.03em;
 }
 
 .admin-icon-button,
