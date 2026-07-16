@@ -20,9 +20,10 @@ Scope: complete API inventory for the current SaraSystem repository, including i
 | Account service | `http://127.0.0.1:8001` | `/api/v1/...`, `/api/announcements/...` | Handles users, JWT login/refresh, roles, permissions, user-role, role-permission, and the current announcements app once mounted. |
 | Dormitory service | `http://127.0.0.1:8000` | `/api/dormitory/`, `/api/rooms/`, `/api/beds/` | Handles dormitories, rooms, beds. |
 | AI service | `http://127.0.0.1:5000` | `/register`, `/verify`, `/delete` | Flask face-image service. Front-end aliases use `/api/face/...` and route to this base. |
+| National-ID AI service | `http://127.0.0.1:5001` | `/verify` | Flask ID-card OCR/verification service. Front-end alias uses `/api/national-id/verify/` and routes to this separate base. |
 | Application API | same origin `/api` or gateway | `/api/...` | Planned unified API surface for accommodation, assignments, payments, maintenance, announcements, reports, public data. |
 
-Current front-end routing in `assets/js/api.js` sends account paths to the account service, dormitory/room/bed/accommodation paths to the dormitory service, authenticated `/api/announcements/...` paths to the account service, AI face aliases to the AI service, and all other `/api/...` paths to the configured general API base. Anonymous public paths such as `/api/public/stats/` and `/api/announcements/public/` stay on the general API base.
+Current front-end routing in `assets/js/api.js` sends account paths to the account service, dormitory/room/bed/accommodation paths to the dormitory service, authenticated `/api/announcements/...` paths to the account service, AI face aliases to the face AI service, national-ID aliases to the national-ID AI service, and all other `/api/...` paths to the configured general API base. Anonymous public paths such as `/api/public/stats/` and `/api/announcements/public/` stay on the general API base.
 
 ## Global API Conventions
 
@@ -2209,7 +2210,7 @@ Purpose: user activity/audit log. Mentioned as future roadmap in project documen
 The current backend includes a Flask AI service in `AI/face_recognition/face_recognition_server.py`.
 The service exposes raw paths on port `5000`. The front end uses `/api/face/...` aliases so UI code does not depend on the raw service paths.
 
-The repository also contains `AI/national_id_detector/` model/script code for ID-card detection/classification. That directory does not currently expose an HTTP server, route list, request schema, or stable response schema, so there is no front-end API alias for it yet.
+The repository also contains `AI/national_id_detector/` for ID-card detection/classification and OCR. It exposes a separate Flask verification route on port `5001`; the front end uses `/api/national-id/verify/` so UI code does not depend on that raw service path.
 
 Important caveats:
 
@@ -2218,7 +2219,7 @@ Important caveats:
 - Responses use `{ "success": boolean, "log": string }`, not the standard SaraSystem success envelope.
 - The AI service stores face data on local disk under `AI/face_recognition/database/{id}/img.jpg`.
 - The front end only uploads/deletes images and displays service results. It does not implement face recognition logic.
-- National-ID/card detection cannot be connected from the browser until the backend exposes a REST endpoint, expected multipart field names, auth/CORS behavior, and response shape.
+- National-ID/card verification is display-only in the current front end; it does not persist account `is_verified` until the account service exposes a durable verification/status endpoint.
 
 ### `POST /api/face/register/`
 
@@ -2297,6 +2298,34 @@ Response:
 }
 ```
 
+### `POST /api/national-id/verify/`
+
+Status: Implemented external service alias
+
+AI service path: `POST http://127.0.0.1:5001/verify`
+
+Auth: authenticated front-end page context for account/admin surfaces; anonymous registration context for pre-submit check; no JWT currently enforced by the AI service
+
+Purpose: compare an uploaded national-ID/card image against the national ID number entered or stored for the user.
+
+Request: `multipart/form-data`
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | string/integer | yes | National ID value, not account user ID. |
+| `image` | file | yes | ID-card image file to classify/crop/OCR. |
+
+Response:
+
+```json
+{
+  "success": true,
+  "log": "user successfully verified."
+}
+```
+
+Current front-end usage: optional registration pre-check, account-page self-check, and system-admin user detail review. The registration flow is non-blocking if the AI service is unavailable.
+
 ### `GET /api/health/`
 
 Status: Planned  
@@ -2363,7 +2392,7 @@ The front end already checks several permission names. The API should treat thes
 2. `GET /api/v1/users/current` now returns a user object, but the optional `userId` permission check compares `request.user.id` to the raw query-string value; normalize types before comparing.
 3. `BedCreateView` currently repeats `IsAuthenticated` in `permission_classes` and does not require `IsAdminUser`, so authenticated non-admin users may be able to create beds.
 4. The face-recognition AI service does not enforce JWT auth or configure CORS; browser calls need either CORS support or same-origin gateway/proxying.
-5. `AI/national_id_detector/` is present as scripts/models only; expose a real HTTP API before adding front-end ID-card verification controls.
+5. `AI/national_id_detector/` now exposes a prototype `/verify` Flask route on port `5001`; add CORS/same-origin gatewaying, auth/rate limiting, and account-service persistence before treating it as a production verification authority.
 6. There are no list/delete endpoints for `UserRole` and `RolePermission`.
 7. There are no update/delete endpoints for `Permission`.
 8. Username-only anonymous password reset is implemented at `/api/v1/users/password/reset`; older `/password/reset/username` aliases should normalize to that route.
