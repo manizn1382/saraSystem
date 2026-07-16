@@ -313,8 +313,18 @@
 }
 
 :root[data-theme="day"] .hero-logo-card img,
+:root[data-theme="day"] img.brand-logo,
+:root[data-theme="day"] .ss-brand-logo,
+:root[data-theme="day"] .admin-brand-logo img,
 :root[data-theme="day"] .brand-logo img {
   filter: drop-shadow(0 10px 24px rgba(3, 105, 161, 0.16)) !important;
+}
+
+:root[data-theme="day"] .brand-logo,
+:root[data-theme="day"] img.brand-logo,
+:root[data-theme="day"] .ss-brand-logo,
+:root[data-theme="day"] .admin-brand-logo {
+  background: transparent !important;
 }
 
 :root[data-theme="day"] .icon-box {
@@ -425,7 +435,6 @@
   background: rgba(186, 230, 253, 0.45) !important;
 }
 
-:root[data-theme="day"] .brand-logo,
 :root[data-theme="day"] .avatar,
 :root[data-theme="day"] .avatar-lg,
 :root[data-theme="day"] .ss-role-icon {
