@@ -113,23 +113,7 @@
 }
 
 .support-profile-button {
-  min-height: 2.6rem;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
   max-width: 13rem;
-  border: 0;
-  border-radius: 0.8rem;
-  padding: 0.25rem 0.55rem 0.25rem 0.3rem;
-  color: var(--ss-text);
-  background: rgba(255, 255, 255, 0.06);
-  font-weight: 800;
-}
-
-.support-profile-button:hover,
-.support-profile-button:focus {
-  color: var(--ss-text);
-  background: rgba(56, 189, 248, 0.12);
 }
 
 .support-profile-dropdown {
@@ -771,13 +755,13 @@
   background: linear-gradient(135deg, #0369a1, #0891b2);
 }
 
-:root[data-theme="day"] .support-profile-button {
+:root[data-theme="day"] .support-profile-button:not(.btn-ss-primary) {
   color: #0f172a;
   background: rgba(239, 248, 255, 0.82);
 }
 
-:root[data-theme="day"] .support-profile-button:hover,
-:root[data-theme="day"] .support-profile-button:focus {
+:root[data-theme="day"] .support-profile-button:not(.btn-ss-primary):hover,
+:root[data-theme="day"] .support-profile-button:not(.btn-ss-primary):focus {
   color: #075985;
   background: rgba(186, 230, 253, 0.64);
 }

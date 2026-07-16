@@ -53,6 +53,59 @@
   font-weight: 900;
 }
 
+.btn-ss {
+  min-height: 44px;
+  border-radius: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-weight: 900;
+  transition: 0.22s ease;
+  white-space: nowrap;
+}
+
+.btn-ss:hover {
+  transform: translateY(-2px);
+}
+
+.btn-ss-primary {
+  border: 0;
+  color: #06162b;
+  background: linear-gradient(135deg, var(--ss-primary), var(--ss-primary-2));
+  box-shadow: 0 16px 34px rgba(56, 189, 248, 0.22);
+}
+
+.btn-ss-primary:hover,
+.btn-ss-primary:focus {
+  color: #06162b;
+  background: linear-gradient(135deg, #7dd3fc, #a5f3fc);
+}
+
+.btn-ss-outline {
+  border: 1px solid rgba(125, 211, 252, 0.24);
+  color: #dff7ff;
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.btn-ss-outline:hover,
+.btn-ss-outline:focus {
+  color: #fff;
+  background: rgba(56, 189, 248, 0.14);
+}
+
+.btn-ss-danger {
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #fee2e2;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.btn-ss-danger:hover,
+.btn-ss-danger:focus {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.18);
+}
+
 .ss-btn-primary {
   border: 0;
   color: #06162b;

@@ -81,7 +81,7 @@
             class="d-flex flex-wrap align-items-center justify-content-between gap-3"
           >
             <div class="d-flex align-items-center gap-3 min-w-0">
-              <button class="support-icon-button d-lg-none" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
+              <button class="btn btn-ss btn-ss-outline d-lg-none px-3" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
               <div class="min-w-0">
                 <div class="support-breadcrumb mb-1">سراسیستم / واحد پشتیبانی / <span x-text="activeSection === '#queue' ? 'صف تعمیرات' : activeSection === '#history' ? 'سوابق رسیدگی' : 'نمای کلی'"></span></div>
                 <h2 class="h3 fw-bold mb-0 text-truncate">داشبورد پشتیبانی</h2>
@@ -91,13 +91,13 @@
               <div data-sara-theme-slot></div>
               <button
                 id="refreshDashboard"
-                class="btn ss-btn ss-btn-primary px-4"
+                class="btn btn-ss btn-ss-outline px-3"
                 type="button"
               >
                 بروزرسانی
               </button>
               <div class="support-profile-menu" @keydown.escape.window="profileOpen = false">
-                <button class="btn support-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen">
+                <button class="btn btn-ss btn-ss-primary px-3 support-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen">
                   <span class="support-avatar support-avatar-sm" x-text="userInitials()"></span>
                   <span class="d-none d-md-inline text-truncate" x-text="currentUserName()"></span>
                 </button>

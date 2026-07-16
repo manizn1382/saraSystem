@@ -852,10 +852,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border: 0;
-  padding: 0.25rem 0.55rem 0.25rem 0.3rem;
-  color: var(--ss-text);
-  background: rgba(255, 255, 255, 0.06);
+  max-width: 13rem;
 }
 
 .admin-profile-dropdown {
@@ -1041,7 +1038,7 @@
   background: rgba(254, 226, 226, 0.72);
 }
 
-:root[data-theme="day"] .admin-profile-button {
+:root[data-theme="day"] .admin-profile-button:not(.btn-ss-primary) {
   color: var(--ss-text);
   background: rgba(3, 105, 161, 0.08);
 }
@@ -1226,7 +1223,7 @@
     border-radius: 1rem;
   }
 
-  .admin-topbar .admin-profile-button {
+  .admin-topbar .admin-profile-button:not(.btn-ss-primary) {
     padding: 0.2rem;
   }
 

@@ -49,7 +49,7 @@
         <header class="ss-topbar ss-glass admin-topbar p-3 p-md-4 mb-3">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-3 min-w-0">
-              <button class="admin-icon-button d-lg-none" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
+              <button class="btn btn-ss btn-ss-outline d-lg-none px-3" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
               <div class="min-w-0">
                 <div class="admin-breadcrumb mb-1">سراسیستم / مدیریت دانشگاه / <span x-text="activeLabel()"></span></div>
                 <h2 class="h3 fw-bold mb-0 text-truncate">کنترل مدیریتی سامانه</h2>
@@ -57,9 +57,9 @@
             </div>
             <div class="d-flex align-items-center gap-2">
               <div data-sara-theme-slot></div>
-              <button class="btn admin-outline-button" type="button" @click="loadAll()">بروزرسانی</button>
+              <button class="btn btn-ss btn-ss-outline px-3" type="button" @click="loadAll()">بروزرسانی</button>
               <div class="admin-profile-menu" @keydown.escape.window="profileOpen = false">
-                <button class="btn admin-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen"><span class="admin-avatar admin-avatar-sm" x-text="userInitials()"></span><span class="d-none d-md-inline" x-text="fullName(user)"></span></button>
+                <button class="btn btn-ss btn-ss-primary px-3 admin-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen"><span class="admin-avatar admin-avatar-sm" x-text="userInitials()"></span><span class="d-none d-md-inline" x-text="fullName(user)"></span></button>
                 <div x-cloak x-show="profileOpen" x-transition class="admin-profile-dropdown" @click.outside="profileOpen = false"><strong class="d-block" x-text="fullName(user)"></strong><span class="d-block admin-brand-subtitle mb-3" dir="ltr" x-text="user.email || '—'"></span><a class="btn admin-outline-button w-100 mb-2" :href="accountPath()">پروفایل</a><button class="btn admin-danger-button w-100" type="button" @click="logout()">خروج</button></div>
               </div>
             </div>
