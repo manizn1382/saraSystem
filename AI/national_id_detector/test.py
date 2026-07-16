@@ -1,10 +1,10 @@
 import requests
 
-with open("1.jpg", "rb") as f:
+with open("not_id.jpg", "rb") as f:
     r = requests.post(
         "http://127.0.0.1:5000/verify",
         files={"image": f},
-        data={"id": 1234567890}
+        data={"id": 4031313926}
     )
 
 print(r.json())

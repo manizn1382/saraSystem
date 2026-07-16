@@ -19,7 +19,7 @@ def register():
     if contains_id_card(path):
         try:
             text = extract_text(path)
-            if str(user_id) in text:
+            if is_match(str(user_id) , text):
                 success = True
                 log = "user successfully verified."
             else:
