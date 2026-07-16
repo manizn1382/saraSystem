@@ -16,9 +16,11 @@ Including another URLconf
 """
 
 from django.urls import path
-from account_service.View.RoleView import PermissionCreateView, PermissionListView
+from account_service.View.RoleView import PermissionDeleteView, PermissionCreateView, PermissionListView, PermissionUpdateView
 
 urlpatterns = [
     path('/create', PermissionCreateView.as_view(), name="createPermission"),
     path('/list', PermissionListView.as_view(), name="listPermission"),
+    path('/update', PermissionUpdateView.as_view(), name="PermissionUpdate"),
+    path('/delete/<int:id>', PermissionDeleteView.as_view(), name="PermissionDelete")
 ]

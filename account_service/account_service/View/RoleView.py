@@ -1,9 +1,12 @@
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from account_service.models import Role, Permission, RolePermission
-from account_service.Serializer.RoleSerializer import RoleUpdateSerializer, RoleDeleteSerializer, CreateRoleSerializer, CreatePermissionSerializer, CreateRolePermissionSerializer, ListRoleSerializer, ListPermissionSerializer
+from account_service.Serializer.RoleSerializer import PermissionUpdate, PermissionDelete, RolePermissionDetail, RoleUpdateSerializer, RoleDeleteSerializer, \
+    CreateRoleSerializer, CreatePermissionSerializer, CreateRolePermissionSerializer, ListRoleSerializer, \
+    ListPermissionSerializer
 
-
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 class RoleListView(generics.ListAPIView):
@@ -21,7 +24,6 @@ class PermissionListView(generics.ListAPIView):
 class RoleCreateView(generics.CreateAPIView):
     serializer_class = CreateRoleSerializer
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
-
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -48,7 +50,6 @@ class RoleCreateView(generics.CreateAPIView):
 class PermissionCreateView(generics.CreateAPIView):
     serializer_class = CreatePermissionSerializer
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
-
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -77,7 +78,6 @@ class RolePermissionCreateView(generics.CreateAPIView):
     serializer_class = CreateRolePermissionSerializer
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
-
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -105,7 +105,6 @@ class RoleDeleteView(generics.DestroyAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
     def destroy(self, request, *args, **kwargs):
-
         role_id = self.kwargs.get('pk')
         role = Role.objects.get(id=role_id)
         role.delete()
@@ -128,13 +127,11 @@ class UpdateRoleView(generics.UpdateAPIView):
 
         role = self.get_object()
 
-
         if 'name' in request.data:
             role.name = request.data['name']
 
         if 'description' in request.data:
             role.description = request.data['description']
-
 
         role.save()
 
@@ -148,3 +145,75 @@ class UpdateRoleView(generics.UpdateAPIView):
                 'description': role.description,
             }
         }, status=status.HTTP_200_OK)
+
+
+class RolePermissionDetailView(generics.ListAPIView):
+    serializer_class = RolePermissionDetail
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    def get_queryset(self):
+        queryset = RolePermission.objects.all()
+        params = self.request.query_params
+
+        if params.get('role_id'):
+            queryset = queryset.filter(role_id=params.get('role_id'))
+
+        if params.get('permission_id'):
+            queryset = queryset.filter(permission_id=params.get('permission_id'))
+
+        return queryset
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class PermissionDeleteView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    queryset = Permission.objects.all()
+    serializer_class = PermissionDelete
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        permission_id = instance.permission_id
+
+        self.perform_destroy(instance)
+
+        return Response({
+            "message": f"Permission with id: {permission_id} deleted successfully"
+        }, status=status.HTTP_200_OK)
+
+
+class PermissionUpdateView(generics.UpdateAPIView):
+    serializer_class = PermissionUpdate
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    def patch(self, request, *args, **kwargs):
+        perm_id = request.query_params.get("permission_id")
+
+        if not perm_id:
+            return Response({
+                "success": False,
+                "message": "permission id is mandatory"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            permission = Permission.objects.get(id=perm_id)
+        except Permission.DoesNotExist:
+            return Response({
+                "success": False,
+                "message": "Permission not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = PermissionUpdate(permission, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "success": True,
+                "message": "Permission updated successfully",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
+
+        return Response({
+            "success": False,
+            "errors": serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)

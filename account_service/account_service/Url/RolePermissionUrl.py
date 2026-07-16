@@ -15,8 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.urls import path
-from account_service.View.RoleView import RolePermissionCreateView
+from account_service.View.RoleView import RolePermissionCreateView, RolePermissionDetailView, RolePermissionDeleteView
 
 urlpatterns = [
     path('/create', RolePermissionCreateView.as_view(), name="rolePermCreate"),
+    path('/detail', RolePermissionDetailView.as_view(), name="rolePermDetail"),
+    path('/delete/<int:id>', RolePermissionDeleteView.as_view(), name="rolePermDelete")
 ]

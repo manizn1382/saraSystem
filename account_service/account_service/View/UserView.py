@@ -5,7 +5,6 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, update_session_auth_hash
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.db.models import Q
 from account_service.models import userProfile, UserRole, Role
 from account_service.Serializer.UserSerializer import ResetPassSerializer, UserCreateSerializer, UserLoginSerializer, \
     UserRoleCreateSerializer, ChangePassSerializer, EditProfSerializer, UserListSerializer, UserDeleteSerializer, \
@@ -13,7 +12,8 @@ from account_service.Serializer.UserSerializer import ResetPassSerializer, UserC
 from account_service.Serializer.TokenSerializer import CustomTokenObtainPairSerializer
 from rest_framework.views import APIView
 from account_service.models.Permission import Permission
-from account_service.Serializer.RoleSerializer import ListRoleSerializer, ListPermissionSerializer
+from account_service.Serializer.RoleSerializer import UserRoleDelete, UserRoleDetail, ListRoleSerializer, \
+    ListPermissionSerializer, RolePermissionDetail
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -89,13 +89,10 @@ class UserByStudentId(APIView):
                 'message': "can't found user with this student id"
             }, status=status.HTTP_404_NOT_FOUND)
 
-
         return Response({
             'success': True,
             'userId': user.id,
         }, status=status.HTTP_200_OK)
-
-
 
 
 class UserDetailView(APIView):
@@ -104,7 +101,6 @@ class UserDetailView(APIView):
     def get(self, request):
 
         userId = self.request.query_params.get("userId")
-
 
         user = User.objects.get(id=request.user.id)
 
@@ -127,8 +123,6 @@ class UserDetailView(APIView):
                 'success': False,
                 'message': 'User account is disabled'
             }, status=status.HTTP_403_FORBIDDEN)
-
-
 
         roles = Role.objects.filter(userrole__user=user).distinct()
         profile = userProfile.objects.get(user=user)
@@ -373,7 +367,6 @@ class AdminEditView(generics.UpdateAPIView):
 
 
 class ResetPasswordView(APIView):
-
     permission_classes = [permissions.AllowAny]
     serializer_class = ResetPassSerializer
 
@@ -393,15 +386,49 @@ class ResetPasswordView(APIView):
                 "message": "User with this username doesn't exist"
             }, status=status.HTTP_404_NOT_FOUND)
 
-
         user.set_password(
             serializer.validated_data['new_password']
         )
 
         user.save()
 
-
         return Response({
             "success": True,
             "message": "Password updated successfully",
+        }, status=status.HTTP_200_OK)
+
+
+class userRoleDetailView(generics.ListAPIView):
+    serializer_class = UserRoleDetail
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+
+    def get_queryset(self):
+        queryset = UserRole.objects.all()
+        params = self.request.query_params
+
+        if params.get('user_id'):
+            queryset = queryset.filter(user_id=params.get('user_id'))
+
+        if params.get('role_id'):
+            queryset = queryset.filter(role_id=params.get('role_id'))
+
+        return queryset
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class userRoleDeleteView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
+    queryset = UserRole.objects.all()
+    serializer_class = UserRoleDelete
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        user_id = instance.user_id
+        role_id = instance.role_id
+
+        self.perform_destroy(instance)
+
+        return Response({
+            "message": f"userRole with id: {user_id} in {role_id} deleted successfully"
         }, status=status.HTTP_200_OK)

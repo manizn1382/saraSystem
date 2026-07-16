@@ -1194,7 +1194,7 @@ Validation and handling notes:
 
 ### `GET /api/v1/userRole/list`
 
-Status: Planned  
+Status: implemented 
 Auth: admin  
 Purpose: list user-role assignments.
 
@@ -1202,13 +1202,13 @@ Query params: `user`, `role`, `page`, `page_size`.
 
 ### `DELETE /api/v1/userRole/delete/{id}`
 
-Status: Planned  
+Status: implemented  
 Auth: admin  
 Purpose: remove role from user.
 
 ### `GET /api/v1/rolePermission/list`
 
-Status: Planned  
+Status: implemented  
 Auth: admin  
 Purpose: list role-permission assignments.
 
@@ -1216,19 +1216,19 @@ Query params: `role`, `permission`, `page`, `page_size`.
 
 ### `DELETE /api/v1/rolePermission/delete/{id}`
 
-Status: Planned  
+Status: implemented
 Auth: admin  
 Purpose: detach permission from role. The front-end checklist calls this out as missing.
 
 ### `PATCH /api/v1/permission/update/{id}`
 
-Status: Planned  
+Status: implemented  
 Auth: admin  
 Purpose: update permission metadata.
 
 ### `DELETE /api/v1/permission/delete/{id}`
 
-Status: Planned  
+Status: implemented  
 Auth: admin  
 Purpose: delete permission.
 
