@@ -545,6 +545,58 @@
         return this.beds.filter((bed) => roomIds.has(String(bed.room_id)) && (!status || bed.status === status)).length;
       },
 
+      dormitoryCapacityStats(dormitory = {}) {
+        const toNumber = (value) => Number(window.SaraUI?.toEnglishDigits?.(value || '0') || value || 0);
+        const dormitoryId = dormitory?.id || '';
+        const rooms = dormitoryId
+          ? this.rooms.filter((room) => String(this.roomDormitoryId(room)) === String(dormitoryId))
+          : [];
+        const roomIds = new Set(rooms.map((room) => String(room.id)));
+        const beds = this.beds.filter((bed) => roomIds.has(String(bed.room_id)));
+        const roomCapacity = rooms.reduce((sum, room) => sum + toNumber(room.capacity), 0);
+        const availableBeds = beds.filter((bed) => bed.status === 'available').length
+          || toNumber(dormitory?.available_beds ?? dormitory?.available_capacity);
+        const occupiedBeds = beds.filter((bed) => bed.status === 'occupied').length
+          || toNumber(dormitory?.occupied_beds ?? dormitory?.currentOccupancy);
+        const totalBeds = beds.length
+          || roomCapacity
+          || toNumber(dormitory?.total_beds ?? dormitory?.capacity)
+          || (availableBeds + occupiedBeds);
+
+        return {
+          roomCount: rooms.length || toNumber(dormitory?.total_rooms ?? dormitory?.totalRoom),
+          totalBeds,
+          availableBeds,
+          occupiedBeds
+        };
+      },
+
+      dormitoryOccupancyPercent(dormitory = {}) {
+        const stats = this.dormitoryCapacityStats(dormitory);
+        if (stats.totalBeds) {
+          return Math.max(0, Math.min(100, Math.round((stats.occupiedBeds / stats.totalBeds) * 100)));
+        }
+        return Math.max(0, Math.min(100, Number(dormitory?.occupancy || 0)));
+      },
+
+      dormitoryCapacityLabel(dormitory = {}) {
+        const stats = this.dormitoryCapacityStats(dormitory);
+        if (!stats.totalBeds) return 'ظرفیت نامشخص';
+        if (stats.availableBeds <= 0) return 'تکمیل';
+        const occupancy = this.dormitoryOccupancyPercent(dormitory);
+        if (occupancy >= 90) return 'نزدیک تکمیل';
+        if (occupancy >= 70) return 'پرترافیک';
+        return 'دارای ظرفیت';
+      },
+
+      dormitoryCapacityClass(dormitory = {}) {
+        const label = this.dormitoryCapacityLabel(dormitory);
+        if (label === 'تکمیل' || label === 'نزدیک تکمیل') return 'ss-status-badge ss-status-danger';
+        if (label === 'پرترافیک') return 'ss-status-badge ss-status-warning';
+        if (label === 'دارای ظرفیت') return 'ss-status-badge ss-status-success';
+        return 'ss-status-badge ss-status-muted';
+      },
+
       matchesText(item, query, fields) {
         const needle = String(window.SaraUI?.toEnglishDigits?.(query || '') || query || '').toLowerCase().trim();
         if (!needle) return true;
@@ -577,6 +629,66 @@
           const matchesDue = this.paymentFilters.due === 'all' || dueState === this.paymentFilters.due;
           return matchesStatus && matchesDue && this.matchesText(payment, this.paymentFilters.query, ['id', 'student_name', 'student_id', 'payment_type', 'transaction_ref', 'description']);
         });
+      },
+
+      selectedOperationDormitoryName() {
+        if (this.operationFilters.dormitoryId === 'all') return '';
+        return this.dormitories.find((dormitory) => String(dormitory.id) === String(this.operationFilters.dormitoryId))?.name || this.operationFilters.dormitoryId;
+      },
+
+      requestFilterChips() {
+        const chips = [];
+        const query = this.operationFilters.requestQuery.trim();
+        const dormitory = this.selectedOperationDormitoryName();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.operationFilters.requestStatus !== 'all') chips.push(`وضعیت: ${this.statusBadgeLabel('accommodation', this.operationFilters.requestStatus)}`);
+        if (dormitory) chips.push(`خوابگاه: ${dormitory}`);
+        return chips;
+      },
+
+      clearRequestFilters() {
+        this.operationFilters.requestQuery = '';
+        this.operationFilters.requestStatus = 'all';
+        this.operationFilters.dormitoryId = 'all';
+      },
+
+      assignmentFilterChips() {
+        const chips = [];
+        const query = this.operationFilters.assignmentQuery.trim();
+        const dormitory = this.selectedOperationDormitoryName();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.operationFilters.assignmentStatus !== 'all') chips.push(`وضعیت: ${this.statusBadgeLabel('assignment', this.operationFilters.assignmentStatus)}`);
+        if (dormitory) chips.push(`خوابگاه: ${dormitory}`);
+        return chips;
+      },
+
+      clearAssignmentFilters() {
+        this.operationFilters.assignmentQuery = '';
+        this.operationFilters.assignmentStatus = 'all';
+        this.operationFilters.dormitoryId = 'all';
+      },
+
+      paymentDueFilterLabel(value) {
+        return {
+          overdue: 'سررسید گذشته',
+          'due-soon': 'نزدیک سررسید',
+          upcoming: 'در مهلت',
+          paid: 'پرداخت شده',
+          unknown: 'بدون سررسید'
+        }[value] || value;
+      },
+
+      paymentFilterChips() {
+        const chips = [];
+        const query = this.paymentFilters.query.trim();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.paymentFilters.status !== 'all') chips.push(`وضعیت: ${this.statusBadgeLabel('payment', this.paymentFilters.status)}`);
+        if (this.paymentFilters.due !== 'all') chips.push(`سررسید: ${this.paymentDueFilterLabel(this.paymentFilters.due)}`);
+        return chips;
+      },
+
+      clearPaymentFilters() {
+        this.paymentFilters = { query: '', status: 'all', due: 'all' };
       },
 
       paymentDueState(payment) {
@@ -653,6 +765,20 @@
         return badge?.label || status || 'نامشخص';
       },
 
+      dialogSummaryInitials() {
+        return String(this.dialog.summary?.title || this.dialog.title || 'جزئیات').trim().slice(0, 2) || 'جز';
+      },
+
+      dialogSummaryStatusClass() {
+        if (!this.dialog.summary?.statusType) return 'ss-status-badge ss-status-muted';
+        return this.statusBadgeClass(this.dialog.summary.statusType, this.dialog.summary.status);
+      },
+
+      dialogSummaryStatusLabel() {
+        if (!this.dialog.summary?.statusType) return 'اطلاعات';
+        return this.statusBadgeLabel(this.dialog.summary.statusType, this.dialog.summary.status);
+      },
+
       computedReports() {
         const occupiedBeds = this.beds.filter((bed) => bed.status === 'occupied').length || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.occupied_beds || 0), 0);
         const availableBeds = this.beds.filter((bed) => bed.status === 'available').length || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.available_beds || 0), 0);
@@ -673,6 +799,57 @@
         ];
       },
 
+      adminQueueItems() {
+        const pendingRequests = this.accommodationRequests.filter((request) => String(request.status || '').toLowerCase() === 'pending');
+        const approvedRequests = this.accommodationRequests.filter((request) => String(request.status || '').toLowerCase() === 'approved');
+        const assignedRequestIds = new Set(this.bedAssignments.map((assignment) => String(assignment.request_id || '')).filter(Boolean));
+        const approvedUnassigned = approvedRequests.filter((request) =>
+          ![request.id, request.code].some((value) => assignedRequestIds.has(String(value || '')))
+        );
+        const unverifiedUsers = this.users.filter((user) => user.is_verified === false);
+        const freeBeds = this.beds.filter((bed) => String(bed.status || '').toLowerCase() === 'available').length
+          || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.available_beds || 0), 0);
+        const overduePayments = this.payments.filter((payment) => this.paymentDueState(payment) === 'overdue');
+
+        return [
+          {
+            title: 'درخواست‌های در انتظار بررسی',
+            value: this.toPersianNumber(pendingRequests.length),
+            note: 'نیازمند تصمیم مدیر خوابگاه یا پیگیری ظرفیت',
+            href: '#operations',
+            tone: pendingRequests.length ? 'warning' : 'success'
+          },
+          {
+            title: 'تاییدشده بدون تخصیص',
+            value: this.toPersianNumber(approvedUnassigned.length),
+            note: 'درخواست‌هایی که هنوز به تخت فعال وصل نشده‌اند',
+            href: '#operations',
+            tone: approvedUnassigned.length ? 'danger' : 'success'
+          },
+          {
+            title: 'حساب‌های تاییدنشده',
+            value: this.toPersianNumber(unverifiedUsers.length),
+            note: 'کاربران نیازمند بازبینی هویت یا فعال‌سازی نهایی',
+            href: '#users',
+            tone: unverifiedUsers.length ? 'warning' : 'success'
+          },
+          {
+            title: 'تخت آزاد قابل تخصیص',
+            value: this.toPersianNumber(freeBeds),
+            note: 'بر اساس فهرست تخت‌ها یا ظرفیت گزارش‌شده خوابگاه',
+            href: '#dormitories',
+            tone: freeBeds ? 'success' : 'danger'
+          },
+          {
+            title: 'پرداخت‌های سررسید گذشته',
+            value: this.toPersianNumber(overduePayments.length),
+            note: 'نمایشی تا زمان آماده‌شدن endpoint پرداخت‌ها',
+            href: '#operations',
+            tone: overduePayments.length ? 'danger' : 'neutral'
+          }
+        ];
+      },
+
       averageDormitoryOccupancy() {
         const values = this.dormitories.map((item) => Number(item.occupancy || 0)).filter((value) => value > 0);
         return values.length ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : 0;
@@ -683,6 +860,13 @@
           open: true,
           type: 'generic-details',
           title: 'جزئیات درخواست اسکان',
+          summary: {
+            title: request.student_name || request.code || 'درخواست اسکان',
+            meta: [request.dormitory, request.semester].filter(Boolean).join(' · ') || 'درخواست اسکان',
+            code: request.code || request.id || '',
+            statusType: 'accommodation',
+            status: request.status
+          },
           fields: [
             { label: 'کد درخواست', value: request.code || request.id },
             { label: 'دانشجو', value: request.student_name },
@@ -702,6 +886,13 @@
           open: true,
           type: 'generic-details',
           title: 'جزئیات تخصیص تخت',
+          summary: {
+            title: assignment.student_name || 'تخصیص تخت',
+            meta: [assignment.dormitory, assignment.room ? `اتاق ${assignment.room}` : '', assignment.bed ? `تخت ${assignment.bed}` : ''].filter(Boolean).join(' · ') || 'تخصیص تخت',
+            code: assignment.request_id || assignment.id || '',
+            statusType: 'assignment',
+            status: assignment.status
+          },
           fields: [
             { label: 'دانشجو', value: assignment.student_name },
             { label: 'درخواست', value: assignment.request_id },
@@ -730,6 +921,28 @@
             || (this.filters.status === 'unverified' && item.is_verified === false);
           return matchesQuery && matchesRole && matchesStatus;
         });
+      },
+
+      userFilterChips() {
+        const chips = [];
+        const query = this.filters.query.trim();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.filters.role !== 'all') chips.push(`نقش: ${this.filters.role}`);
+        if (this.filters.status !== 'all') {
+          chips.push({
+            active: 'وضعیت: فعال',
+            inactive: 'وضعیت: غیرفعال',
+            unverified: 'وضعیت: تاییدنشده'
+          }[this.filters.status] || this.filters.status);
+        }
+        return chips;
+      },
+
+      clearUserFilters() {
+        this.filters.query = '';
+        this.filters.role = 'all';
+        this.filters.status = 'all';
+        this.resetPage();
       },
 
       pagedUsers() {

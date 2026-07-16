@@ -1,6 +1,6 @@
 # SaraSystem API Catalog and Specification
 
-Last reviewed: 2026-07-11  
+Last reviewed: 2026-07-16
 Scope: complete API inventory for the current SaraSystem repository, including implemented Django routes, front-end expected routes, and required planned routes for the full dormitory management system.
 
 ## Status Legend
@@ -24,6 +24,8 @@ Scope: complete API inventory for the current SaraSystem repository, including i
 | Application API | same origin `/api` or gateway | `/api/...` | Planned unified API surface for accommodation, assignments, payments, maintenance, announcements, reports, public data. |
 
 Current front-end routing in `assets/js/api.js` sends account paths to the account service, dormitory/room/bed/accommodation paths to the dormitory service, authenticated `/api/announcements/...` paths to the account service, AI face aliases to the face AI service, national-ID aliases to the national-ID AI service, and all other `/api/...` paths to the configured general API base. Anonymous public paths such as `/api/public/stats/` and `/api/announcements/public/` stay on the general API base.
+
+Front-end base URLs can be overridden with `SaraAPI.configure({ baseUrl, accountsBaseUrl, dormitoryBaseUrl, aiBaseUrl, nationalIdBaseUrl })`, matching the `window.SARA_*_API_BASE_URL` globals and `localStorage` keys such as `sarasystem.apiBaseUrl`, `sarasystem.accountsApiBaseUrl`, `sarasystem.dormitoryApiBaseUrl`, `sarasystem.aiApiBaseUrl`, and `sarasystem.nationalIdApiBaseUrl`.
 
 ## Global API Conventions
 

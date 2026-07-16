@@ -30,7 +30,7 @@
               <span class="admin-brand-logo"><img src="../../assets/logo_with_outline.png" alt="لوگوی سراسیستم" onerror="this.classList.add('d-none')" /></span>
               <span><span class="d-block admin-brand-title">سراسیستم</span><span class="d-block admin-brand-subtitle">مدیریت دانشگاه</span></span>
             </a>
-            <button class="admin-icon-button d-lg-none" type="button" aria-label="بستن منوی کناری" @click="sidebarOpen = false">×</button>
+            <button class="btn btn-ss btn-ss-outline d-lg-none px-3" type="button" aria-label="بستن منوی کناری" @click="sidebarOpen = false">×</button>
           </div>
         </div>
         <div class="admin-user-card">
@@ -38,28 +38,28 @@
           <div class="min-w-0"><strong class="d-block text-truncate" x-text="fullName(user)"></strong><span class="d-block admin-brand-subtitle text-truncate" x-text="roleLabel(user)"></span></div>
         </div>
         <nav class="admin-nav" aria-label="بخش‌های مدیریت">
-          <template x-for="item in [{href:'#overview',label:'نمای کلی',icon:'نمای'},{href:'#users',label:'کاربران',icon:'کاربر'},{href:'#roles',label:'نقش‌ها',icon:'نقش'},{href:'#dormitories',label:'خوابگاه‌ها',icon:'ظرفیت'},{href:'#operations',label:'عملیات',icon:'عملیات'},{href:'#reports',label:'گزارش‌ها',icon:'گزارش'}]" :key="item.href">
-            <a class="admin-nav-link" :class="{ 'active': activeSection === item.href }" :aria-current="activeSection === item.href ? 'page' : null" :href="item.href" @click="activeSection = item.href; sidebarOpen = false"><span class="admin-nav-icon" x-text="item.icon"></span><span x-text="item.label"></span></a>
+          <template x-for="item in [{href:'#overview',label:'نمای کلی',icon:'📊'},{href:'#users',label:'کاربران',icon:'👥'},{href:'#roles',label:'نقش‌ها',icon:'🔐'},{href:'#dormitories',label:'خوابگاه‌ها',icon:'🏢'},{href:'#operations',label:'عملیات',icon:'⚙️'},{href:'#reports',label:'گزارش‌ها',icon:'📈'}]" :key="item.href">
+            <a class="admin-nav-link" :class="{ 'active': activeSection === item.href }" :aria-current="activeSection === item.href ? 'page' : null" :href="item.href" @click="activeSection = item.href; sidebarOpen = false"><span class="admin-nav-label"><span class="admin-nav-icon" x-text="item.icon"></span><span x-text="item.label"></span></span></a>
           </template>
         </nav>
-        <div class="admin-sidebar-footer"><button class="btn admin-danger-button w-100" type="button" @click="logout()">خروج از حساب</button></div>
+        <div class="admin-sidebar-footer"><button class="btn btn-ss btn-ss-danger w-100" type="button" @click="logout()">خروج از حساب</button></div>
       </aside>
 
       <main class="min-w-0">
-        <header class="ss-topbar ss-glass admin-topbar p-3 p-md-4 mb-3">
-          <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <header class="ss-topbar ss-glass admin-topbar px-3 px-md-4 py-3 mb-3">
+          <div class="d-flex align-items-center justify-content-between gap-3">
             <div class="d-flex align-items-center gap-3 min-w-0">
-              <button class="admin-icon-button d-lg-none" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
+              <button class="btn btn-ss btn-ss-outline d-lg-none px-3" type="button" aria-label="باز کردن منوی کناری" :aria-expanded="sidebarOpen.toString()" @click="sidebarOpen = true">☰</button>
               <div class="min-w-0">
                 <div class="admin-breadcrumb mb-1">سراسیستم / مدیریت دانشگاه / <span x-text="activeLabel()"></span></div>
-                <h2 class="h3 fw-bold mb-0 text-truncate">کنترل مدیریتی سامانه</h2>
+                <h2 class="h4 fw-bold mb-0 text-truncate">کنترل مدیریتی سامانه</h2>
               </div>
             </div>
             <div class="d-flex align-items-center gap-2">
               <div data-sara-theme-slot></div>
-              <button class="btn admin-outline-button" type="button" @click="loadAll()">بروزرسانی</button>
+              <button class="btn btn-ss btn-ss-outline px-3" type="button" @click="loadAll()">بروزرسانی</button>
               <div class="admin-profile-menu" @keydown.escape.window="profileOpen = false">
-                <button class="btn admin-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen"><span class="admin-avatar admin-avatar-sm" x-text="userInitials()"></span><span class="d-none d-md-inline" x-text="fullName(user)"></span></button>
+                <button class="btn btn-ss btn-ss-primary px-3 admin-profile-button" type="button" :aria-expanded="profileOpen.toString()" @click="profileOpen = !profileOpen"><span class="admin-avatar admin-avatar-sm" x-text="userInitials()"></span><span class="d-none d-md-inline" x-text="fullName(user)"></span></button>
                 <div x-cloak x-show="profileOpen" x-transition class="admin-profile-dropdown" @click.outside="profileOpen = false"><strong class="d-block" x-text="fullName(user)"></strong><span class="d-block admin-brand-subtitle mb-3" dir="ltr" x-text="user.email || '—'"></span><a class="btn admin-outline-button w-100 mb-2" :href="accountPath()">پروفایل</a><button class="btn admin-danger-button w-100" type="button" @click="logout()">خروج</button></div>
               </div>
             </div>
@@ -83,6 +83,16 @@
                   <span class="ss-muted" x-text="stat.label"></span>
                 </article>
               </div>
+            </template>
+          </div>
+          <div class="admin-command-grid mt-3" aria-label="اولویت‌های مدیریتی">
+            <template x-for="item in adminQueueItems()" :key="item.title">
+              <a class="admin-command-card" :class="`tone-${item.tone}`" :href="item.href">
+                <span class="admin-command-value" x-text="item.value"></span>
+                <span class="admin-command-title" x-text="item.title"></span>
+                <span class="admin-command-note" x-text="item.note"></span>
+                <span class="admin-command-action">رفتن به بخش</span>
+              </a>
             </template>
           </div>
         </section>
@@ -119,6 +129,15 @@
             </div>
             <button class="btn ss-btn ss-btn-outline" type="button" @click="loadUsers()" :disabled="loading.users">بارگذاری مجدد</button>
           </div>
+          <div class="admin-filter-strip mb-3">
+            <span class="admin-result-count" x-text="`${toPersianNumber(filteredUsers().length)} نتیجه از ${toPersianNumber(users.length)} کاربر`"></span>
+            <div class="admin-filter-chips" x-show="userFilterChips().length">
+              <template x-for="chip in userFilterChips()" :key="chip">
+                <span class="admin-filter-chip" x-text="chip"></span>
+              </template>
+              <button class="admin-filter-reset" type="button" @click="clearUserFilters()">پاک‌سازی فیلترها</button>
+            </div>
+          </div>
 
           <div x-cloak x-show="errors.users" class="alert alert-danger d-flex justify-content-between align-items-center gap-2" role="alert">
             <span x-text="errors.users"></span><button type="button" class="btn btn-sm btn-outline-danger" @click="loadUsers()">تلاش مجدد</button>
@@ -130,11 +149,11 @@
               <tbody>
                 <template x-for="item in pagedUsers()" :key="item.row_id">
                   <tr>
-                    <td><strong x-text="fullName(item)"></strong><small class="d-block ss-muted" dir="ltr" x-text="item.email || '—'"></small></td>
-                    <td><span x-text="item.student_id || item.national_id || '—'"></span></td>
-                    <td><span class="ss-badge-soft" x-text="roleLabel(item)"></span></td>
-                    <td><span class="ss-status-badge" :class="statusClass(item)" x-text="statusLabel(item)"></span></td>
-                    <td><div class="admin-table-actions">
+                    <td data-label="کاربر"><strong class="admin-user-name" x-text="fullName(item)"></strong><small class="d-block ss-muted" dir="ltr" x-text="item.email || '—'"></small></td>
+                    <td data-label="شناسه‌ها"><span class="admin-identity-value" x-text="item.student_id || item.national_id || '—'"></span></td>
+                    <td data-label="نقش"><span class="ss-badge-soft" x-text="roleLabel(item)"></span></td>
+                    <td data-label="وضعیت"><span class="ss-status-badge" :class="statusClass(item)" x-text="statusLabel(item)"></span></td>
+                    <td data-label="عملیات"><div class="admin-table-actions">
                       <button class="admin-action-button" type="button" title="جزئیات" @click="openUserDetails(item)">جزئیات</button>
                       <button class="admin-action-button" type="button" title="ویرایش" :disabled="loading.saving || !item.id" @click="openUserForm(item)">ویرایش</button>
                       <button class="admin-action-button" type="button" title="تغییر وضعیت" :disabled="loading.saving" @click="toggleUserActivity(item)" x-text="item.is_active === false ? 'فعال‌سازی' : 'غیرفعال‌سازی'"></button>
@@ -165,8 +184,8 @@
           <div x-cloak x-show="errors.roles" class="alert alert-danger" role="alert"><span x-text="errors.roles"></span></div>
           <div x-cloak x-show="!errors.roles && roles.some((role) => !role.id)" class="alert alert-warning small" role="status">برخی نقش‌های دریافتی از account service شناسه ندارند؛ ویرایش، حذف و اتصال برای این نقش‌ها تا زمان ارسال id از API غیرفعال است.</div>
           <div class="table-responsive" x-show="!errors.roles">
-            <table class="table ss-table align-middle"><caption class="visually-hidden">فهرست نقش‌های سامانه</caption><thead><tr><th>نقش</th><th>توضیحات</th><th>شناسه</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
-              <tbody><template x-for="role in roles" :key="role.id || role.name"><tr><td><strong x-text="role.name"></strong></td><td x-text="role.description || '—'"></td><td x-text="role.id || '—'"></td><td><div class="admin-table-actions"><button class="admin-action-button" type="button" :disabled="!role.id" @click="openRoleForm(role)">ویرایش</button><button class="admin-action-button danger" type="button" :disabled="loading.saving || !role.id" @click="deleteRole(role)">حذف</button></div></td></tr></template><tr x-show="loading.roles"><td colspan="4"><div class="ss-loading">در حال دریافت نقش‌ها...</div></td></tr><tr x-show="!loading.roles && roles.length === 0"><td colspan="4"><div class="ss-empty">نقشی ثبت نشده است.</div></td></tr></tbody>
+            <table class="table ss-table align-middle ss-table-card-mobile"><caption class="visually-hidden">فهرست نقش‌های سامانه</caption><thead><tr><th>نقش</th><th>توضیحات</th><th>شناسه</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
+              <tbody><template x-for="role in roles" :key="role.id || role.name"><tr><td data-label="نقش"><strong class="admin-user-name" x-text="role.name"></strong></td><td data-label="توضیحات" x-text="role.description || '—'"></td><td data-label="شناسه" x-text="role.id || '—'"></td><td data-label="عملیات"><div class="admin-table-actions"><button class="admin-action-button" type="button" :disabled="!role.id" @click="openRoleForm(role)">ویرایش</button><button class="admin-action-button danger" type="button" :disabled="loading.saving || !role.id" @click="deleteRole(role)">حذف</button></div></td></tr></template><tr x-show="loading.roles"><td colspan="4"><div class="ss-loading">در حال دریافت نقش‌ها...</div></td></tr><tr x-show="!loading.roles && roles.length === 0"><td colspan="4"><div class="ss-empty">نقشی ثبت نشده است.</div></td></tr></tbody>
             </table>
           </div>
           <div class="admin-access-grid mt-4">
@@ -185,7 +204,36 @@
         <section id="dormitories" class="admin-section ss-card ss-glass p-3 p-md-4 mb-3" aria-labelledby="dormitoryTitle">
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3"><div><h3 id="dormitoryTitle" class="h5 fw-bold mb-1">خوابگاه‌ها و ظرفیت</h3><p class="ss-muted small mb-0">نمای مدیریتی خوابگاه‌ها، اتاق‌ها و تخت‌ها</p></div><button class="btn ss-btn ss-btn-outline" type="button" @click="loadDormitories()">بروزرسانی</button></div>
           <div x-cloak x-show="errors.dormitories" class="ss-empty admin-empty-block"><span x-text="errors.dormitories"></span></div>
-          <div class="row g-3" x-show="!errors.dormitories"><template x-for="dormitory in dormitories" :key="dormitory.id"><div class="col-md-6 col-xl-4"><article class="admin-operation"><div><h4 class="fw-bold" x-text="dormitory.name || dormitory.title"></h4><p class="ss-muted small mb-0" x-text="dormitory.address || '—'"></p></div><div class="d-flex justify-content-between ss-muted small"><span x-text="`اتاق: ${toPersianNumber(dormitory.total_rooms || dormitory.totalRoom || 0)}`"></span><span x-text="`ظرفیت آزاد: ${toPersianNumber(dormitory.available_beds || dormitory.available_capacity || 0)}`"></span></div></article></div></template><div class="col-12" x-show="loading.dormitories"><div class="ss-loading">در حال دریافت خوابگاه‌ها...</div></div><div class="col-12" x-show="!loading.dormitories && dormitories.length === 0"><div class="ss-empty">داده‌ای برای خوابگاه‌ها دریافت نشده است.</div></div></div>
+          <div class="row g-3" x-show="!errors.dormitories">
+            <template x-for="dormitory in dormitories" :key="dormitory.id">
+              <div class="col-md-6 col-xl-4">
+                <article class="admin-dorm-card" :class="{ active: String(selectedDormitoryId) === String(dormitory.id) }">
+                  <div class="d-flex align-items-start justify-content-between gap-2">
+                    <div class="min-w-0">
+                      <h4 class="admin-dorm-title" x-text="dormitory.name || dormitory.title"></h4>
+                      <p class="ss-muted small mb-0 text-truncate" x-text="dormitory.address || 'بدون آدرس ثبت‌شده'"></p>
+                    </div>
+                    <span :class="dormitoryCapacityClass(dormitory)" x-text="dormitoryCapacityLabel(dormitory)"></span>
+                  </div>
+                  <div class="admin-capacity-meter" role="meter" aria-label="درصد اشغال خوابگاه" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="dormitoryOccupancyPercent(dormitory)">
+                    <span :style="`width: ${dormitoryOccupancyPercent(dormitory)}%`"></span>
+                  </div>
+                  <div class="admin-dorm-metrics">
+                    <span><small>اتاق</small><strong x-text="toPersianNumber(dormitoryCapacityStats(dormitory).roomCount)"></strong></span>
+                    <span><small>تخت</small><strong x-text="toPersianNumber(dormitoryCapacityStats(dormitory).totalBeds)"></strong></span>
+                    <span><small>آزاد</small><strong x-text="toPersianNumber(dormitoryCapacityStats(dormitory).availableBeds)"></strong></span>
+                    <span><small>اشغال</small><strong x-text="`${toPersianNumber(dormitoryOccupancyPercent(dormitory))}٪`"></strong></span>
+                  </div>
+                  <div class="admin-dorm-actions">
+                    <button class="admin-action-button" type="button" @click="selectDormitory(dormitory)">ظرفیت</button>
+                    <button class="admin-action-button" type="button" @click="editDormitory(dormitory)">ویرایش</button>
+                  </div>
+                </article>
+              </div>
+            </template>
+            <div class="col-12" x-show="loading.dormitories"><div class="ss-loading">در حال دریافت خوابگاه‌ها...</div></div>
+            <div class="col-12" x-show="!loading.dormitories && dormitories.length === 0"><div class="ss-empty">داده‌ای برای خوابگاه‌ها دریافت نشده است.</div></div>
+          </div>
           <div class="admin-workspace-grid mt-4">
             <article class="admin-access-card">
               <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -215,16 +263,16 @@
                 </select>
               </div>
               <div class="admin-capacity-strip">
-                <span><strong x-text="toPersianNumber(roomsForSelectedDormitory().length)"></strong> اتاق</span>
-                <span><strong x-text="toPersianNumber(bedCountForDormitory(selectedDormitoryId))"></strong> تخت</span>
-                <span><strong x-text="toPersianNumber(bedCountForDormitory(selectedDormitoryId, 'available'))"></strong> آزاد</span>
-                <span><strong x-text="toPersianNumber(bedCountForDormitory(selectedDormitoryId, 'occupied'))"></strong> اشغال</span>
+                <span><strong x-text="toPersianNumber(dormitoryCapacityStats(selectedDormitory()).roomCount)"></strong> اتاق</span>
+                <span><strong x-text="toPersianNumber(dormitoryCapacityStats(selectedDormitory()).totalBeds)"></strong> تخت</span>
+                <span><strong x-text="toPersianNumber(dormitoryCapacityStats(selectedDormitory()).availableBeds)"></strong> آزاد</span>
+                <span><strong x-text="`${toPersianNumber(dormitoryOccupancyPercent(selectedDormitory()))}٪`"></strong> اشغال</span>
               </div>
               <div class="admin-mini-list mt-3">
                 <template x-for="dormitory in dormitories" :key="`manage-${dormitory.id}`">
                   <button class="admin-mini-row" type="button" :class="{ active: String(selectedDormitoryId) === String(dormitory.id) }" @click="editDormitory(dormitory)">
                     <span><strong x-text="dormitory.name"></strong><small class="d-block ss-muted" x-text="dormitory.address || 'بدون آدرس'"></small></span>
-                    <span class="ss-status-badge ss-status-info" x-text="`${toPersianNumber(dormitory.available_beds || bedCountForDormitory(dormitory.id, 'available'))} آزاد`"></span>
+                    <span :class="dormitoryCapacityClass(dormitory)" x-text="dormitoryCapacityLabel(dormitory)"></span>
                   </button>
                 </template>
               </div>
@@ -239,7 +287,7 @@
                   <caption class="visually-hidden">اتاق‌های خوابگاه انتخاب‌شده</caption>
                   <thead><tr><th>اتاق</th><th>طبقه</th><th>ظرفیت</th><th>اشغال</th><th>وضعیت</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
                   <tbody>
-                    <template x-for="room in roomsForSelectedDormitory()" :key="room.id"><tr><td x-text="room.room_number"></td><td x-text="room.floor_number || '—'"></td><td x-text="toPersianNumber(room.capacity || 0)"></td><td x-text="toPersianNumber(room.occupied || 0)"></td><td><span :class="statusBadgeClass('capacity', room.status)" x-text="statusBadgeLabel('capacity', room.status)"></span></td><td><button class="admin-action-button" type="button" @click="selectedRoomId = room.id">تخت‌ها</button></td></tr></template>
+                    <template x-for="room in roomsForSelectedDormitory()" :key="room.id"><tr><td data-label="اتاق"><strong class="admin-primary-value" x-text="room.room_number"></strong></td><td data-label="طبقه" x-text="room.floor_number || '—'"></td><td data-label="ظرفیت"><span class="admin-identity-value" x-text="toPersianNumber(room.capacity || 0)"></span></td><td data-label="اشغال"><span class="admin-identity-value" x-text="toPersianNumber(room.occupied || 0)"></span></td><td data-label="وضعیت"><span :class="statusBadgeClass('capacity', room.status)" x-text="statusBadgeLabel('capacity', room.status)"></span></td><td data-label="عملیات"><button class="admin-action-button" type="button" @click="selectedRoomId = room.id">تخت‌ها</button></td></tr></template>
                     <tr x-show="!loading.rooms && roomsForSelectedDormitory().length === 0"><td colspan="6"><div class="ss-empty">اتاقی برای این خوابگاه دریافت نشده است.</div></td></tr>
                   </tbody>
                 </table>
@@ -270,13 +318,20 @@
                 <div class="col-md-3"><select class="form-select" x-model="operationFilters.requestStatus"><option value="all">همه وضعیت‌ها</option><option value="pending">در انتظار</option><option value="approved">تایید شده</option><option value="rejected">رد شده</option><option value="assigned">تخصیص داده شده</option></select></div>
                 <div class="col-md-4"><select class="form-select" x-model="operationFilters.dormitoryId"><option value="all">همه خوابگاه‌ها</option><template x-for="dormitory in dormitories" :key="`req-dorm-${dormitory.id}`"><option :value="dormitory.id" x-text="dormitory.name"></option></template></select></div>
               </div>
+              <div class="admin-filter-strip mb-3">
+                <span class="admin-result-count" x-text="`${toPersianNumber(filteredAccommodationRequests().length)} نتیجه از ${toPersianNumber(accommodationRequests.length)} درخواست`"></span>
+                <div class="admin-filter-chips" x-show="requestFilterChips().length">
+                  <template x-for="chip in requestFilterChips()" :key="chip"><span class="admin-filter-chip" x-text="chip"></span></template>
+                  <button class="admin-filter-reset" type="button" @click="clearRequestFilters()">پاک‌سازی فیلترها</button>
+                </div>
+              </div>
               <div x-cloak x-show="errors.accommodationRequests" class="alert alert-warning small" role="alert" x-text="errors.accommodationRequests"></div>
               <div class="table-responsive">
                 <table class="table ss-table align-middle ss-table-card-mobile">
                   <caption class="visually-hidden">درخواست‌های اسکان سراسری</caption>
                   <thead><tr><th>کد</th><th>دانشجو</th><th>خوابگاه</th><th>نیم‌سال</th><th>وضعیت</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
                   <tbody>
-                    <template x-for="request in filteredAccommodationRequests().slice(0, 12)" :key="request.id"><tr><td x-text="request.code || request.id"></td><td><strong x-text="request.student_name"></strong><small class="d-block ss-muted" x-text="request.student_id || '—'"></small></td><td x-text="request.dormitory || '—'"></td><td x-text="request.semester || '—'"></td><td><span :class="statusBadgeClass('accommodation', request.status)" x-text="statusBadgeLabel('accommodation', request.status)"></span></td><td><button class="admin-action-button" type="button" @click="openRequestDetail(request)">جزئیات</button></td></tr></template>
+                    <template x-for="request in filteredAccommodationRequests().slice(0, 12)" :key="request.id"><tr><td data-label="کد"><span class="admin-identity-value" x-text="request.code || request.id"></span></td><td data-label="دانشجو"><strong class="admin-user-name" x-text="request.student_name || '—'"></strong><small class="d-block ss-muted" x-text="request.student_id || '—'"></small></td><td data-label="خوابگاه" x-text="request.dormitory || '—'"></td><td data-label="نیم‌سال" x-text="request.semester || '—'"></td><td data-label="وضعیت"><span :class="statusBadgeClass('accommodation', request.status)" x-text="statusBadgeLabel('accommodation', request.status)"></span></td><td data-label="عملیات"><button class="admin-action-button" type="button" @click="openRequestDetail(request)">جزئیات</button></td></tr></template>
                     <tr x-show="!loading.accommodationRequests && filteredAccommodationRequests().length === 0"><td colspan="6"><div class="ss-empty">درخواستی با فیلتر فعلی دریافت نشده است.</div></td></tr>
                   </tbody>
                 </table>
@@ -292,13 +347,20 @@
                 <div class="col-md-7"><input class="form-control" type="search" x-model.debounce.250ms="operationFilters.assignmentQuery" placeholder="جستجوی دانشجو، خوابگاه، اتاق یا تخت" /></div>
                 <div class="col-md-5"><select class="form-select" x-model="operationFilters.assignmentStatus"><option value="all">همه وضعیت‌ها</option><option value="active">فعال</option><option value="assigned">تخصیص داده شده</option><option value="ended">پایان یافته</option><option value="cancelled">لغو شده</option></select></div>
               </div>
+              <div class="admin-filter-strip mb-3">
+                <span class="admin-result-count" x-text="`${toPersianNumber(filteredBedAssignments().length)} نتیجه از ${toPersianNumber(bedAssignments.length)} تخصیص`"></span>
+                <div class="admin-filter-chips" x-show="assignmentFilterChips().length">
+                  <template x-for="chip in assignmentFilterChips()" :key="chip"><span class="admin-filter-chip" x-text="chip"></span></template>
+                  <button class="admin-filter-reset" type="button" @click="clearAssignmentFilters()">پاک‌سازی فیلترها</button>
+                </div>
+              </div>
               <div x-cloak x-show="errors.bedAssignments" class="alert alert-warning small" role="alert" x-text="errors.bedAssignments"></div>
               <div class="table-responsive">
                 <table class="table ss-table align-middle ss-table-card-mobile">
                   <caption class="visually-hidden">تاریخچه تخصیص تخت</caption>
                   <thead><tr><th>دانشجو</th><th>مکان</th><th>شروع</th><th>پایان</th><th>وضعیت</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
                   <tbody>
-                    <template x-for="assignment in filteredBedAssignments().slice(0, 12)" :key="assignment.id"><tr><td x-text="assignment.student_name || '—'"></td><td><strong x-text="assignment.dormitory || '—'"></strong><small class="d-block ss-muted" x-text="`اتاق ${assignment.room || '—'}، تخت ${assignment.bed || '—'}`"></small></td><td x-text="assignment.start_date || '—'"></td><td x-text="assignment.end_date || '—'"></td><td><span :class="statusBadgeClass('assignment', assignment.status)" x-text="statusBadgeLabel('assignment', assignment.status)"></span></td><td><button class="admin-action-button" type="button" @click="openAssignmentDetail(assignment)">جزئیات</button></td></tr></template>
+                    <template x-for="assignment in filteredBedAssignments().slice(0, 12)" :key="assignment.id"><tr><td data-label="دانشجو"><strong class="admin-user-name" x-text="assignment.student_name || '—'"></strong></td><td data-label="مکان"><strong class="admin-primary-value" x-text="assignment.dormitory || '—'"></strong><small class="d-block ss-muted" x-text="`اتاق ${assignment.room || '—'}، تخت ${assignment.bed || '—'}`"></small></td><td data-label="شروع" x-text="assignment.start_date || '—'"></td><td data-label="پایان" x-text="assignment.end_date || '—'"></td><td data-label="وضعیت"><span :class="statusBadgeClass('assignment', assignment.status)" x-text="statusBadgeLabel('assignment', assignment.status)"></span></td><td data-label="عملیات"><button class="admin-action-button" type="button" @click="openAssignmentDetail(assignment)">جزئیات</button></td></tr></template>
                     <tr x-show="!loading.bedAssignments && filteredBedAssignments().length === 0"><td colspan="6"><div class="ss-empty">تخصیصی با فیلتر فعلی دریافت نشده است.</div></td></tr>
                   </tbody>
                 </table>
@@ -322,6 +384,13 @@
               <div class="col-md-3"><select class="form-select" x-model="paymentFilters.status"><option value="all">همه وضعیت‌ها</option><option value="paid">پرداخت شده</option><option value="unpaid">پرداخت نشده</option><option value="pending">در انتظار</option><option value="overdue">معوق</option><option value="cancelled">لغو شده</option></select></div>
               <div class="col-md-4"><select class="form-select" x-model="paymentFilters.due"><option value="all">همه سررسیدها</option><option value="overdue">سررسید گذشته</option><option value="due-soon">نزدیک سررسید</option><option value="upcoming">در مهلت</option><option value="paid">پرداخت شده</option><option value="unknown">بدون سررسید</option></select></div>
             </div>
+            <div class="admin-filter-strip mb-3">
+              <span class="admin-result-count" x-text="`${toPersianNumber(filteredPayments().length)} نتیجه از ${toPersianNumber(payments.length)} پرداخت`"></span>
+              <div class="admin-filter-chips" x-show="paymentFilterChips().length">
+                <template x-for="chip in paymentFilterChips()" :key="chip"><span class="admin-filter-chip" x-text="chip"></span></template>
+                <button class="admin-filter-reset" type="button" @click="clearPaymentFilters()">پاک‌سازی فیلترها</button>
+              </div>
+            </div>
             <div x-cloak x-show="errors.payments" class="alert alert-warning small" role="alert" x-text="errors.payments"></div>
             <div class="table-responsive">
               <table class="table ss-table align-middle ss-table-card-mobile">
@@ -330,13 +399,13 @@
                 <tbody>
                   <template x-for="payment in filteredPayments().slice(0, 12)" :key="payment.id">
                     <tr>
-                      <td><strong x-text="payment.student_name || '—'"></strong><small class="d-block ss-muted" x-text="payment.student_id || payment.user_id || '—'"></small></td>
-                      <td><span x-text="payment.payment_type"></span><small class="d-block ss-muted" x-text="payment.id"></small></td>
-                      <td x-text="payment.amount"></td>
-                      <td><span :class="paymentDueClass(payment)" x-text="paymentDueLabel(payment)"></span><small class="d-block ss-muted mt-1" x-text="payment.due_date || '—'"></small></td>
-                      <td dir="ltr" x-text="payment.transaction_ref || '—'"></td>
-                      <td><span :class="statusBadgeClass('payment', payment.status)" x-text="statusBadgeLabel('payment', payment.status)"></span></td>
-                      <td><div class="admin-table-actions"><button class="admin-action-button" type="button" @click="openPaymentDetail(payment)">جزئیات</button><button class="admin-action-button" type="button" @click="openPaymentStudent(payment)">دانشجو</button></div></td>
+                      <td data-label="دانشجو"><strong class="admin-user-name" x-text="payment.student_name || '—'"></strong><small class="d-block ss-muted" x-text="payment.student_id || payment.user_id || '—'"></small></td>
+                      <td data-label="پرداخت"><span class="admin-primary-value" x-text="payment.payment_type"></span><small class="d-block ss-muted" x-text="payment.id"></small></td>
+                      <td data-label="مبلغ"><span class="admin-identity-value" x-text="payment.amount"></span></td>
+                      <td data-label="سررسید"><span :class="paymentDueClass(payment)" x-text="paymentDueLabel(payment)"></span><small class="d-block ss-muted mt-1" x-text="payment.due_date || '—'"></small></td>
+                      <td data-label="مرجع تراکنش"><span class="admin-ltr-value" dir="ltr" x-text="payment.transaction_ref || '—'"></span></td>
+                      <td data-label="وضعیت"><span :class="statusBadgeClass('payment', payment.status)" x-text="statusBadgeLabel('payment', payment.status)"></span></td>
+                      <td data-label="عملیات"><div class="admin-table-actions"><button class="admin-action-button" type="button" @click="openPaymentDetail(payment)">جزئیات</button><button class="admin-action-button" type="button" @click="openPaymentStudent(payment)">دانشجو</button></div></td>
                     </tr>
                   </template>
                   <tr x-show="!loading.payments && filteredPayments().length === 0"><td colspan="7"><div class="ss-empty">پرداختی با فیلتر فعلی دریافت نشده است یا API پرداخت‌ها هنوز آماده نیست.</div></td></tr>
@@ -353,9 +422,12 @@
           <div class="admin-report-grid mt-4">
             <template x-for="report in computedReports()" :key="report.title">
               <article class="admin-report-card" :class="{ 'api-dependent': report.type === 'api' }">
-                <span class="ss-badge-soft" x-text="report.type === 'api' ? 'API' : 'محاسبه'"></span>
-                <strong x-text="report.value"></strong>
-                <h4 x-text="report.title"></h4>
+                <div class="admin-report-head">
+                  <span class="ss-badge-soft" x-text="report.type === 'api' ? 'API' : 'محاسبه'"></span>
+                  <span class="admin-report-state" x-text="report.type === 'api' ? 'وابسته به سرویس' : 'آماده'"></span>
+                </div>
+                <strong class="admin-report-value" x-text="report.value"></strong>
+                <h4 class="admin-report-title" x-text="report.title"></h4>
                 <p class="ss-muted small mb-0" x-text="report.note"></p>
               </article>
             </template>
@@ -368,6 +440,17 @@
       <section class="admin-dialog" x-show="dialog.type === 'details'" role="dialog" aria-modal="true" aria-labelledby="userDetailTitle">
         <header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3"><h3 id="userDetailTitle" class="h5 fw-bold mb-0">جزئیات کاربر</h3><button class="admin-action-button" type="button" @click="closeDialog()">بستن</button></header>
         <div class="p-3">
+          <div class="admin-dialog-summary mb-3">
+            <div class="admin-dialog-summary-main">
+              <span class="admin-dialog-avatar" x-text="fullName(dialog.subject).slice(0, 2)"></span>
+              <div class="min-w-0">
+                <strong class="admin-dialog-summary-title" x-text="fullName(dialog.subject)"></strong>
+                <span class="admin-dialog-summary-meta" x-text="roleLabel(dialog.subject)"></span>
+                <span class="admin-dialog-summary-meta" dir="ltr" x-text="dialog.subject?.email || '—'"></span>
+              </div>
+            </div>
+            <span class="ss-status-badge" :class="statusClass(dialog.subject)" x-text="statusLabel(dialog.subject)"></span>
+          </div>
           <dl class="admin-detail-list">
             <template x-for="field in [{label:'نام کامل',value:fullName(dialog.subject)},{label:'نام کاربری',value:dialog.subject?.username},{label:'ایمیل',value:dialog.subject?.email},{label:'شماره دانشجویی',value:dialog.subject?.student_id},{label:'کد ملی',value:dialog.subject?.national_id},{label:'شماره تماس',value:dialog.subject?.phone},{label:'جنسیت',value:dialog.subject?.gender},{label:'نقش‌ها',value:roleLabel(dialog.subject)},{label:'وضعیت',value:statusLabel(dialog.subject)},{label:'تاریخ ایجاد',value:dialog.subject?.created_at}]" :key="field.label"><div class="admin-detail-item"><dt x-text="field.label"></dt><dd x-text="field.value || '—'"></dd></div></template>
           </dl>
@@ -433,6 +516,17 @@
           <button class="admin-action-button" type="button" @click="closeDialog()">بستن</button>
         </header>
         <div class="p-3">
+          <div class="admin-dialog-summary mb-3">
+            <div class="admin-dialog-summary-main">
+              <span class="admin-dialog-avatar">پرد</span>
+              <div class="min-w-0">
+                <strong class="admin-dialog-summary-title" x-text="dialog.subject?.student_name || 'پرداخت دانشجویی'"></strong>
+                <span class="admin-dialog-summary-meta" x-text="dialog.subject?.payment_type || '—'"></span>
+                <span class="admin-dialog-summary-meta" dir="ltr" x-text="dialog.subject?.id || '—'"></span>
+              </div>
+            </div>
+            <span :class="statusBadgeClass('payment', dialog.subject?.status)" x-text="statusBadgeLabel('payment', dialog.subject?.status)"></span>
+          </div>
           <dl class="admin-detail-list mb-3">
             <template x-for="field in [{label:'دانشجو',value:dialog.subject?.student_name},{label:'شماره دانشجویی',value:dialog.subject?.student_id},{label:'نوع پرداخت',value:dialog.subject?.payment_type},{label:'مبلغ',value:dialog.subject?.amount},{label:'سررسید',value:dialog.subject?.due_date},{label:'پرداخت در',value:dialog.subject?.paid_at},{label:'مرجع تراکنش',value:dialog.subject?.transaction_ref},{label:'وضعیت',value:statusBadgeLabel('payment', dialog.subject?.status)}]" :key="field.label">
               <div class="admin-detail-item"><dt x-text="field.label"></dt><dd x-text="field.value || '—'"></dd></div>
@@ -454,6 +548,17 @@
           <button class="admin-action-button" type="button" @click="closeDialog()">بستن</button>
         </header>
         <div class="p-3">
+          <div class="admin-dialog-summary mb-3">
+            <div class="admin-dialog-summary-main">
+              <span class="admin-dialog-avatar" x-text="dialogSummaryInitials()"></span>
+              <div class="min-w-0">
+                <strong class="admin-dialog-summary-title" x-text="dialog.summary?.title || dialog.title || 'جزئیات'"></strong>
+                <span class="admin-dialog-summary-meta" x-text="dialog.summary?.meta || 'نمای جزئیات مدیریتی'"></span>
+                <span class="admin-dialog-summary-meta" dir="ltr" x-text="dialog.summary?.code || '—'"></span>
+              </div>
+            </div>
+            <span :class="dialogSummaryStatusClass()" x-text="dialogSummaryStatusLabel()"></span>
+          </div>
           <dl class="admin-detail-list">
             <template x-for="field in dialog.fields || []" :key="field.label">
               <div class="admin-detail-item">

@@ -213,6 +213,8 @@
       ...tableMixin(),
       ...requestStateMixin(),
       user: window.SaraAuth?.getStoredUser?.() || {},
+      sidebarOpen: false,
+      profileOpen: false,
       activeSection: '#overview',
       tickets: [],
       selectedTicket: null,
@@ -225,10 +227,10 @@
         maintenance: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: '', retryable: false }
       },
       stats: [
-        { icon: '📌', value: '—', label: 'درخواست‌های باز' },
-        { icon: '🚨', value: '—', label: 'فوری' },
-        { icon: '🛠️', value: '—', label: 'در حال رسیدگی' },
-        { icon: '✅', value: '—', label: 'حل‌شده' }
+        { icon: '📌', value: '—', label: 'درخواست‌های باز', description: 'همه مواردی که هنوز بسته نشده‌اند' },
+        { icon: '🚨', value: '—', label: 'موارد فوری', description: 'نیازمند رسیدگی سریع پشتیبانی' },
+        { icon: '🛠️', value: '—', label: 'در حال رسیدگی', description: 'درخواست‌های فعال در جریان کار' },
+        { icon: '✅', value: '—', label: 'حل‌شده', description: 'موارد تکمیل‌شده و بسته‌شده' }
       ],
       init() {
         window.SaraPage.bindGlobalAlert(this);
@@ -252,6 +254,9 @@
       filteredTickets() {
         return this.ticketPage().items;
       },
+      resolvedTickets() {
+        return this.tickets.filter((ticket) => ticket.status === 'resolved');
+      },
       ticketPage() {
         const filtered = this.filteredTicketItems();
         return this.tablePage('maintenance', filtered, ['title', 'description', 'location', 'assigned_to', 'created_at']);
@@ -264,6 +269,25 @@
             || (this.filters.assigned === 'me' && this.isAssignedToMe(ticket))
             || (this.filters.assigned === 'unassigned' && !this.assigneeText(ticket)))
         );
+      },
+      supportFilterChips() {
+        const chips = [];
+        const query = this.tableState.maintenance?.query?.trim();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.filters.priority !== 'all') chips.push(`اولویت: ${this.priorityText(this.filters.priority)}`);
+        if (this.filters.status !== 'all') chips.push(`وضعیت: ${this.statusText(this.filters.status)}`);
+        if (this.filters.assigned !== 'all') {
+          chips.push({
+            me: 'ارجاع: به من',
+            unassigned: 'ارجاع: بدون مسئول'
+          }[this.filters.assigned] || this.filters.assigned);
+        }
+        return chips;
+      },
+      clearSupportFilters() {
+        this.tableState.maintenance.query = '';
+        this.filters = { priority: 'all', status: 'all', assigned: 'all' };
+        this.resetPage('maintenance');
       },
       updateStats() {
         const open = this.tickets.filter((ticket) => !['resolved', 'closed'].includes(ticket.status)).length;
@@ -279,6 +303,16 @@
       },
       currentUserName() {
         return `${this.user.first_name || ''} ${this.user.last_name || ''}`.trim() || this.user.username || this.user.email || 'واحد پشتیبانی';
+      },
+      userInitials() {
+        const first = (this.user.first_name || this.user.firstName || this.user.username || this.user.email || 'پ').trim().charAt(0);
+        const last = (this.user.last_name || this.user.lastName || '').trim().charAt(0);
+        return `${first}${last}`.toUpperCase();
+      },
+      accountPath() {
+        const params = new URLSearchParams({ from: 'support' });
+        if (window.SaraAuth?.isDemoMode?.()) params.set('demo', 'support');
+        return `../account.html?${params.toString()}`;
       },
       currentUserId() {
         return this.user.id || this.user.user_id || this.user.pk || '';
@@ -427,10 +461,13 @@
         return window.SaraStatus?.get?.('priority', priority).label || priority || '—';
       },
       priorityClass(priority) {
-        return window.SaraStatus?.get?.('priority', priority).className?.replace('ss-status-badge ', '') || '';
+        return window.SaraStatus?.get?.('priority', priority).className || 'ss-status-badge ss-status-muted';
       },
       statusText(status) {
         return window.SaraStatus?.get?.('maintenance', status).label || status || '—';
+      },
+      statusClass(status) {
+        return window.SaraStatus?.get?.('maintenance', status).className || 'ss-status-badge ss-status-muted';
       }
     };
   }

@@ -354,7 +354,10 @@
     }
 
     .stat-card {
+      height: 100%;
       min-height: 142px;
+      display: flex;
+      flex-direction: column;
       padding: 1.15rem;
       position: relative;
       overflow: hidden;
@@ -393,9 +396,10 @@
 
     .stat-label {
       display: block;
+      margin-top: auto;
+      padding-top: 0.25rem;
       color: var(--ss-muted);
       font-size: 0.86rem;
-      margin-top: 0.25rem;
     }
 
     .panel-card {
