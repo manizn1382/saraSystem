@@ -246,10 +246,10 @@
             this.setResourceSuccess('maintenance', data);
             return;
           }
-          this.setResourceError('maintenance', { status: event.detail.xhr.status, data, message: window.SaraUI?.apiErrorMessage?.(event.detail.xhr.status, data), retryable: true });
+          this.setResourceError('maintenance', { status: event.detail.xhr.status, data, message: this.maintenanceListError(event.detail.xhr.status, data), retryable: true });
         });
-        document.body.addEventListener('htmx:sendError', () => this.setResourceError('maintenance', { status: 0, message: 'ارتباط با سرور برقرار نشد.', retryable: true }));
-        document.body.addEventListener('htmx:timeout', () => this.setResourceError('maintenance', { status: 504, message: 'زمان پاسخ‌گویی سرور به پایان رسید.', retryable: true }));
+        document.body.addEventListener('htmx:sendError', () => this.setResourceError('maintenance', { status: 0, message: this.maintenanceListError(0), retryable: true }));
+        document.body.addEventListener('htmx:timeout', () => this.setResourceError('maintenance', { status: 504, message: this.maintenanceListError(504), retryable: true }));
       },
       filteredTickets() {
         return this.ticketPage().items;
@@ -375,6 +375,13 @@
       },
       maintenanceActionError(error, fallback) {
         return error?.message || window.SaraUI?.apiErrorMessage?.(error?.status, error?.data) || fallback;
+      },
+      maintenanceListError(status, data = null) {
+        const code = Number(status);
+        if ([0, 403, 404, 405, 500, 504].includes(code)) {
+          return 'صف تعمیرات از backend فعلی پاسخ قابل استفاده نگرفت. اگر درخواست‌ها دیده نمی‌شوند، احتمالا سرویس تعمیرات هنوز فهرست سراسری نقش پشتیبانی را برنمی‌گرداند.';
+        }
+        return window.SaraUI?.apiErrorMessage?.(status, data) || 'دریافت صف تعمیرات ناموفق بود.';
       },
       async assignSelectedToMe() {
         if (!this.selectedTicket) return;

@@ -1215,6 +1215,10 @@
       },
 
       openRoleForm(role = null) {
+        if (role?.id) {
+          this.showAlert('warning', 'ویرایش نقش در backend فعلی قابل اتکا نیست و تا اصلاح account service غیرفعال است. ایجاد نقش جدید همچنان فعال است.');
+          return;
+        }
         if (role && !role.id) {
           this.showAlert('danger', 'این نقش از فهرست کاربران استخراج شده و شناسه id برای ویرایش یا اتصال API ندارد.');
           return;
@@ -1370,6 +1374,11 @@
       },
 
       async saveRole() {
+        if (this.roleForm.id) {
+          this.showAlert('warning', 'ویرایش نقش در backend فعلی قابل اتکا نیست و تا اصلاح account service انجام نمی‌شود.');
+          return;
+        }
+
         this.loading.saving = true;
         try {
           const existing = this.roleForm.id;

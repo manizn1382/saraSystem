@@ -680,8 +680,44 @@
     );
   }
 
-  function errorMessage(status, data) {
-    return window.SaraUI?.apiErrorMessage?.(status, data)
+  function backendGapMessage(status, path = '') {
+    const value = `${requestPathname(path)} ${requestPathname(normalizeApiPath(path))}`.toLowerCase();
+    const code = Number(status);
+
+    if ([0, 404, 405, 500, 501].includes(code) && /\/api\/announcements(?:\/|$)/i.test(value)) {
+      return 'سرویس اطلاعیه‌ها در backend فعلی در دسترس نیست. تا زمانی که account service مسیر اطلاعیه‌ها را فعال کند، این بخش فقط نمایشی است.';
+    }
+
+    if ([0, 404, 405, 500, 501].includes(code) && /\/api\/payments(?:\/|$)/i.test(value)) {
+      return 'سرویس پرداخت‌ها در backend فعلی آماده نیست. فهرست و تغییر وضعیت پرداخت فعلا نمایشی است.';
+    }
+
+    if ([0, 404, 405, 500, 501].includes(code) && /\/api\/reports(?:\/|$)/i.test(value)) {
+      return 'سرویس گزارش‌ها در backend فعلی آماده نیست. کارت‌های گزارش از داده‌های موجود صفحه محاسبه می‌شوند.';
+    }
+
+    if ([403, 404, 405, 500].includes(code) && /maintenance/i.test(value)) {
+      return 'سرویس تعمیرات پاسخ قابل استفاده نداد. اگر صف خالی یا محدود است، backend فعلی احتمالا درخواست‌ها را برای نقش پشتیبانی سراسری برنمی‌گرداند.';
+    }
+
+    if ([400, 404, 405, 500].includes(code) && /(?:\/api\/accounts\/roles\/[^/]+|\/api\/v1\/role\/update)/i.test(value)) {
+      return 'ویرایش نقش در backend فعلی قابل اتکا نیست و تا اصلاح account service غیرفعال نگه داشته شده است.';
+    }
+
+    if ([400, 404, 405, 500].includes(code) && /(?:\/api\/accommodation-requests\/[^/]+\/review|\/api\/accommodation\/review)/i.test(value)) {
+      return 'ثبت تصمیم بررسی درخواست در backend فعلی ممکن است برای درخواست‌های pending ناموفق باشد. این مورد نیازمند اصلاح backend است.';
+    }
+
+    if ([0, 404, 500, 503].includes(code) && /\/api\/(?:face|national-id)\//i.test(value)) {
+      return 'سرویس هوش مصنوعی در دسترس نیست. این بررسی اختیاری است و مانع ادامه کار اصلی نمی‌شود.';
+    }
+
+    return '';
+  }
+
+  function errorMessage(status, data, path = '') {
+    return backendGapMessage(status, path)
+      || window.SaraUI?.apiErrorMessage?.(status, data)
       || data?.detail
       || data?.message
       || data?.error
@@ -689,7 +725,7 @@
   }
 
   function createError(response, data, path) {
-    const error = new Error(errorMessage(response.status, data));
+    const error = new Error(errorMessage(response.status, data, path));
     error.name = 'SaraApiError';
     error.status = response.status;
     error.statusText = response.statusText;
@@ -715,7 +751,7 @@
         body: serializeBody(body)
       });
     } catch (networkError) {
-      const error = new Error('ارتباط با سرور برقرار نشد. اتصال اینترنت یا آدرس API را بررسی کنید.');
+      const error = new Error(backendGapMessage(0, path) || 'ارتباط با سرور برقرار نشد. اتصال اینترنت یا آدرس API را بررسی کنید.');
       error.name = 'SaraNetworkError';
       error.status = 0;
       error.data = null;

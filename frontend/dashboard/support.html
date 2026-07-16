@@ -199,6 +199,9 @@
               <button class="support-filter-reset" type="button" @click="clearSupportFilters()">پاک‌سازی فیلترها</button>
             </div>
           </div>
+          <div class="alert alert-warning small mb-3" role="note" x-show="!isResourceLoading('maintenance') && (resourceError('maintenance') || tickets.length === 0)">
+            اگر صف تعمیرات خالی یا محدود است، ممکن است backend فعلی هنوز فهرست سراسری نقش پشتیبانی را برنگرداند.
+          </div>
           <div class="table-responsive">
             <table class="table ss-table align-middle ss-table-card-mobile support-ticket-table">
               <caption class="visually-hidden">صف درخواست‌های تعمیرات واحد پشتیبانی</caption>
