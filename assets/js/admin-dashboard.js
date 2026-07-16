@@ -206,6 +206,7 @@
       selectedRoomId: '',
       dormitoryForm: { id: '', name: '', address: '', totalRoom: '', gender: '', currentOccupancy: '' },
       dialog: { open: false, type: '', subject: null },
+      nationalIdReview: { image: null, loading: false, type: 'info', message: '' },
       userForm: {},
       roleForm: { name: '', description: '' },
       accessControl: { userId: '', roleId: '', roleName: '', notice: '' },
@@ -771,7 +772,79 @@
       },
 
       openUserDetails(user) {
+        this.resetNationalIdReview();
         this.dialog = { open: true, type: 'details', subject: user };
+      },
+
+      handleNationalIdReviewImage(event) {
+        this.nationalIdReview.image = event?.target?.files?.[0] || null;
+        this.nationalIdReview.message = '';
+      },
+
+      resetNationalIdReview() {
+        this.nationalIdReview = { image: null, loading: false, type: 'info', message: '' };
+      },
+
+      dialogNationalId() {
+        const user = this.dialog.subject || {};
+        const nationalId = user.national_id || user.nationalId || user.profile?.nationalId || '';
+        return window.SaraUI?.toEnglishDigits?.(nationalId) || String(nationalId);
+      },
+
+      async verifyDialogNationalIdCard() {
+        const nationalId = this.dialogNationalId();
+
+        if (window.SaraAuth?.isDemoMode?.()) {
+          this.showNationalIdReviewStatus('warning', 'در حالت نمایشی درخواست به سرویس تأیید کارت ملی ارسال نمی‌شود.');
+          return;
+        }
+
+        if (!nationalId) {
+          this.showNationalIdReviewStatus('warning', 'کد ملی کاربر برای بررسی کارت ملی در دسترس نیست.');
+          return;
+        }
+
+        if (!this.nationalIdReview.image) {
+          this.showNationalIdReviewStatus('warning', 'ابتدا تصویر کارت ملی را انتخاب کنید.');
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append('id', nationalId);
+        formData.append('image', this.nationalIdReview.image);
+
+        this.nationalIdReview.loading = true;
+        this.showNationalIdReviewStatus('info', 'در حال بررسی کارت ملی...');
+
+        try {
+          const response = await window.SaraAPI.post('/api/national-id/verify/', formData, {
+            auth: false,
+            retryOnUnauthorized: false,
+            redirectOnExpired: false
+          });
+          const succeeded = response?.success !== false;
+          this.showNationalIdReviewStatus(
+            succeeded ? 'success' : 'warning',
+            response?.log || response?.message || (succeeded ? 'کارت ملی تأیید شد.' : 'کد ملی با تصویر کارت تطبیق ندارد.')
+          );
+        } catch (error) {
+          this.showNationalIdReviewStatus('danger', error.message || 'ارتباط با سرویس تأیید کارت ملی برقرار نشد.');
+        } finally {
+          this.nationalIdReview.loading = false;
+        }
+      },
+
+      showNationalIdReviewStatus(type, message) {
+        this.nationalIdReview = { ...this.nationalIdReview, type, message };
+      },
+
+      nationalIdReviewAlertClass() {
+        return {
+          success: 'alert-success',
+          warning: 'alert-warning',
+          danger: 'alert-danger',
+          info: 'alert-info'
+        }[this.nationalIdReview.type] || 'alert-info';
       },
 
       openUserForm(user = null) {
@@ -842,6 +915,7 @@
       closeDialog() {
         if (this.loading.saving) return;
         this.dialog = { open: false, type: '', subject: null };
+        this.resetNationalIdReview();
       },
 
       userPayload() {

@@ -367,7 +367,47 @@
     <div x-cloak x-show="dialog.open" x-transition.opacity class="admin-dialog-backdrop" @keydown.escape.window="closeDialog()" @click.self="closeDialog()">
       <section class="admin-dialog" x-show="dialog.type === 'details'" role="dialog" aria-modal="true" aria-labelledby="userDetailTitle">
         <header class="d-flex align-items-center justify-content-between gap-3 border-bottom p-3"><h3 id="userDetailTitle" class="h5 fw-bold mb-0">جزئیات کاربر</h3><button class="admin-action-button" type="button" @click="closeDialog()">بستن</button></header>
-        <div class="p-3"><dl class="admin-detail-list"><template x-for="field in [{label:'نام کامل',value:fullName(dialog.subject)},{label:'نام کاربری',value:dialog.subject?.username},{label:'ایمیل',value:dialog.subject?.email},{label:'شماره دانشجویی',value:dialog.subject?.student_id},{label:'کد ملی',value:dialog.subject?.national_id},{label:'شماره تماس',value:dialog.subject?.phone},{label:'جنسیت',value:dialog.subject?.gender},{label:'نقش‌ها',value:roleLabel(dialog.subject)},{label:'وضعیت',value:statusLabel(dialog.subject)},{label:'تاریخ ایجاد',value:dialog.subject?.created_at}]" :key="field.label"><div class="admin-detail-item"><dt x-text="field.label"></dt><dd x-text="field.value || '—'"></dd></div></template></dl></div>
+        <div class="p-3">
+          <dl class="admin-detail-list">
+            <template x-for="field in [{label:'نام کامل',value:fullName(dialog.subject)},{label:'نام کاربری',value:dialog.subject?.username},{label:'ایمیل',value:dialog.subject?.email},{label:'شماره دانشجویی',value:dialog.subject?.student_id},{label:'کد ملی',value:dialog.subject?.national_id},{label:'شماره تماس',value:dialog.subject?.phone},{label:'جنسیت',value:dialog.subject?.gender},{label:'نقش‌ها',value:roleLabel(dialog.subject)},{label:'وضعیت',value:statusLabel(dialog.subject)},{label:'تاریخ ایجاد',value:dialog.subject?.created_at}]" :key="field.label"><div class="admin-detail-item"><dt x-text="field.label"></dt><dd x-text="field.value || '—'"></dd></div></template>
+          </dl>
+          <div class="border rounded-3 p-3 mt-3">
+            <h4 class="h6 fw-bold mb-3">تأیید کارت ملی</h4>
+            <div
+              x-cloak
+              x-show="nationalIdReview.message"
+              class="alert py-2 small"
+              :class="nationalIdReviewAlertClass()"
+              role="status"
+              aria-live="polite"
+            >
+              <span x-text="nationalIdReview.message"></span>
+            </div>
+            <div class="row g-2 align-items-end">
+              <div class="col-md-8">
+                <label class="form-label" for="adminNationalIdCardImage">تصویر کارت ملی</label>
+                <input
+                  id="adminNationalIdCardImage"
+                  class="form-control"
+                  type="file"
+                  accept="image/*"
+                  @change="handleNationalIdReviewImage($event)"
+                />
+              </div>
+              <div class="col-md-4">
+                <button
+                  class="btn ss-btn ss-btn-outline w-100"
+                  type="button"
+                  :disabled="nationalIdReview.loading"
+                  @click="verifyDialogNationalIdCard()"
+                >
+                  <span x-show="nationalIdReview.loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                  <span x-text="nationalIdReview.loading ? 'در حال بررسی...' : 'بررسی کارت'"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section class="admin-dialog admin-dialog-wide" x-show="dialog.type === 'user-form'" role="dialog" aria-modal="true" aria-labelledby="userFormTitle">
