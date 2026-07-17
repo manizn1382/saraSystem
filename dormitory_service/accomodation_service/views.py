@@ -182,19 +182,11 @@ class UpdateReviewInfo(generics.UpdateAPIView):
                 "message": "can't find accommodation with this id"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        if not request.user.is_staff:
-            return Response({
-                "success": False,
-                "message": "only admins can edit accommodation info"
-            }, status=status.HTTP_403_FORBIDDEN)
-
         if accommodation.status == "pending":
             return Response({
                 "success": False,
                 "message": "you can't edit pending accommodations"
             }, status=status.HTTP_403_FORBIDDEN)
-
-
 
         for field, value in request.data.items():
             setattr(accommodation, field, value)
