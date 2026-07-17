@@ -16,6 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from announcements import urls as annUrl
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,5 +25,6 @@ urlpatterns = [
     path('api/v1/role', include('account_service.Url.RoleUrl')),
     path('api/v1/userRole', include('account_service.Url.userRoleUrl')),
     path('api/v1/rolePermission', include('account_service.Url.RolePermissionUrl')),
+    path('api/v1/announcements', include(annUrl))
 
 ]
