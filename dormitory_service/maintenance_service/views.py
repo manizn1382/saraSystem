@@ -12,6 +12,7 @@ class MaintenanceCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = [JWTStatelessUserAuthentication]
     serializer_class = MaintenanceCreate
+    
 
     def post(self, request, *args, **kwargs):
 
@@ -69,8 +70,8 @@ class MaintenanceDetailView(generics.ListAPIView):
         user = self.request.user
         params = self.request.query_params
 
-
-        queryset = queryset.filter(requester_id=user.id)
+        if "student" in self.request.auth.payload.get("roles"):
+            queryset = queryset.filter(requester_id=user.id)
 
         if params.get('priority'):
             queryset = queryset.filter(priority=params.get('priority'))

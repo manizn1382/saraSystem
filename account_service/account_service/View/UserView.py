@@ -421,7 +421,7 @@ class userRoleDetailView(generics.ListAPIView):
 
         if params.get('role_id'):
             queryset = queryset.filter(role_id=params.get('role_id'))
-        print(queryset.first().role.name)
+            
         return queryset
 
 
