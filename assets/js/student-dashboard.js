@@ -55,6 +55,8 @@
           { id: "2", name: "خوابگاه دو" },
           { id: "3", name: "خوابگاه سه" }
         ],
+        rooms: [],
+        beds: [],
 
         detail: {
           type: "",
@@ -64,6 +66,9 @@
 
         resourceLoading: {
           accommodationRequests: true,
+          dormitories: true,
+          rooms: true,
+          beds: true,
           assignment: true,
           payments: true,
           maintenanceRequests: true,
@@ -79,6 +84,10 @@
             retryable: false,
             pagination: { count: null, next: null, previous: null, page: 1, pageSize: null, totalPages: 1 }
           },
+          dormitories: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
+          rooms: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
+          beds: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
+          assignment: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
           payments: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
           maintenanceRequests: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false },
           announcements: window.SaraUI?.createRequestState?.() || { loading: false, loaded: false, error: "", status: null, retryable: false }
@@ -305,6 +314,9 @@
             unread_announcements: "۰"
           };
           this.assignment = { dormitory_id: "", room_id: "", bed_id: "", dormitory: "", room: "", bed: "", start_date: "", end_date: "", status: "pending", notes: "" };
+          this.dormitories = [];
+          this.rooms = [];
+          this.beds = [];
           this.accommodationRequests = [];
           this.payments = [];
           this.maintenanceRequests = [];
@@ -368,6 +380,10 @@
 
           const endpoints = {
             accommodationRequests: this.accommodationListEndpoint(),
+            dormitories: "/api/dormitories/with-rooms/",
+            rooms: "/api/rooms/",
+            beds: "/api/beds/",
+            assignment: "/api/bed-assignments/",
             payments: "/api/payments/",
             maintenanceRequests: "/api/maintenance-requests/",
             announcements: "/api/announcements/"
@@ -539,6 +555,122 @@
           }
         },
 
+        applyDormitoryOptions(data) {
+          const source = Array.isArray(data?.dormitories) ? data.dormitories : this.asList(data);
+          const roomMap = new Map(this.rooms.map((room) => [String(room.id), room]));
+          const bedMap = new Map(this.beds.map((bed) => [String(bed.id), bed]));
+
+          this.dormitories = source
+            .map((item, index) => this.normalizeDormitoryOption(item, index))
+            .filter((dormitory) => dormitory.id);
+
+          source.forEach((dormitory, dormitoryIndex) => {
+            const normalizedDormitory = this.normalizeDormitoryOption(dormitory, dormitoryIndex);
+            const rooms = dormitory.rooms || dormitory.room_set || dormitory.roomList || [];
+
+            this.asList(rooms).forEach((room, roomIndex) => {
+              const normalizedRoom = this.normalizeRoomOption({
+                ...room,
+                dormitory: room.dormitory || { id: normalizedDormitory.id, name: normalizedDormitory.name },
+                dormitory_id: room.dormitory_id || room.dormitory || normalizedDormitory.id,
+                dormitory_name: room.dormitory_name || normalizedDormitory.name
+              }, roomIndex);
+              if (normalizedRoom.id) roomMap.set(String(normalizedRoom.id), { ...roomMap.get(String(normalizedRoom.id)), ...normalizedRoom });
+
+              const beds = room.beds || room.bed_set || room.bedList || [];
+              this.asList(beds).forEach((bed, bedIndex) => {
+                const normalizedBed = this.normalizeBedOption({
+                  ...bed,
+                  room: bed.room || { id: normalizedRoom.id, room_number: normalizedRoom.room_number },
+                  room_id: bed.room_id || bed.room || normalizedRoom.id
+                }, bedIndex);
+                if (normalizedBed.id) bedMap.set(String(normalizedBed.id), { ...bedMap.get(String(normalizedBed.id)), ...normalizedBed });
+              });
+            });
+          });
+
+          this.rooms = Array.from(roomMap.values()).filter((room) => room.id);
+          this.beds = Array.from(bedMap.values()).filter((bed) => bed.id);
+          this.ensureCurrentAssignmentOptions();
+        },
+
+        normalizeDormitoryOption(item = {}, index = 0) {
+          const adapted = window.SaraAdapters?.dormitory?.(item, index) || {};
+          const id = adapted.id || item.id || item.pk || item.dormitory_id || "";
+          return {
+            ...item,
+            ...adapted,
+            id: String(id),
+            name: adapted.name || item.name || item.title || (id ? `خوابگاه ${this.toPersianNumber(id)}` : ""),
+            gender_type: adapted.gender_type || item.gender_type || item.gender || "",
+            capacity: adapted.capacity || item.capacity || item.total_capacity || item.totalRoom || ""
+          };
+        },
+
+        normalizeRoomOption(item = {}, index = 0) {
+          const adapted = window.SaraAdapters?.room?.(item, index) || {};
+          const dormitory = item.dormitory && typeof item.dormitory === "object" ? item.dormitory : {};
+          const dormitoryId = adapted.dormitory_id || item.dormitory_id || dormitory.id || item.dormitory || item.dorm || "";
+          const id = adapted.id || item.id || item.pk || item.room_id || "";
+          return {
+            ...item,
+            ...adapted,
+            id: String(id),
+            dormitory_id: String(dormitoryId || ""),
+            dormitory_name: adapted.dormitory_name || item.dormitory_name || dormitory.name || this.selectedDormitoryName(dormitoryId, ""),
+            room_number: adapted.room_number || item.room_number || item.roomNumber || item.number || id,
+            floor_number: adapted.floor_number || item.floor_number || item.floorNumber || item.floor || "",
+            capacity: adapted.capacity || item.capacity || "",
+            occupied: adapted.occupied || item.occupied || item.currentOccupancy || item.occupied_beds || "",
+            status: adapted.status || item.status || "active"
+          };
+        },
+
+        normalizeBedOption(item = {}, index = 0) {
+          const adapted = window.SaraAdapters?.bed?.(item, index) || {};
+          const room = item.room && typeof item.room === "object" ? item.room : {};
+          const roomId = adapted.room_id || item.room_id || room.id || item.room || "";
+          const id = adapted.id || item.id || item.pk || item.bed_id || "";
+          return {
+            ...item,
+            ...adapted,
+            id: String(id),
+            room_id: String(roomId || ""),
+            bed_number: adapted.bed_number || item.bed_number || item.bedNumber || item.number || id,
+            status: adapted.status || item.status || "available",
+            description: adapted.description || item.description || item.notes || ""
+          };
+        },
+
+        ensureCurrentAssignmentOptions() {
+          const assignment = this.assignment || {};
+          if (assignment.dormitory_id && !this.dormitories.some((item) => String(item.id) === String(assignment.dormitory_id))) {
+            this.dormitories.push({
+              id: String(assignment.dormitory_id),
+              name: assignment.dormitory || `خوابگاه ${this.toPersianNumber(assignment.dormitory_id)}`
+            });
+          }
+
+          if (assignment.room_id && !this.rooms.some((item) => String(item.id) === String(assignment.room_id))) {
+            this.rooms.push({
+              id: String(assignment.room_id),
+              dormitory_id: String(assignment.dormitory_id || ""),
+              dormitory_name: assignment.dormitory || this.selectedDormitoryName(assignment.dormitory_id, ""),
+              room_number: assignment.room || assignment.room_id,
+              status: "active"
+            });
+          }
+
+          if (assignment.bed_id && !this.beds.some((item) => String(item.id) === String(assignment.bed_id))) {
+            this.beds.push({
+              id: String(assignment.bed_id),
+              room_id: String(assignment.room_id || ""),
+              bed_number: assignment.bed || assignment.bed_id,
+              status: "assigned"
+            });
+          }
+        },
+
         queryResource(resource, items, keys) {
           const state = this.tableState[resource];
           return window.SaraUI?.searchList?.(items, state?.query, keys) || items;
@@ -639,12 +771,27 @@
           }
 
           if (resource === "dormitories") {
-            this.dormitories = list.map((item) => ({
-              id: String(item.id),
-              name: item.name || item.title || `خوابگاه ${item.id}`,
-              gender_type: item.gender_type || item.gender || "",
-              capacity: item.capacity || item.total_capacity || item.totalRoom || ""
-            }));
+            this.applyDormitoryOptions(data);
+            return;
+          }
+
+          if (resource === "rooms") {
+            this.rooms = (window.SaraAdapters
+              ? window.SaraAdapters.adaptList(data, window.SaraAdapters.room)
+              : list.map((item, index) => this.normalizeRoomOption(item, index)))
+              .map((room, index) => this.normalizeRoomOption(room, index))
+              .filter((room) => room.id);
+            this.ensureCurrentAssignmentOptions();
+            return;
+          }
+
+          if (resource === "beds") {
+            this.beds = (window.SaraAdapters
+              ? window.SaraAdapters.adaptList(data, window.SaraAdapters.bed)
+              : list.map((item, index) => this.normalizeBedOption(item, index)))
+              .map((bed, index) => this.normalizeBedOption(bed, index))
+              .filter((bed) => bed.id);
+            this.ensureCurrentAssignmentOptions();
             return;
           }
 
@@ -671,6 +818,7 @@
                 notes: assignment.notes || "",
                 history: assignment.history || assignment.assignments || []
               };
+              this.ensureCurrentAssignmentOptions();
             }
             return;
           }
@@ -881,6 +1029,7 @@
         validateMaintenance(event) {
           this.clearFormErrors("maintenance");
           this.prefillMaintenanceFormFromAssignment();
+          this.syncMaintenanceLocationFromBed();
           const form = this.forms.maintenance;
 
           if (!form.data.title) {
@@ -892,11 +1041,11 @@
           }
 
           if (!form.data.room_id) {
-            form.errors.room_id = "وارد کردن شناسه اتاق الزامی است.";
+            form.errors.room_id = "انتخاب اتاق الزامی است.";
           }
 
           if (!form.data.bed_id) {
-            form.errors.bed_id = "وارد کردن شناسه تخت الزامی است.";
+            form.errors.bed_id = "انتخاب تخت الزامی است.";
           }
 
           if (!form.data.dorm_id) {
@@ -1003,6 +1152,7 @@
           if (!data.room_id) data.room_id = this.assignment.room_id || "";
           if (!data.bed_id) data.bed_id = this.assignment.bed_id || "";
           if (!data.dorm_id) data.dorm_id = this.assignment.dormitory_id || this.assignment.dorm_id || "";
+          this.syncMaintenanceLocationFromBed();
         },
 
         closeModal(id) {
@@ -1223,6 +1373,49 @@
           if (dormitory?.name) return dormitory.name;
           if (fallback && !["—", "بدون ترجیح"].includes(String(fallback))) return fallback;
           return value ? `خوابگاه ${this.toPersianNumber(value)}` : fallback;
+        },
+
+        roomOptions() {
+          this.ensureCurrentAssignmentOptions();
+          return [...this.rooms].sort((a, b) => this.roomOptionLabel(a).localeCompare(this.roomOptionLabel(b), "fa", { numeric: true, sensitivity: "base" }));
+        },
+
+        bedOptionsForMaintenance() {
+          this.ensureCurrentAssignmentOptions();
+          const roomId = this.forms.maintenance.data.room_id;
+          const beds = roomId
+            ? this.beds.filter((bed) => String(bed.room_id) === String(roomId))
+            : this.beds;
+          return [...beds].sort((a, b) => this.bedOptionLabel(a).localeCompare(this.bedOptionLabel(b), "fa", { numeric: true, sensitivity: "base" }));
+        },
+
+        roomOptionLabel(room = {}) {
+          const dormitory = room.dormitory_name || this.selectedDormitoryName(room.dormitory_id, "");
+          const roomNumber = room.room_number || room.number || room.id || "—";
+          return `${dormitory ? `${dormitory} - ` : ""}اتاق ${this.toPersianNumber(roomNumber)}`;
+        },
+
+        bedOptionLabel(bed = {}) {
+          const room = this.rooms.find((item) => String(item.id) === String(bed.room_id));
+          const bedNumber = bed.bed_number || bed.number || bed.id || "—";
+          const roomLabel = room ? `${this.roomOptionLabel(room)} - ` : "";
+          return `${roomLabel}تخت ${this.toPersianNumber(bedNumber)}`;
+        },
+
+        syncMaintenanceLocationFromRoom() {
+          const data = this.forms.maintenance.data;
+          const room = this.rooms.find((item) => String(item.id) === String(data.room_id));
+          if (room?.dormitory_id) data.dorm_id = room.dormitory_id;
+          if (data.bed_id && !this.bedOptionsForMaintenance().some((bed) => String(bed.id) === String(data.bed_id))) {
+            data.bed_id = "";
+          }
+        },
+
+        syncMaintenanceLocationFromBed() {
+          const data = this.forms.maintenance.data;
+          const bed = this.beds.find((item) => String(item.id) === String(data.bed_id));
+          if (bed?.room_id) data.room_id = bed.room_id;
+          this.syncMaintenanceLocationFromRoom();
         },
 
         roomTypeText(value) {
