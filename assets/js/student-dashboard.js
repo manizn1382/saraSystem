@@ -1028,7 +1028,7 @@
           this.showAlert("success", "درخواست تعمیرات ثبت شد و توسط واحد پشتیبانی بررسی می‌شود.");
 
           const newTicket = {
-            id: data?.id || `M-${this.maintenanceRequests.length + 1}`,
+            id: responseData.id || data?.id || `M-${this.maintenanceRequests.length + 1}`,
             title: this.forms.maintenance.data.title,
             description: this.forms.maintenance.data.description,
             location: `اتاق ${this.toPersianNumber(this.forms.maintenance.data.room_id)}${this.forms.maintenance.data.bed_id ? `، تخت ${this.toPersianNumber(this.forms.maintenance.data.bed_id)}` : ""}`,
@@ -1117,7 +1117,12 @@
             event.preventDefault();
             event.stopImmediatePropagation();
             this.markFormInvalid("maintenance", "لطفاً خطاهای فرم را اصلاح کنید و دوباره درخواست را ارسال کنید.");
+            return;
           }
+
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          this.submitMaintenanceRequest();
         },
 
         clearFormErrors(formName) {
@@ -1209,6 +1214,40 @@
           if (!data.bed_id) data.bed_id = this.assignment.bed_id || "";
           if (!data.dorm_id) data.dorm_id = this.assignment.dormitory_id || this.assignment.dorm_id || "";
           this.syncMaintenanceLocationFromBed();
+        },
+
+        maintenancePayload(data = this.forms.maintenance.data) {
+          return {
+            title: data.title || "",
+            priority: data.priority || "",
+            room_id: data.room_id || "",
+            bed_id: data.bed_id || "",
+            dorm_id: data.dorm_id || "",
+            description: data.description || ""
+          };
+        },
+
+        async submitMaintenanceRequest() {
+          const form = this.forms.maintenance;
+          form.loading = true;
+          form.success = false;
+          form.message = "";
+
+          try {
+            const payload = this.maintenancePayload(form.data);
+            let data = { data: payload };
+
+            if (!window.SaraAuth?.isDemoMode?.()) {
+              data = await window.SaraAPI.post("/api/maintenance-requests/", payload);
+            }
+
+            this.handleMaintenanceSuccess(data);
+          } catch (error) {
+            form.loading = false;
+            form.success = false;
+            this.applyFormErrors("maintenance", error?.data || {});
+            form.message = error?.message || "ثبت درخواست تعمیرات ناموفق بود.";
+          }
         },
 
         closeModal(id) {
