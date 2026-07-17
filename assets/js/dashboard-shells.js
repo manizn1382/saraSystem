@@ -234,22 +234,25 @@
       ],
       init() {
         window.SaraPage.bindGlobalAlert(this);
-        document.body.addEventListener('htmx:beforeRequest', (event) => {
-          if (event.detail?.elt?.dataset?.resource === 'maintenance') this.setResourceLoading('maintenance');
-        });
-        document.body.addEventListener('htmx:afterRequest', (event) => {
-          if (event.detail?.elt?.dataset?.resource !== 'maintenance') return;
-          const data = this.parseJson(event.detail.xhr.responseText);
-          if (event.detail.xhr.status >= 200 && event.detail.xhr.status < 300) {
-            this.tickets = window.SaraAdapters?.adaptList?.(data, window.SaraAdapters.maintenanceRequest) || this.asList(data);
-            this.updateStats();
-            this.setResourceSuccess('maintenance', data);
-            return;
-          }
-          this.setResourceError('maintenance', { status: event.detail.xhr.status, data, message: this.maintenanceListError(event.detail.xhr.status, data), retryable: true });
-        });
-        document.body.addEventListener('htmx:sendError', () => this.setResourceError('maintenance', { status: 0, message: this.maintenanceListError(0), retryable: true }));
-        document.body.addEventListener('htmx:timeout', () => this.setResourceError('maintenance', { status: 504, message: this.maintenanceListError(504), retryable: true }));
+        this.loadMaintenanceTickets({ silent: true });
+      },
+      async loadMaintenanceTickets(options = {}) {
+        this.setResourceLoading('maintenance');
+
+        try {
+          const data = await window.SaraAPI.get('/api/maintenance-requests/');
+          this.applyMaintenanceTickets(data);
+          this.setResourceSuccess('maintenance', data);
+        } catch (error) {
+          const message = this.maintenanceListError(error?.status, error?.data);
+          this.setResourceError('maintenance', { status: error?.status || 0, data: error?.data, message, retryable: true });
+          if (!options.silent) this.showAlert('danger', message);
+        }
+      },
+      applyMaintenanceTickets(data) {
+        this.tickets = window.SaraAdapters?.adaptList?.(data, window.SaraAdapters.maintenanceRequest) || this.asList(data);
+        this.resetPage('maintenance');
+        this.updateStats();
       },
       filteredTickets() {
         return this.ticketPage().items;

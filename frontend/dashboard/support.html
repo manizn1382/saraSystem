@@ -93,6 +93,7 @@
                 id="refreshDashboard"
                 class="btn btn-ss btn-ss-outline px-3"
                 type="button"
+                @click="loadMaintenanceTickets()"
               >
                 بروزرسانی
               </button>
@@ -121,7 +122,7 @@
             </div>
             <div class="support-hero-actions">
               <a class="btn ss-btn ss-btn-outline" href="#queue">مشاهده صف</a>
-              <button class="btn ss-btn ss-btn-primary" id="refreshDashboardHero" type="button">بروزرسانی</button>
+              <button class="btn ss-btn ss-btn-primary" id="refreshDashboardHero" type="button" @click="loadMaintenanceTickets()">بروزرسانی</button>
             </div>
           </article>
           <div class="row g-3 support-stat-grid">
@@ -248,7 +249,7 @@
                     <div class="ss-empty m-2">
                       <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                         <span x-text="resourceError('maintenance')"></span>
-                        <button class="btn ss-btn ss-btn-outline btn-sm" id="retryMaintenance" type="button">تلاش دوباره</button>
+                        <button class="btn ss-btn ss-btn-outline btn-sm" id="retryMaintenance" type="button" @click="loadMaintenanceTickets()">تلاش دوباره</button>
                       </div>
                     </div>
                   </td>
@@ -407,17 +408,6 @@
           </article>
         </div>
       </section>
-    </div>
-
-    <div class="d-none">
-      <div
-        data-resource="maintenance"
-        hx-get="/api/maintenance-requests/"
-        hx-trigger="load, click from:#refreshDashboard, click from:#refreshDashboardHero, click from:#retryMaintenance"
-        hx-swap="none"
-        hx-timeout="15000"
-        hx-headers='{"Accept":"application/json"}'
-      ></div>
     </div>
   </body>
 </html>
