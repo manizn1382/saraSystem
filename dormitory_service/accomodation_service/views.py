@@ -116,9 +116,6 @@ class ListAccommodationView(generics.ListAPIView):
         if "student" in userData.get('roles'):
             queryset = queryset.filter(user_id=userData.get('user_id'))
 
-        if "dorm-admin" in userData.get('roles'):
-            queryset = queryset.filter(status__exact="assigned")
-
         return queryset
 
 
@@ -182,10 +179,10 @@ class UpdateReviewInfo(generics.UpdateAPIView):
                 "message": "can't find accommodation with this id"
             }, status=status.HTTP_404_NOT_FOUND)
 
-        if accommodation.status == "pending":
+        if accommodation.status != "pending":
             return Response({
                 "success": False,
-                "message": "you can't edit pending accommodations"
+                "message": "You can only edit pending accommodations"
             }, status=status.HTTP_403_FORBIDDEN)
 
         for field, value in request.data.items():
