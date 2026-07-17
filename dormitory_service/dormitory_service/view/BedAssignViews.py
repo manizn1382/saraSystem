@@ -75,6 +75,10 @@ class BedAssignCreateView(generics.CreateAPIView):
 
         self.perform_create(serializer)
 
+        BedInfo.status = "occupied"
+        BedInfo.save()
+
+
         return Response({
             'success': True,
             'message': 'Bed Assigned to User successfully',
