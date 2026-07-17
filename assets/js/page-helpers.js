@@ -17,33 +17,16 @@
       || '';
   }
 
-  function htmxFallbackMessage(status, data, path = '') {
-    const value = String(path || '').toLowerCase();
-    const code = Number(status);
-
-    if ([0, 404, 405, 500, 501].includes(code) && /\/api\/public\/stats\/?$/i.test(value)) {
-      return 'آمار عمومی هنوز از backend دریافت نمی‌شود و داده‌های نمایشی همین صفحه حفظ شدند.';
-    }
-
-    if ([0, 404, 405, 500, 501].includes(code) && /\/api\/announcements\/public\/?$/i.test(value)) {
-      return 'اطلاعیه‌های عمومی هنوز از backend دریافت نمی‌شوند و نمونه‌های نمایشی همین صفحه حفظ شدند.';
-    }
-
-    return window.SaraUI?.apiErrorMessage?.(status, data)
-      || data?.detail
+  function htmxFallbackMessage(status, data) {
+    return data?.detail
       || data?.message
       || data?.error
+      || window.SaraUI?.apiErrorMessage?.(status, data)
       || 'درخواست با خطا روبه‌رو شد.';
   }
 
-  function htmxFallbackType(status, path = '') {
-    const value = String(path || '').toLowerCase();
-    const code = Number(status);
-    if ([0, 404, 405, 500, 501].includes(code)
-      && (/\/api\/public\/stats\/?$/i.test(value) || /\/api\/announcements\/public\/?$/i.test(value))) {
-      return 'warning';
-    }
-    return 'danger';
+  function htmxFallbackType(status) {
+    return Number(status) >= 500 || Number(status) === 0 ? 'danger' : 'warning';
   }
 
   function installHtmxErrorAlerts(options = {}) {
@@ -54,22 +37,19 @@
     target.addEventListener('htmx:responseError', function (event) {
       const status = event.detail?.xhr?.status;
       const data = parseJson(event.detail?.xhr?.responseText, null);
-      const path = htmxRequestPath(event);
-      const message = htmxFallbackMessage(status, data, path);
-      window.dispatchEvent(new CustomEvent('sara:alert', { detail: { type: htmxFallbackType(status, path), message } }));
+      const message = htmxFallbackMessage(status, data);
+      window.dispatchEvent(new CustomEvent('sara:alert', { detail: { type: htmxFallbackType(status), message } }));
     });
 
-    target.addEventListener('htmx:sendError', function (event) {
-      const path = htmxRequestPath(event);
+    target.addEventListener('htmx:sendError', function () {
       window.dispatchEvent(new CustomEvent('sara:alert', {
-        detail: { type: htmxFallbackType(0, path), message: htmxFallbackMessage(0, null, path) }
+        detail: { type: htmxFallbackType(0), message: htmxFallbackMessage(0, null) }
       }));
     });
 
-    target.addEventListener('htmx:timeout', function (event) {
-      const path = htmxRequestPath(event);
+    target.addEventListener('htmx:timeout', function () {
       window.dispatchEvent(new CustomEvent('sara:alert', {
-        detail: { type: htmxFallbackType(504, path), message: htmxFallbackMessage(504, null, path) }
+        detail: { type: htmxFallbackType(504), message: htmxFallbackMessage(504, null) }
       }));
     });
   }

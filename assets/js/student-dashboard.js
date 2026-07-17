@@ -763,7 +763,7 @@
               data,
               retryable: [408, 429, 500, 502, 503, 504].includes(Number(status))
             });
-            this.showAlert("danger", `${message} داده‌های فعلی حفظ شدند.`);
+            this.showAlert("danger", message);
             return;
           }
 

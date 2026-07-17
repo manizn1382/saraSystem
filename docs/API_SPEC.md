@@ -27,16 +27,16 @@ Current front-end routing in `assets/js/api.js` sends account paths to the accou
 
 Front-end base URLs can be overridden with `SaraAPI.configure({ baseUrl, accountsBaseUrl, dormitoryBaseUrl, aiBaseUrl, nationalIdBaseUrl })`, matching the `window.SARA_*_API_BASE_URL` globals and `localStorage` keys such as `sarasystem.apiBaseUrl`, `sarasystem.accountsApiBaseUrl`, `sarasystem.dormitoryApiBaseUrl`, `sarasystem.aiApiBaseUrl`, and `sarasystem.nationalIdApiBaseUrl`.
 
-## Front-end Functional Readiness Notes
+## Front-end Backend Connectivity Notes
 
-This frontend-only readiness pass did not change backend code. The UI now guards or labels known backend gaps so users can keep navigating supported flows without misleading success states.
+The frontend is intentionally wired directly to the current service aliases so backend teams can exercise implemented routes from the UI. Known backend caveats remain documented in the endpoint sections below, but the UI no longer disables those flows preemptively.
 
-- Account announcements: authenticated announcement screens route to the account service, but endpoints will 404 until `announcements.urls` is mounted in the account service root URL config. The front end keeps current/sample data and reports this as an unavailable backend feature.
-- Accommodation review: dormitory-admin approval/rejection UI remains wired, but current backend review logic can reject pending-request transitions. The front end shows a specific blocker message if that call fails.
-- Support maintenance queue: support actions call the merged maintenance assign/status/comment endpoints, but the queue may be incomplete because `/api/maintenance/detail` currently filters by requester. The support dashboard warns when the queue is empty or unavailable.
-- Account RBAC: user-role and role-permission lists are read-only for detach/delete because current delete routes are unsafe; role update is disabled in the system-admin UI until the account backend fixes the update view.
-- Payments, public stats, public announcements, and reports: these remain API-dependent or frontend-computed shells. Payment status updates are explicitly local/session-only and no real banking flow is implemented.
-- AI services: face and national-ID checks are optional UI integrations. The front end reports unavailable AI services without blocking registration, account viewing, or admin review navigation.
+- Account announcements: authenticated announcement screens route to account-service `/api/announcements/...`.
+- Accommodation review: dormitory-admin approval/rejection UI calls the review endpoint directly.
+- Support maintenance queue: support list, assign, status, and comment actions call the maintenance endpoints directly.
+- Account RBAC: role update, user-role delete, and role-permission delete controls call their backend aliases.
+- Payments, public stats, public announcements, and reports: UI surfaces call the configured API paths and show normal API responses or errors.
+- AI services: face and national-ID checks call the configured AI services when invoked.
 
 ## Global API Conventions
 

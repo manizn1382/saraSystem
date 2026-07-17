@@ -199,9 +199,6 @@
               <button class="support-filter-reset" type="button" @click="clearSupportFilters()">پاک‌سازی فیلترها</button>
             </div>
           </div>
-          <div class="alert alert-warning small mb-3" role="note" x-show="!isResourceLoading('maintenance') && (resourceError('maintenance') || tickets.length === 0)">
-            اگر صف تعمیرات خالی یا محدود است، ممکن است backend فعلی هنوز فهرست سراسری نقش پشتیبانی را برنگرداند.
-          </div>
           <div class="table-responsive">
             <table class="table ss-table align-middle ss-table-card-mobile support-ticket-table">
               <caption class="visually-hidden">صف درخواست‌های تعمیرات واحد پشتیبانی</caption>
@@ -258,7 +255,7 @@
                 </tr>
                 <tr x-show="ticketPage().totalItems === 0 && !resourceError('maintenance')">
                   <td colspan="7">
-                    <div class="ss-empty m-2" x-text="isResourceLoading('maintenance') ? 'در حال دریافت درخواست‌های تعمیرات...' : 'درخواستی برای نمایش وجود ندارد یا API در دسترس نیست.'"></div>
+                    <div class="ss-empty m-2" x-text="isResourceLoading('maintenance') ? 'در حال دریافت درخواست‌های تعمیرات...' : 'درخواستی برای نمایش وجود ندارد.'"></div>
                   </td>
                 </tr>
               </tbody>
@@ -275,7 +272,7 @@
           <div class="support-section-header mb-3">
             <div>
               <h3 class="h5 fw-bold mb-1">سوابق رسیدگی</h3>
-              <p class="ss-muted small mb-0">نمای frontend-only از درخواست‌های حل‌شده و یادداشت‌های ثبت‌شده در همین نشست</p>
+              <p class="ss-muted small mb-0">درخواست‌های حل‌شده و یادداشت‌های ثبت‌شده در صف تعمیرات</p>
             </div>
             <span class="ss-badge-soft" x-text="`${toPersianNumber(resolvedTickets().length)} مورد حل‌شده`"></span>
           </div>

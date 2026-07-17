@@ -377,11 +377,11 @@
         return error?.message || window.SaraUI?.apiErrorMessage?.(error?.status, error?.data) || fallback;
       },
       maintenanceListError(status, data = null) {
-        const code = Number(status);
-        if ([0, 403, 404, 405, 500, 504].includes(code)) {
-          return 'صف تعمیرات از backend فعلی پاسخ قابل استفاده نگرفت. اگر درخواست‌ها دیده نمی‌شوند، احتمالا سرویس تعمیرات هنوز فهرست سراسری نقش پشتیبانی را برنمی‌گرداند.';
-        }
-        return window.SaraUI?.apiErrorMessage?.(status, data) || 'دریافت صف تعمیرات ناموفق بود.';
+        return data?.detail
+          || data?.message
+          || data?.error
+          || window.SaraUI?.apiErrorMessage?.(status, data)
+          || 'دریافت صف تعمیرات ناموفق بود.';
       },
       async assignSelectedToMe() {
         if (!this.selectedTicket) return;
@@ -461,7 +461,7 @@
           { title: 'ثبت درخواست', date: ticket.created_at || '—', text: ticket.requested_by ? `ثبت توسط ${ticket.requested_by}` : 'درخواست در صف تعمیرات ثبت شد.' },
           { title: 'ارجاع', date: ticket.updated_at || ticket.created_at || '—', text: this.assigneeText(ticket) ? `ارجاع به ${this.assigneeText(ticket)}` : 'هنوز به کارشناس مشخص ارجاع نشده است.' },
           { title: 'وضعیت فعلی', date: ticket.updated_at || '—', text: this.statusText(ticket.status) },
-          { title: 'یادداشت حل مشکل', date: ticket.resolved_at || 'وابسته به API', text: ticket.resolution_note || 'یادداشت حل مشکل ثبت نشده است.' }
+          { title: 'یادداشت حل مشکل', date: ticket.resolved_at || '—', text: ticket.resolution_note || 'یادداشت حل مشکل ثبت نشده است.' }
         ];
       },
       priorityText(priority) {
