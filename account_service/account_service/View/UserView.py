@@ -203,13 +203,21 @@ class UserRoleCreateView(generics.CreateAPIView):
     permission_classes = [permissions.IsAuthenticated, permissions.IsAdminUser]
 
     def post(self, request, *args, **kwargs):
+        print(request.data)
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
 
-        userRole = UserRole.objects.create(**validated_data)
+        try:
+            userRole = UserRole.objects.get(user_id=request.data.get('user'))
+            if userRole:
+                userRole.role_id = request.data.get('role')
+                userRole.save()
+        except UserRole.DoesNotExist:
+            userRole = UserRole.objects.create(**validated_data)
 
+        
         return Response(
             {
                 'success': True,
@@ -413,7 +421,7 @@ class userRoleDetailView(generics.ListAPIView):
 
         if params.get('role_id'):
             queryset = queryset.filter(role_id=params.get('role_id'))
-
+        print(queryset.first().role.name)
         return queryset
 
 
