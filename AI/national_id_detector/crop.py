@@ -96,33 +96,44 @@ def crop_id_card(img_path):
 
     print("Saved: cropped_id_card.jpg")
 
+import cv2
 
 def crop_id_part(
     image_path,
-    output_path = "cropped_id_part.jpg",
-    x = 1000,   # left
-    y = 250,    # top
-    w = 600,    # width
-    h = 90,     # height
-    pad_x=25,
-    pad_y=30,):
-
+    output_path="cropped_id_part.jpg",
+    x_ratio=0.50,
+    y_ratio=0.22,
+    w_ratio=0.31,
+    h_ratio=0.10,
+    pad_x_ratio=0.015,
+    pad_y_ratio=0.02,
+):
     img = cv2.imread(image_path)
     if img is None:
         raise ValueError("Could not read image.")
 
     H, W = img.shape[:2]
 
-    # Expand crop
+    # Convert ratios to pixels
+    x = int(W * x_ratio)
+    y = int(H * y_ratio)
+    w = int(W * w_ratio)
+    h = int(H * h_ratio)
+
+    pad_x = int(W * pad_x_ratio)
+    pad_y = int(H * pad_y_ratio)
+
     x1 = max(0, x - pad_x)
     y1 = max(0, y - pad_y)
     x2 = min(W, x + w + pad_x)
     y2 = min(H, y + h + pad_y)
 
     cropped = img[y1:y2, x1:x2]
-
     cv2.imwrite(output_path, cropped)
+
     return cropped
 
+
+crop_id_card("3.jpg")
 crop_id_part("cropped_id_card.jpg")
 
