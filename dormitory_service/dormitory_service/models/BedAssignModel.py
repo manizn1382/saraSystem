@@ -15,8 +15,8 @@ class BedAssign(models.Model):
     bed = models.ForeignKey(Bed, on_delete=models.CASCADE)
     request = models.OneToOneField(Accommodation, on_delete=models.CASCADE)
     assigned_by = models.IntegerField()
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateField()
+    end_date = models.DateField(null=True)
     status = models.CharField(choices=STATUS_CHOICE, max_length=12, default='inactive')
     notes = models.TextField(default="desc")
 

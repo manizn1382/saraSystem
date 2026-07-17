@@ -7,6 +7,7 @@ from rest_framework_simplejwt.authentication import JWTStatelessUserAuthenticati
 from .Serializer import AccommodationCreate, AccommodationList, UpdateAccommodation, UpdateReview
 from .models import Accommodation
 from dormitory_service.models.DormModel import Dormitory
+from dormitory_service.models.BedAssignModel import BedAssign
 import requests
 from django.utils import timezone
 
@@ -53,6 +54,7 @@ class AccommodationCreateView(generics.CreateAPIView):
             preferred_room=request.data.get("preferred_room"),
             requested_dorm=dormitory
         )
+
 
         return Response({
             'status': 'success',
