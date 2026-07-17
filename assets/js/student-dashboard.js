@@ -863,6 +863,7 @@
           if (this.hasFormErrors("accommodation")) {
             event.preventDefault();
             event.stopImmediatePropagation();
+            this.markFormInvalid("accommodation", "لطفاً خطاهای فرم را اصلاح کنید و دوباره درخواست را ارسال کنید.");
             return;
           }
 
@@ -910,6 +911,7 @@
           if (this.hasFormErrors("maintenance")) {
             event.preventDefault();
             event.stopImmediatePropagation();
+            this.markFormInvalid("maintenance", "لطفاً خطاهای فرم را اصلاح کنید و دوباره درخواست را ارسال کنید.");
           }
         },
 
@@ -922,6 +924,14 @@
 
         hasFormErrors(formName) {
           return Object.values(this.forms[formName].errors).some(Boolean);
+        },
+
+        markFormInvalid(formName, message) {
+          const form = this.forms[formName];
+          if (!form) return;
+          form.loading = false;
+          form.success = false;
+          form.message = message || "لطفاً خطاهای فرم را اصلاح کنید و دوباره ارسال کنید.";
         },
 
         applyFormErrors(formName, data) {

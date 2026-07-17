@@ -1,37 +1,39 @@
-import re
-import tempfile
-from collections import Counter
-from pathlib import Path
-
 from ArabicOcr import arabicocr
-from crop import crop_id_card, crop_id_part
+import re
+from crop import *
 
+def extract_text(img_path):
 
-def extract_text(image_path):
-    with tempfile.TemporaryDirectory(prefix="sara_national_id_") as temp_dir:
-        work_dir = Path(temp_dir)
-        cropped_card = crop_id_card(image_path, work_dir / "cropped_id_card.jpg")
-        cropped_part = crop_id_part(cropped_card, work_dir / "cropped_id_part.jpg")
-        ocr_output = work_dir / "ocr_output.jpg"
+    crop_id_card(img_path)
+    crop_id_part("cropped_id_card.jpg")
 
-        results = arabicocr.arabic_ocr(str(cropped_part), str(ocr_output))
-        text = " ".join(result[1] for result in results)
+    results = arabicocr.arabic_ocr("cropped_id_part.jpg", "out.jpg")
+    # OCR text
+    text = " ".join(r[1] for r in results)
 
+    # Arabic digits -> English digits
     text = text.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789"))
+
+    # Replace Arabic ه with English 0
     text = text.replace("ه", "0")
-    return re.sub(r"[^0-9]", "", text)
 
+    # Keep only English digits
+    text = re.sub(r"[^0-9]", "", text)
 
-def is_match(expected, actual, threshold=0.7):
-    expected = str(expected or "").replace("5", "0")
-    actual = str(actual or "").replace("5", "0")
+    return text
 
-    expected_counts = Counter(expected)
-    actual_counts = Counter(actual)
-    chars = set(expected_counts) | set(actual_counts)
-    total = sum(max(expected_counts[ch], actual_counts[ch]) for ch in chars)
-    if total == 0:
-        return False
+from collections import Counter
 
-    matched = sum(min(expected_counts[ch], actual_counts[ch]) for ch in chars)
+def is_match(s1, s2, threshold=0.7):
+    # Treat 5 as 0
+    s1 = s1.replace("5", "0")
+    s2 = s2.replace("5", "0")
+
+    c1 = Counter(s1)
+    c2 = Counter(s2)
+
+    chars = set(c1) | set(c2)
+    matched = sum(min(c1[ch], c2[ch]) for ch in chars)
+    total = sum(max(c1[ch], c2[ch]) for ch in chars)
+
     return matched / total >= threshold
