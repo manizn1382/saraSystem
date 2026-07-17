@@ -240,6 +240,7 @@
           this.updateUnreadBadge();
           this.watchCurrentSection();
           this.loadAccommodationRequests({ silent: true });
+          this.loadMaintenanceRequests({ silent: true });
           this.loadDropdownOptions();
 
           document.body.addEventListener("htmx:configRequest", (event) => {
@@ -357,6 +358,10 @@
 
         async loadAccommodationRequests(options = {}) {
           return this.loadResource("accommodationRequests", options);
+        },
+
+        async loadMaintenanceRequests(options = {}) {
+          return this.loadResource("maintenanceRequests", options);
         },
 
         async loadDropdownOptions() {
@@ -898,9 +903,10 @@
           }
 
           if (resource === "maintenanceRequests") {
+            const maintenanceItems = this.optionList(data, ["maintenance", "maintenanceRequests", "maintenance_requests", "requests"]);
             this.maintenanceRequests = window.SaraAdapters
-              ? window.SaraAdapters.adaptList(data, window.SaraAdapters.maintenanceRequest)
-              : list.map((item) => ({
+              ? maintenanceItems.map(window.SaraAdapters.maintenanceRequest)
+              : maintenanceItems.map((item) => ({
                 id: item.id || "—",
                 title: item.title || "بدون عنوان",
                 description: item.description || "",

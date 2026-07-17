@@ -174,6 +174,7 @@
                   id="refreshDashboard"
                   class="btn btn-ss btn-ss-outline px-3"
                   type="button"
+                  @click="loadMaintenanceRequests()"
                   aria-label="بروزرسانی داده‌های داشبورد"
                 >
                   <span
@@ -1119,15 +1120,6 @@
       <div
         data-resource="payments"
         hx-get="/api/payments/"
-        hx-trigger="load, click from:#refreshDashboard"
-        hx-swap="none"
-        hx-timeout="15000"
-        hx-headers='{"Accept": "application/json"}'
-      ></div>
-
-      <div
-        data-resource="maintenanceRequests"
-        hx-get="/api/maintenance-requests/"
         hx-trigger="load, click from:#refreshDashboard"
         hx-swap="none"
         hx-timeout="15000"
