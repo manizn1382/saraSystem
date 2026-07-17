@@ -185,7 +185,7 @@
           <div x-cloak x-show="!errors.roles && roles.some((role) => !role.id)" class="alert alert-warning small" role="status">برخی نقش‌های دریافتی از account service شناسه ندارند؛ ویرایش، حذف و اتصال برای این نقش‌ها تا زمان ارسال id از API غیرفعال است.</div>
           <div class="table-responsive" x-show="!errors.roles">
             <table class="table ss-table align-middle ss-table-card-mobile"><caption class="visually-hidden">فهرست نقش‌های سامانه</caption><thead><tr><th>نقش</th><th>توضیحات</th><th>شناسه</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
-              <tbody><template x-for="role in roles" :key="role.id || role.name"><tr><td data-label="نقش"><strong class="admin-user-name" x-text="roleDisplayName(role.name)"></strong><small class="d-block ss-muted" dir="ltr" x-text="role.name"></small></td><td data-label="توضیحات" x-text="role.description || '—'"></td><td data-label="شناسه" x-text="role.id || '—'"></td><td data-label="عملیات"><div class="admin-table-actions"><button class="admin-action-button" type="button" disabled title="ویرایش نقش تا اصلاح endpoint نقش در account service غیرفعال است.">ویرایش غیرفعال</button><button class="admin-action-button danger" type="button" :disabled="loading.saving || !role.id" @click="deleteRole(role)">حذف</button></div></td></tr></template><tr x-show="loading.roles"><td colspan="4"><div class="ss-loading">در حال دریافت نقش‌ها...</div></td></tr><tr x-show="!loading.roles && roles.length === 0"><td colspan="4"><div class="ss-empty">نقشی ثبت نشده است.</div></td></tr></tbody>
+              <tbody><template x-for="role in roles" :key="role.id || role.name"><tr><td data-label="نقش"><strong class="admin-user-name" x-text="roleDisplayName(role.name)"></strong><small class="d-block ss-muted" dir="ltr" x-text="role.name"></small></td><td data-label="توضیحات" x-text="role.description || '—'"></td><td data-label="شناسه" x-text="role.id || '—'"></td><td data-label="عملیات"><div class="admin-table-actions"><button class="admin-action-button" type="button" :disabled="loading.saving || !role.id" @click="openRoleForm(role)">ویرایش</button><button class="admin-action-button danger" type="button" :disabled="loading.saving || !role.id" @click="deleteRole(role)">حذف</button></div></td></tr></template><tr x-show="loading.roles"><td colspan="4"><div class="ss-loading">در حال دریافت نقش‌ها...</div></td></tr><tr x-show="!loading.roles && roles.length === 0"><td colspan="4"><div class="ss-empty">نقشی ثبت نشده است.</div></td></tr></tbody>
             </table>
           </div>
           <div class="admin-access-grid mt-4">
@@ -209,14 +209,13 @@
                 <div><h4 class="h6 fw-bold mb-1">فهرست نقش‌های کاربران</h4><p class="ss-muted small mb-0">داده از `/api/accounts/user-roles/` خوانده می‌شود.</p></div>
                 <button class="admin-action-button" type="button" @click="loadUserRoleAssignments()">بروزرسانی</button>
               </div>
-              <div class="alert alert-warning small" role="note">حذف نقش از کاربر تا اصلاح endpoint حذف در account service غیرفعال است.</div>
               <div x-cloak x-show="errors.userRoleAssignments" class="alert alert-warning small" role="alert" x-text="errors.userRoleAssignments"></div>
               <div class="table-responsive">
                 <table class="table ss-table align-middle ss-table-card-mobile">
                   <caption class="visually-hidden">فهرست اتصال نقش به کاربر</caption>
                   <thead><tr><th>کاربر</th><th>نقش</th><th>شناسه اتصال</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
                   <tbody>
-                    <template x-for="assignment in userRoleAssignments" :key="assignment.id"><tr><td data-label="کاربر" x-text="userRoleUserLabel(assignment)"></td><td data-label="نقش" x-text="userRoleRoleLabel(assignment)"></td><td data-label="شناسه اتصال" x-text="assignment.id || '—'"></td><td data-label="عملیات"><button class="admin-action-button danger" type="button" disabled>حذف غیرفعال</button></td></tr></template>
+                    <template x-for="assignment in userRoleAssignments" :key="assignment.id"><tr><td data-label="کاربر" x-text="userRoleUserLabel(assignment)"></td><td data-label="نقش" x-text="userRoleRoleLabel(assignment)"></td><td data-label="شناسه اتصال" x-text="assignment.id || '—'"></td><td data-label="عملیات"><button class="admin-action-button danger" type="button" :disabled="loading.saving || !assignment.id" @click="deleteUserRoleAssignment(assignment)">حذف</button></td></tr></template>
                     <tr x-show="loading.userRoleAssignments"><td colspan="4"><div class="ss-loading">در حال دریافت اتصال‌های کاربر و نقش...</div></td></tr>
                     <tr x-show="!loading.userRoleAssignments && userRoleAssignments.length === 0"><td colspan="4"><div class="ss-empty">اتصال نقش به کاربری دریافت نشد.</div></td></tr>
                   </tbody>
@@ -228,14 +227,13 @@
                 <div><h4 class="h6 fw-bold mb-1">فهرست مجوزهای نقش</h4><p class="ss-muted small mb-0">داده از `/api/accounts/role-permissions/` خوانده می‌شود.</p></div>
                 <button class="admin-action-button" type="button" @click="loadRolePermissionAssignments()">بروزرسانی</button>
               </div>
-              <div class="alert alert-warning small" role="note">قطع اتصال مجوز از نقش تا اصلاح endpoint حذف در account service غیرفعال است.</div>
               <div x-cloak x-show="errors.rolePermissionAssignments" class="alert alert-warning small" role="alert" x-text="errors.rolePermissionAssignments"></div>
               <div class="table-responsive">
                 <table class="table ss-table align-middle ss-table-card-mobile">
                   <caption class="visually-hidden">فهرست اتصال مجوز به نقش</caption>
                   <thead><tr><th>نقش</th><th>مجوز</th><th>شناسه اتصال</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
                   <tbody>
-                    <template x-for="assignment in rolePermissionAssignments" :key="assignment.id"><tr><td data-label="نقش" x-text="rolePermissionRoleLabel(assignment)"></td><td data-label="مجوز" x-text="rolePermissionPermissionLabel(assignment)"></td><td data-label="شناسه اتصال" x-text="assignment.id || '—'"></td><td data-label="عملیات"><button class="admin-action-button danger" type="button" disabled>قطع اتصال غیرفعال</button></td></tr></template>
+                    <template x-for="assignment in rolePermissionAssignments" :key="assignment.id"><tr><td data-label="نقش" x-text="rolePermissionRoleLabel(assignment)"></td><td data-label="مجوز" x-text="rolePermissionPermissionLabel(assignment)"></td><td data-label="شناسه اتصال" x-text="assignment.id || '—'"></td><td data-label="عملیات"><button class="admin-action-button danger" type="button" :disabled="permissionForm.loading || !assignment.id" @click="deleteRolePermissionAssignment(assignment)">قطع اتصال</button></td></tr></template>
                     <tr x-show="loading.rolePermissionAssignments"><td colspan="4"><div class="ss-loading">در حال دریافت اتصال‌های نقش و مجوز...</div></td></tr>
                     <tr x-show="!loading.rolePermissionAssignments && rolePermissionAssignments.length === 0"><td colspan="4"><div class="ss-empty">اتصال مجوز به نقشی دریافت نشد.</div></td></tr>
                   </tbody>
@@ -421,7 +419,7 @@
               <button class="admin-action-button" type="button" @click="loadPayments()">بروزرسانی</button>
             </div>
             <div class="alert alert-info small" role="note">
-              هیچ پرداخت بانکی واقعی در فرانت‌اند انجام نمی‌شود؛ ثبت و تغییر وضعیت پرداخت تا زمان آماده شدن API پرداخت‌ها نمایشی است.
+              وضعیت پرداخت و مرجع تراکنش از طریق endpoint پرداخت‌ها به backend ارسال می‌شود.
             </div>
             <div class="row g-2 mb-3">
               <div class="col-md-5"><input class="form-control" type="search" x-model.debounce.250ms="paymentFilters.query" placeholder="جستجوی دانشجو، شناسه پرداخت یا مرجع تراکنش" /></div>
@@ -452,7 +450,7 @@
                       <td data-label="عملیات"><div class="admin-table-actions"><button class="admin-action-button" type="button" @click="openPaymentDetail(payment)">جزئیات</button><button class="admin-action-button" type="button" @click="openPaymentStudent(payment)">دانشجو</button></div></td>
                     </tr>
                   </template>
-                  <tr x-show="!loading.payments && filteredPayments().length === 0"><td colspan="7"><div class="ss-empty">پرداختی با فیلتر فعلی دریافت نشده است یا API پرداخت‌ها هنوز آماده نیست.</div></td></tr>
+                  <tr x-show="!loading.payments && filteredPayments().length === 0"><td colspan="7"><div class="ss-empty">پرداختی با فیلتر فعلی دریافت نشده است.</div></td></tr>
                 </tbody>
               </table>
             </div>
@@ -462,13 +460,13 @@
 
         <section id="reports" class="admin-section ss-card ss-glass p-3 p-md-4 mb-4" aria-labelledby="reportsTitle">
           <div class="mb-3"><h3 id="reportsTitle" class="h5 fw-bold mb-1">گزارش‌های مدیریتی</h3><p class="ss-muted small mb-0">شاخص‌های ظرفیت، اسکان، مالی، تعمیرات و اطلاع‌رسانی</p></div>
-          <div class="admin-operation-grid"><template x-for="report in ['نرخ اشغال', 'تخت‌های آزاد', 'درخواست‌های اسکان', 'پرداخت‌های معوق', 'تعمیرات فوری', 'وضعیت اطلاعیه‌ها']" :key="report"><article class="admin-operation"><h4 class="fw-bold" x-text="report"></h4><strong class="ss-muted">—</strong><span class="small ss-muted">در انتظار داده API</span></article></template></div>
+          <div class="admin-operation-grid"><template x-for="report in ['نرخ اشغال', 'تخت‌های آزاد', 'درخواست‌های اسکان', 'پرداخت‌های معوق', 'تعمیرات فوری', 'وضعیت اطلاعیه‌ها']" :key="report"><article class="admin-operation"><h4 class="fw-bold" x-text="report"></h4><strong class="ss-muted">—</strong><span class="small ss-muted">متصل به داده‌های سرویس‌ها</span></article></template></div>
           <div class="admin-report-grid mt-4">
             <template x-for="report in computedReports()" :key="report.title">
-              <article class="admin-report-card" :class="{ 'api-dependent': report.type === 'api' }">
+              <article class="admin-report-card">
                 <div class="admin-report-head">
-                  <span class="ss-badge-soft" x-text="report.type === 'api' ? 'API' : 'محاسبه'"></span>
-                  <span class="admin-report-state" x-text="report.type === 'api' ? 'وابسته به سرویس' : 'آماده'"></span>
+                  <span class="ss-badge-soft">API</span>
+                  <span class="admin-report-state">آماده</span>
                 </div>
                 <strong class="admin-report-value" x-text="report.value"></strong>
                 <h4 class="admin-report-title" x-text="report.title"></h4>
@@ -576,11 +574,11 @@
               <div class="admin-detail-item"><dt x-text="field.label"></dt><dd x-text="field.value || '—'"></dd></div>
             </template>
           </dl>
-          <div class="alert alert-info small" role="note">این فرم فقط وضعیت نمایشی و مرجع تراکنش را در همین نشست تغییر می‌دهد؛ پرداخت بانکی واقعی انجام نمی‌شود.</div>
+          <div class="alert alert-info small" role="note">تغییر وضعیت پرداخت از طریق backend ثبت می‌شود.</div>
           <div class="row g-3">
             <div class="col-md-5"><label class="form-label" for="payment-status">وضعیت پرداخت</label><select id="payment-status" class="form-select" x-model="paymentAction.status"><option value="unpaid">پرداخت نشده</option><option value="pending">در انتظار</option><option value="paid">پرداخت شده</option><option value="overdue">معوق</option><option value="cancelled">لغو شده</option></select></div>
             <div class="col-md-7"><label class="form-label" for="payment-ref">مرجع تراکنش</label><input id="payment-ref" class="form-control" dir="ltr" x-model.trim="paymentAction.transaction_ref" placeholder="TRX-..." /></div>
-            <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-2"><button class="btn ss-btn ss-btn-outline" type="button" @click="openPaymentStudent(dialog.subject)">مشاهده دانشجو</button><button class="btn ss-btn ss-btn-primary" type="button" @click="applyPaymentShellUpdate()">ثبت نمایشی وضعیت</button></div>
+            <div class="col-12 d-flex flex-wrap align-items-center justify-content-between gap-2"><button class="btn ss-btn ss-btn-outline" type="button" @click="openPaymentStudent(dialog.subject)">مشاهده دانشجو</button><button class="btn ss-btn ss-btn-primary" type="button" :disabled="loading.saving" @click="applyPaymentShellUpdate()" x-text="loading.saving ? 'در حال ثبت...' : 'ثبت وضعیت'"></button></div>
           </div>
           <p x-cloak x-show="paymentAction.note" class="alert alert-warning small mt-3 mb-0" role="status" aria-live="polite" x-text="paymentAction.note"></p>
         </div>

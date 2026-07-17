@@ -505,15 +505,6 @@
   font-weight: 900;
 }
 
-.admin-report-card.api-dependent {
-  border-style: dashed;
-  background: rgba(148, 163, 184, 0.04);
-}
-
-.admin-report-card.api-dependent .admin-report-value {
-  color: var(--ss-muted);
-}
-
 #reports > .admin-operation-grid {
   display: none;
 }

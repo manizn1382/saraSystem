@@ -825,13 +825,26 @@
         this.dialog = { open: true, type: 'payment-detail', subject: payment };
       },
 
-      applyPaymentShellUpdate() {
+      async applyPaymentShellUpdate() {
         const payment = this.dialog.subject;
         if (!payment) return;
-        payment.status = this.paymentAction.status || payment.status;
-        payment.transaction_ref = this.paymentAction.transaction_ref || payment.transaction_ref;
-        if (payment.status === 'paid' && !payment.paid_at) payment.paid_at = new Date().toISOString().slice(0, 10);
-        this.paymentAction.note = 'وضعیت پرداخت در فرانت‌اند به‌روزرسانی شد؛ ثبت دائمی به endpoint پرداخت‌ها وابسته است.';
+        this.loading.saving = true;
+        this.paymentAction.note = '';
+        try {
+          const payload = {
+            status: this.paymentAction.status || payment.status,
+            transaction_ref: this.paymentAction.transaction_ref || payment.transaction_ref || ''
+          };
+          const response = await window.SaraAPI.patch(`/api/payments/${encodeURIComponent(payment.id)}/`, payload);
+          const saved = normalizePayment(response?.data || response?.payment || { ...payment, ...payload });
+          Object.assign(payment, saved);
+          if (payment.status === 'paid' && !payment.paid_at) payment.paid_at = new Date().toISOString().slice(0, 10);
+          this.paymentAction.note = response?.message || 'وضعیت پرداخت از طریق API ثبت شد.';
+        } catch (error) {
+          this.paymentAction.note = this.apiMessage(error);
+        } finally {
+          this.loading.saving = false;
+        }
       },
 
       openPaymentStudent(payment) {
@@ -880,14 +893,16 @@
         const approved = this.accommodationRequests.filter((request) => request.status === 'approved').length;
         const rejected = this.accommodationRequests.filter((request) => request.status === 'rejected').length;
         const assignedStudents = new Set(this.bedAssignments.filter((item) => ['active', 'assigned'].includes(String(item.status || '').toLowerCase())).map((item) => item.user_id || item.student_name || item.id)).size;
+        const overduePayments = this.payments.filter((payment) => this.paymentDueState(payment) === 'overdue').length;
+        const trackedPayments = this.payments.filter((payment) => payment.id).length;
 
         return [
-          { title: 'نرخ اشغال', value: totalBeds || occupancy ? `${this.toPersianNumber(occupancy || 0)}٪` : '—', note: `${this.toPersianNumber(occupiedBeds)} تخت اشغال از ${this.toPersianNumber(totalBeds)} تخت قابل محاسبه`, type: 'computed' },
-          { title: 'تخت‌های آزاد', value: this.toPersianNumber(availableBeds), note: 'محاسبه از endpoint تخت‌ها یا ظرفیت خوابگاه', type: 'computed' },
-          { title: 'درخواست‌های در انتظار', value: this.toPersianNumber(pending), note: 'از فهرست سراسری درخواست‌های اسکان', type: 'computed' },
-          { title: 'تایید / رد شده', value: `${this.toPersianNumber(approved)} / ${this.toPersianNumber(rejected)}`, note: 'تفکیک وضعیت درخواست‌های اسکان', type: 'computed' },
-          { title: 'دانشجویان تخصیص‌خورده', value: this.toPersianNumber(assignedStudents), note: 'بر پایه تاریخچه تخصیص تخت', type: 'computed' },
-          { title: 'پرداخت‌ها، تعمیرات و خواندن اطلاعیه', value: 'وابسته به API', note: 'پس از تکمیل endpointهای گزارش قابل محاسبه است.', type: 'api' }
+          { title: 'نرخ اشغال', value: totalBeds || occupancy ? `${this.toPersianNumber(occupancy || 0)}٪` : '—', note: `${this.toPersianNumber(occupiedBeds)} تخت اشغال از ${this.toPersianNumber(totalBeds)} تخت قابل محاسبه`, type: 'backend' },
+          { title: 'تخت‌های آزاد', value: this.toPersianNumber(availableBeds), note: 'محاسبه از endpoint تخت‌ها یا ظرفیت خوابگاه', type: 'backend' },
+          { title: 'درخواست‌های در انتظار', value: this.toPersianNumber(pending), note: 'از فهرست سراسری درخواست‌های اسکان', type: 'backend' },
+          { title: 'تایید / رد شده', value: `${this.toPersianNumber(approved)} / ${this.toPersianNumber(rejected)}`, note: 'تفکیک وضعیت درخواست‌های اسکان', type: 'backend' },
+          { title: 'دانشجویان تخصیص‌خورده', value: this.toPersianNumber(assignedStudents), note: 'بر پایه تاریخچه تخصیص تخت', type: 'backend' },
+          { title: 'پرداخت‌های معوق', value: this.toPersianNumber(overduePayments), note: `${this.toPersianNumber(trackedPayments)} پرداخت از API بررسی شد.`, type: 'backend' }
         ];
       },
 
@@ -935,7 +950,7 @@
           {
             title: 'پرداخت‌های سررسید گذشته',
             value: this.toPersianNumber(overduePayments.length),
-            note: 'نمایشی تا زمان آماده‌شدن endpoint پرداخت‌ها',
+            note: 'بر اساس فهرست پرداخت‌های دریافتی از API',
             href: '#operations',
             tone: overduePayments.length ? 'danger' : 'neutral'
           }
@@ -1215,10 +1230,6 @@
       },
 
       openRoleForm(role = null) {
-        if (role?.id) {
-          this.showAlert('warning', 'ویرایش نقش در backend فعلی قابل اتکا نیست و تا اصلاح account service غیرفعال است. ایجاد نقش جدید همچنان فعال است.');
-          return;
-        }
         if (role && !role.id) {
           this.showAlert('danger', 'این نقش از فهرست کاربران استخراج شده و شناسه id برای ویرایش یا اتصال API ندارد.');
           return;
@@ -1374,11 +1385,6 @@
       },
 
       async saveRole() {
-        if (this.roleForm.id) {
-          this.showAlert('warning', 'ویرایش نقش در backend فعلی قابل اتکا نیست و تا اصلاح account service انجام نمی‌شود.');
-          return;
-        }
-
         this.loading.saving = true;
         try {
           const existing = this.roleForm.id;
@@ -1508,6 +1514,47 @@
           this.permissionForm.notice = response?.message || 'مجوز به نقش متصل شد.';
         } catch (error) {
           this.permissionForm.notice = this.apiMessage(error);
+        } finally {
+          this.permissionForm.loading = false;
+        }
+      },
+
+      async deleteUserRoleAssignment(assignment) {
+        if (!assignment?.id) {
+          this.showAlert('danger', 'این اتصال شناسه id ندارد و حذف آن از طریق API ممکن نیست.');
+          return;
+        }
+
+        if (!window.confirm('اتصال نقش از کاربر حذف شود؟')) return;
+
+        this.loading.saving = true;
+        try {
+          const response = await window.SaraAPI.delete(`${USER_ROLE_ENDPOINT}${encodeURIComponent(assignment.id)}/`);
+          this.userRoleAssignments = this.userRoleAssignments.filter((item) => String(item.id) !== String(assignment.id));
+          await this.loadUsers();
+          this.showAlert('success', response?.message || 'اتصال نقش از کاربر حذف شد.');
+        } catch (error) {
+          this.showAlert('danger', this.apiMessage(error));
+        } finally {
+          this.loading.saving = false;
+        }
+      },
+
+      async deleteRolePermissionAssignment(assignment) {
+        if (!assignment?.id) {
+          this.showAlert('danger', 'این اتصال شناسه id ندارد و حذف آن از طریق API ممکن نیست.');
+          return;
+        }
+
+        if (!window.confirm('اتصال مجوز از نقش حذف شود؟')) return;
+
+        this.permissionForm.loading = true;
+        try {
+          const response = await window.SaraAPI.delete(`${ROLE_PERMISSION_ENDPOINT}${encodeURIComponent(assignment.id)}/`);
+          this.rolePermissionAssignments = this.rolePermissionAssignments.filter((item) => String(item.id) !== String(assignment.id));
+          this.showAlert('success', response?.message || 'اتصال مجوز از نقش حذف شد.');
+        } catch (error) {
+          this.showAlert('danger', this.apiMessage(error));
         } finally {
           this.permissionForm.loading = false;
         }
