@@ -1431,7 +1431,10 @@
                     aria-describedby="maintenanceRoomError"
                     @change="syncMaintenanceLocationFromRoom()"
                   >
-                    <option value="">انتخاب کنید</option>
+                    <option
+                      value=""
+                      x-text="isResourceLoading('dormitories') ? 'در حال دریافت خوابگاه‌ها...' : (resourceError('dormitories') ? 'دریافت خوابگاه‌ها ناموفق بود' : (dormitories.length ? 'انتخاب کنید' : 'خوابگاهی برای انتخاب دریافت نشد'))"
+                    ></option>
                     <template x-for="room in roomOptions()" :key="room.id">
                       <option :value="room.id" x-text="roomOptionLabel(room)"></option>
                     </template>

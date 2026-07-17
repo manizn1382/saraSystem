@@ -240,6 +240,7 @@
           this.updateUnreadBadge();
           this.watchCurrentSection();
           this.loadAccommodationRequests({ silent: true });
+          this.loadDropdownOptions();
 
           document.body.addEventListener("htmx:configRequest", (event) => {
             const token = this.getAccessToken();
@@ -356,6 +357,17 @@
 
         async loadAccommodationRequests(options = {}) {
           return this.loadResource("accommodationRequests", options);
+        },
+
+        async loadDropdownOptions() {
+          if (this.isDemoMode()) return;
+
+          await Promise.allSettled([
+            this.loadResource("dormitories", { silent: true }),
+            this.loadResource("rooms", { silent: true }),
+            this.loadResource("beds", { silent: true }),
+            this.loadResource("assignment", { silent: true })
+          ]);
         },
 
         accommodationListEndpoint() {
@@ -556,7 +568,7 @@
         },
 
         applyDormitoryOptions(data) {
-          const source = Array.isArray(data?.dormitories) ? data.dormitories : this.asList(data);
+          const source = this.optionList(data, ["dormitories"]);
           const roomMap = new Map(this.rooms.map((room) => [String(room.id), room]));
           const bedMap = new Map(this.beds.map((bed) => [String(bed.id), bed]));
 
@@ -566,9 +578,9 @@
 
           source.forEach((dormitory, dormitoryIndex) => {
             const normalizedDormitory = this.normalizeDormitoryOption(dormitory, dormitoryIndex);
-            const rooms = dormitory.rooms || dormitory.room_set || dormitory.roomList || [];
+            const rooms = this.optionList(dormitory.rooms || dormitory.room_set || dormitory.roomList || [], ["rooms"]);
 
-            this.asList(rooms).forEach((room, roomIndex) => {
+            rooms.forEach((room, roomIndex) => {
               const normalizedRoom = this.normalizeRoomOption({
                 ...room,
                 dormitory: room.dormitory || { id: normalizedDormitory.id, name: normalizedDormitory.name },
@@ -577,8 +589,8 @@
               }, roomIndex);
               if (normalizedRoom.id) roomMap.set(String(normalizedRoom.id), { ...roomMap.get(String(normalizedRoom.id)), ...normalizedRoom });
 
-              const beds = room.beds || room.bed_set || room.bedList || [];
-              this.asList(beds).forEach((bed, bedIndex) => {
+              const beds = this.optionList(room.beds || room.bed_set || room.bedList || [], ["beds"]);
+              beds.forEach((bed, bedIndex) => {
                 const normalizedBed = this.normalizeBedOption({
                   ...bed,
                   room: bed.room || { id: normalizedRoom.id, room_number: normalizedRoom.room_number },
@@ -592,6 +604,21 @@
           this.rooms = Array.from(roomMap.values()).filter((room) => room.id);
           this.beds = Array.from(bedMap.values()).filter((bed) => bed.id);
           this.ensureCurrentAssignmentOptions();
+        },
+
+        optionList(data, keys = []) {
+          const containers = [data, data?.data, data?.payload, data?.response].filter(Boolean);
+
+          for (const container of containers) {
+            if (Array.isArray(container)) return container;
+            for (const key of keys) {
+              if (Array.isArray(container?.[key])) return container[key];
+            }
+            if (Array.isArray(container?.results)) return container.results;
+            if (Array.isArray(container?.items)) return container.items;
+          }
+
+          return this.asList(data);
         },
 
         normalizeDormitoryOption(item = {}, index = 0) {
@@ -776,9 +803,10 @@
           }
 
           if (resource === "rooms") {
+            const rooms = this.optionList(data, ["rooms"]);
             this.rooms = (window.SaraAdapters
-              ? window.SaraAdapters.adaptList(data, window.SaraAdapters.room)
-              : list.map((item, index) => this.normalizeRoomOption(item, index)))
+              ? rooms.map(window.SaraAdapters.room)
+              : rooms.map((item, index) => this.normalizeRoomOption(item, index)))
               .map((room, index) => this.normalizeRoomOption(room, index))
               .filter((room) => room.id);
             this.ensureCurrentAssignmentOptions();
@@ -786,9 +814,10 @@
           }
 
           if (resource === "beds") {
+            const beds = this.optionList(data, ["beds"]);
             this.beds = (window.SaraAdapters
-              ? window.SaraAdapters.adaptList(data, window.SaraAdapters.bed)
-              : list.map((item, index) => this.normalizeBedOption(item, index)))
+              ? beds.map(window.SaraAdapters.bed)
+              : beds.map((item, index) => this.normalizeBedOption(item, index)))
               .map((bed, index) => this.normalizeBedOption(bed, index))
               .filter((bed) => bed.id);
             this.ensureCurrentAssignmentOptions();
