@@ -413,6 +413,50 @@
           <article class="admin-access-card mt-3">
             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
               <div>
+                <h4 class="h6 fw-bold mb-1">درخواست‌های تعمیرات سراسری</h4>
+                <p class="ss-muted small mb-0">فهرست مستقیم از alias سراسری `/api/maintenance-requests/` برای بررسی وضعیت تعمیرات</p>
+              </div>
+              <button class="admin-action-button" type="button" @click="loadMaintenanceRequests()">بروزرسانی</button>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-md-5"><input class="form-control" type="search" x-model.debounce.250ms="operationFilters.maintenanceQuery" placeholder="جستجوی عنوان، مکان یا مسئول" /></div>
+              <div class="col-md-3"><select class="form-select" x-model="operationFilters.maintenanceStatus"><option value="all">همه وضعیت‌ها</option><option value="pending">در انتظار</option><option value="assigned">ارجاع شده</option><option value="progress">در حال انجام</option><option value="in_progress">در حال انجام</option><option value="resolved">حل شده</option><option value="cancelled">لغو شده</option></select></div>
+              <div class="col-md-4"><select class="form-select" x-model="operationFilters.maintenancePriority"><option value="all">همه اولویت‌ها</option><option value="urgent">فوری</option><option value="high">زیاد</option><option value="medium">متوسط</option><option value="low">کم</option></select></div>
+            </div>
+            <div class="admin-filter-strip mb-3">
+              <span class="admin-result-count" x-text="`${toPersianNumber(filteredMaintenanceRequests().length)} نتیجه از ${toPersianNumber(maintenanceRequests.length)} درخواست`"></span>
+              <div class="admin-filter-chips" x-show="maintenanceFilterChips().length">
+                <template x-for="chip in maintenanceFilterChips()" :key="chip"><span class="admin-filter-chip" x-text="chip"></span></template>
+                <button class="admin-filter-reset" type="button" @click="clearMaintenanceFilters()">پاک‌سازی فیلترها</button>
+              </div>
+            </div>
+            <div x-cloak x-show="errors.maintenanceRequests" class="alert alert-warning small" role="alert" x-text="errors.maintenanceRequests"></div>
+            <div class="table-responsive">
+              <table class="table ss-table align-middle ss-table-card-mobile">
+                <caption class="visually-hidden">درخواست‌های تعمیرات سراسری</caption>
+                <thead><tr><th>عنوان</th><th>مکان</th><th>اولویت</th><th>وضعیت</th><th>مسئول</th><th>تاریخ</th><th><span class="visually-hidden">عملیات</span></th></tr></thead>
+                <tbody>
+                  <template x-for="ticket in filteredMaintenanceRequests().slice(0, 12)" :key="ticket.id">
+                    <tr>
+                      <td data-label="عنوان"><strong class="admin-user-name" x-text="ticket.title || '—'"></strong><small class="d-block ss-muted" x-text="ticket.description || '—'"></small></td>
+                      <td data-label="مکان" x-text="ticket.location || '—'"></td>
+                      <td data-label="اولویت"><span :class="priorityBadgeClass(ticket.priority)" x-text="priorityLabel(ticket.priority)"></span></td>
+                      <td data-label="وضعیت"><span :class="statusBadgeClass('maintenance', ticket.status)" x-text="statusBadgeLabel('maintenance', ticket.status)"></span></td>
+                      <td data-label="مسئول" x-text="ticket.assigned_to || '—'"></td>
+                      <td data-label="تاریخ" x-text="ticket.created_at || '—'"></td>
+                      <td data-label="عملیات"><button class="admin-action-button" type="button" @click="openMaintenanceDetail(ticket)">جزئیات</button></td>
+                    </tr>
+                  </template>
+                  <tr x-show="!loading.maintenanceRequests && filteredMaintenanceRequests().length === 0"><td colspan="7"><div class="ss-empty">درخواست تعمیراتی با فیلتر فعلی دریافت نشده است.</div></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="ss-muted small mb-0" x-show="filteredMaintenanceRequests().length > 12" x-text="`${toPersianNumber(filteredMaintenanceRequests().length - 12)} درخواست دیگر با همین فیلتر وجود دارد.`"></p>
+          </article>
+
+          <article class="admin-access-card mt-3">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+              <div>
                 <h4 class="h6 fw-bold mb-1">مدیریت پرداخت‌ها</h4>
                 <p class="ss-muted small mb-0">فهرست، فیلتر، جزئیات و ثبت مرجع تراکنش پرداخت‌ها</p>
               </div>

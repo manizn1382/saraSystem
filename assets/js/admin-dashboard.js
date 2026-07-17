@@ -20,6 +20,7 @@
   const ACCOMMODATION_REQUEST_ENDPOINT = '/api/accommodation-requests/';
   const BED_ASSIGNMENT_ENDPOINT = '/api/bed-assignments/';
   const PAYMENT_ENDPOINT = '/api/payments/';
+  const MAINTENANCE_ENDPOINT = '/api/maintenance-requests/';
   const BACKEND_ROLE_CHOICES = [
     { value: 'student', label: 'دانشجو' },
     { value: 'dorm-admin', label: 'مسئول خوابگاه' },
@@ -203,6 +204,27 @@
     };
   }
 
+  function normalizeMaintenanceRequest(item = {}, index = 0) {
+    return window.SaraAdapters?.maintenanceRequest?.(item, index) || {
+      id: item.id || `M-${index + 1}`,
+      title: item.title || 'بدون عنوان',
+      description: item.description || '',
+      dorm_id: item.dorm_id || item.dormitory_id || item.dorm?.id || item.dormitory?.id || '',
+      room_id: item.room_id || item.room?.id || item.room || '',
+      bed_id: item.bed_id || item.bed?.id || item.bed || '',
+      location: item.location || item.location_text || [item.room?.room_number ? `اتاق ${item.room.room_number}` : '', item.bed?.bed_number ? `تخت ${item.bed.bed_number}` : ''].filter(Boolean).join('، '),
+      priority: item.priority || 'medium',
+      status: item.status || 'pending',
+      requested_by: item.requested_by?.full_name || item.student_name || item.requested_by_name || '',
+      assigned_to_id: item.assigned_to?.id || item.assigned_to_id || '',
+      assigned_to: item.assigned_to?.full_name || item.assigned_to_name || item.assigned_to || '',
+      created_at: item.created_at || item.createAt || item.request_date || '',
+      updated_at: item.updated_at || '',
+      resolved_at: item.resolved_at || item.closed_at || '',
+      resolution_note: item.resolution_note || item.resolution || item.close_note || ''
+    };
+  }
+
   function systemAdminPanel() {
     return {
       ...window.SaraPage.basePanelState(),
@@ -220,6 +242,7 @@
       accommodationRequests: [],
       bedAssignments: [],
       payments: [],
+      maintenanceRequests: [],
       loading: {
         users: false,
         roles: false,
@@ -229,6 +252,7 @@
         accommodationRequests: false,
         bedAssignments: false,
         payments: false,
+        maintenanceRequests: false,
         permissions: false,
         userRoleAssignments: false,
         rolePermissionAssignments: false,
@@ -243,6 +267,7 @@
         accommodationRequests: '',
         bedAssignments: '',
         payments: '',
+        maintenanceRequests: '',
         permissions: '',
         userRoleAssignments: '',
         rolePermissionAssignments: ''
@@ -253,6 +278,9 @@
         requestStatus: 'all',
         assignmentQuery: '',
         assignmentStatus: 'all',
+        maintenanceQuery: '',
+        maintenanceStatus: 'all',
+        maintenancePriority: 'all',
         dormitoryId: 'all'
       },
       paymentFilters: { query: '', status: 'all', due: 'all' },
@@ -337,7 +365,8 @@
           this.loadBeds(),
           this.loadAccommodationRequests(),
           this.loadBedAssignments(),
-          this.loadPayments()
+          this.loadPayments(),
+          this.loadMaintenanceRequests()
         ]);
         this.syncRolesFromUsers();
         this.updateStats();
@@ -539,6 +568,18 @@
         }
       },
 
+      async loadMaintenanceRequests() {
+        this.loading.maintenanceRequests = true;
+        this.errors.maintenanceRequests = '';
+        try {
+          this.maintenanceRequests = asArray(await window.SaraAPI.get(MAINTENANCE_ENDPOINT)).map(normalizeMaintenanceRequest);
+        } catch (error) {
+          this.errors.maintenanceRequests = this.apiMessage(error);
+        } finally {
+          this.loading.maintenanceRequests = false;
+        }
+      },
+
       updateStats() {
         this.stats[0].value = this.toPersianNumber(this.users.length);
         this.stats[1].value = this.toPersianNumber(this.users.filter((item) => item.is_active !== false).length);
@@ -723,6 +764,14 @@
         });
       },
 
+      filteredMaintenanceRequests() {
+        return this.maintenanceRequests.filter((ticket) => {
+          const matchesStatus = this.operationFilters.maintenanceStatus === 'all' || ticket.status === this.operationFilters.maintenanceStatus;
+          const matchesPriority = this.operationFilters.maintenancePriority === 'all' || ticket.priority === this.operationFilters.maintenancePriority;
+          return matchesStatus && matchesPriority && this.matchesText(ticket, this.operationFilters.maintenanceQuery, ['id', 'title', 'description', 'location', 'requested_by', 'assigned_to', 'created_at']);
+        });
+      },
+
       selectedOperationDormitoryName() {
         if (this.operationFilters.dormitoryId === 'all') return '';
         return this.dormitories.find((dormitory) => String(dormitory.id) === String(this.operationFilters.dormitoryId))?.name || this.operationFilters.dormitoryId;
@@ -758,6 +807,39 @@
         this.operationFilters.assignmentQuery = '';
         this.operationFilters.assignmentStatus = 'all';
         this.operationFilters.dormitoryId = 'all';
+      },
+
+      priorityLabel(value) {
+        return {
+          urgent: 'فوری',
+          high: 'زیاد',
+          medium: 'متوسط',
+          low: 'کم'
+        }[value] || value || 'نامشخص';
+      },
+
+      priorityBadgeClass(value) {
+        return {
+          urgent: 'ss-status-badge ss-status-danger',
+          high: 'ss-status-badge ss-status-warning',
+          medium: 'ss-status-badge ss-status-info',
+          low: 'ss-status-badge ss-status-muted'
+        }[value] || 'ss-status-badge ss-status-muted';
+      },
+
+      maintenanceFilterChips() {
+        const chips = [];
+        const query = this.operationFilters.maintenanceQuery.trim();
+        if (query) chips.push(`جستجو: ${query}`);
+        if (this.operationFilters.maintenanceStatus !== 'all') chips.push(`وضعیت: ${this.statusBadgeLabel('maintenance', this.operationFilters.maintenanceStatus)}`);
+        if (this.operationFilters.maintenancePriority !== 'all') chips.push(`اولویت: ${this.priorityLabel(this.operationFilters.maintenancePriority)}`);
+        return chips;
+      },
+
+      clearMaintenanceFilters() {
+        this.operationFilters.maintenanceQuery = '';
+        this.operationFilters.maintenanceStatus = 'all';
+        this.operationFilters.maintenancePriority = 'all';
       },
 
       paymentDueFilterLabel(value) {
@@ -860,6 +942,34 @@
         this.showAlert('danger', 'دانشجوی مرتبط در فهرست کاربران بارگذاری‌شده پیدا نشد.');
       },
 
+      openMaintenanceDetail(ticket) {
+        this.dialog = {
+          open: true,
+          type: 'generic-details',
+          title: 'جزئیات درخواست تعمیرات',
+          summary: {
+            title: ticket.title || 'درخواست تعمیرات',
+            meta: ticket.location || 'مکان نامشخص',
+            code: ticket.id || '',
+            statusType: 'maintenance',
+            status: ticket.status
+          },
+          fields: [
+            { label: 'شناسه', value: ticket.id },
+            { label: 'عنوان', value: ticket.title },
+            { label: 'مکان', value: ticket.location },
+            { label: 'اولویت', value: this.priorityLabel(ticket.priority) },
+            { label: 'وضعیت', value: this.statusBadgeLabel('maintenance', ticket.status) },
+            { label: 'درخواست‌دهنده', value: ticket.requested_by },
+            { label: 'مسئول', value: ticket.assigned_to },
+            { label: 'تاریخ ثبت', value: ticket.created_at },
+            { label: 'آخرین بروزرسانی', value: ticket.updated_at },
+            { label: 'شرح', value: ticket.description },
+            { label: 'یادداشت حل مشکل', value: ticket.resolution_note }
+          ]
+        };
+      },
+
       statusBadgeClass(type, status) {
         const badge = window.SaraStatus?.get?.(type, status);
         return badge?.className || 'ss-status-badge ss-status-muted';
@@ -895,6 +1005,7 @@
         const assignedStudents = new Set(this.bedAssignments.filter((item) => ['active', 'assigned'].includes(String(item.status || '').toLowerCase())).map((item) => item.user_id || item.student_name || item.id)).size;
         const overduePayments = this.payments.filter((payment) => this.paymentDueState(payment) === 'overdue').length;
         const trackedPayments = this.payments.filter((payment) => payment.id).length;
+        const urgentMaintenance = this.maintenanceRequests.filter((ticket) => String(ticket.priority || '').toLowerCase() === 'urgent' && !['resolved', 'cancelled'].includes(String(ticket.status || '').toLowerCase())).length;
 
         return [
           { title: 'نرخ اشغال', value: totalBeds || occupancy ? `${this.toPersianNumber(occupancy || 0)}٪` : '—', note: `${this.toPersianNumber(occupiedBeds)} تخت اشغال از ${this.toPersianNumber(totalBeds)} تخت قابل محاسبه`, type: 'backend' },
@@ -902,7 +1013,8 @@
           { title: 'درخواست‌های در انتظار', value: this.toPersianNumber(pending), note: 'از فهرست سراسری درخواست‌های اسکان', type: 'backend' },
           { title: 'تایید / رد شده', value: `${this.toPersianNumber(approved)} / ${this.toPersianNumber(rejected)}`, note: 'تفکیک وضعیت درخواست‌های اسکان', type: 'backend' },
           { title: 'دانشجویان تخصیص‌خورده', value: this.toPersianNumber(assignedStudents), note: 'بر پایه تاریخچه تخصیص تخت', type: 'backend' },
-          { title: 'پرداخت‌های معوق', value: this.toPersianNumber(overduePayments), note: `${this.toPersianNumber(trackedPayments)} پرداخت از API بررسی شد.`, type: 'backend' }
+          { title: 'پرداخت‌های معوق', value: this.toPersianNumber(overduePayments), note: `${this.toPersianNumber(trackedPayments)} پرداخت از API بررسی شد.`, type: 'backend' },
+          { title: 'تعمیرات فوری باز', value: this.toPersianNumber(urgentMaintenance), note: 'محاسبه از endpoint درخواست‌های تعمیرات', type: 'backend' }
         ];
       },
 
@@ -917,6 +1029,10 @@
         const freeBeds = this.beds.filter((bed) => String(bed.status || '').toLowerCase() === 'available').length
           || this.dormitories.reduce((sum, dormitory) => sum + Number(dormitory.available_beds || 0), 0);
         const overduePayments = this.payments.filter((payment) => this.paymentDueState(payment) === 'overdue');
+        const urgentMaintenance = this.maintenanceRequests.filter((ticket) =>
+          String(ticket.priority || '').toLowerCase() === 'urgent'
+          && !['resolved', 'cancelled'].includes(String(ticket.status || '').toLowerCase())
+        );
 
         return [
           {
@@ -953,6 +1069,13 @@
             note: 'بر اساس فهرست پرداخت‌های دریافتی از API',
             href: '#operations',
             tone: overduePayments.length ? 'danger' : 'neutral'
+          },
+          {
+            title: 'تعمیرات فوری باز',
+            value: this.toPersianNumber(urgentMaintenance.length),
+            note: 'درخواست‌های تعمیرات فوری که هنوز بسته نشده‌اند',
+            href: '#operations',
+            tone: urgentMaintenance.length ? 'danger' : 'success'
           }
         ];
       },
