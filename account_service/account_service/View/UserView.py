@@ -51,6 +51,9 @@ class UserCreateView(generics.CreateAPIView):
         user = User.objects.create_user(**validated_data)
 
         userProfile.objects.create(user=user, **profile_data)
+        userRole = Role.objects.get(name__exact="student")
+
+        UserRole.objects.create(user=user, role=userRole)
 
         return Response(
             {
