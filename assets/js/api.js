@@ -786,6 +786,55 @@
     }
   }
 
+  function coerceBoolean(value) {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') {
+      if (value === 1) return true;
+      if (value === 0) return false;
+    }
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      if (['true', '1', 'yes', 'ok', 'success', 'successful', 'verified', 'matched', 'valid'].includes(normalized)) return true;
+      if (['false', '0', 'no', 'failed', 'failure', 'error', 'rejected', 'mismatch', 'invalid'].includes(normalized)) return false;
+    }
+    return null;
+  }
+
+  function aiResult(data = {}, messages = {}) {
+    const response = data && typeof data === 'object' ? data : { result: data };
+    const message = response.log
+      || response.message
+      || response.detail
+      || response.error
+      || '';
+    const candidates = [
+      response.success,
+      response.verified,
+      response.match,
+      response.matched,
+      response.valid,
+      response.ok,
+      response.result,
+      response.status
+    ];
+    let succeeded = candidates.map(coerceBoolean).find((value) => value !== null);
+
+    if (succeeded === undefined) {
+      const normalizedMessage = String(message || '').toLowerCase();
+      const failurePattern = /(doesn'?t match|mismatch|not match|failed|failure|error|no id|no id_card|no face|not exists|invalid|rejected)/i;
+      const successPattern = /(success|saved|verified|matched|operation done|deleted successfully)/i;
+      if (failurePattern.test(normalizedMessage)) succeeded = false;
+      else if (successPattern.test(normalizedMessage)) succeeded = true;
+    }
+
+    if (succeeded === undefined) succeeded = false;
+
+    return {
+      succeeded,
+      message: message || (succeeded ? messages.success : messages.failure) || ''
+    };
+  }
+
   function withQuery(path, params = {}) {
     const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
     if (!entries.length) return path;
@@ -816,6 +865,7 @@
     parseResponse,
     fieldErrors,
     errorMessage,
+    aiResult,
     pagination,
     list,
     withQuery,

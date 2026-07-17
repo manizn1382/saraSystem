@@ -2280,7 +2280,7 @@ The repository also contains `AI/national_id_detector/` for ID-card detection/cl
 Important caveats:
 
 - Current Flask face routes do not enforce JWT authentication. The front end sends these requests with `auth: false` and relies on the surrounding authenticated page context.
-- Current Flask face routes do not configure CORS. Direct browser calls from another origin may fail until the AI service enables CORS or is placed behind the same gateway/origin as the front end.
+- The local Flask AI entrypoints enable CORS for static frontend testing from a different local port. Production deployments should still place them behind an authenticated gateway or same-origin proxy.
 - Responses use `{ "success": boolean, "log": string }`, not the standard SaraSystem success envelope.
 - The AI service stores face data on local disk under `AI/face_recognition/database/{id}/img.jpg`.
 - The front end only uploads/deletes images and displays service results. It does not implement face recognition logic.
@@ -2459,8 +2459,8 @@ The front end already checks several permission names. The API should treat thes
 1. Account child URL routes use leading slash strings. Normalize URL patterns to avoid routing surprises.
 2. `GET /api/v1/users/current` now returns a user object, but the optional `userId` permission check compares `request.user.id` to the raw query-string value; normalize types before comparing.
 3. `BedCreateView` currently repeats `IsAuthenticated` in `permission_classes` and does not require `IsAdminUser`, so authenticated non-admin users may be able to create beds.
-4. The face-recognition AI service does not enforce JWT auth or configure CORS; browser calls need either CORS support or same-origin gateway/proxying.
-5. `AI/national_id_detector/` now exposes a prototype `/verify` Flask route on port `5001`; add CORS/same-origin gatewaying, auth/rate limiting, and account-service persistence before treating it as a production verification authority.
+4. The face-recognition AI service does not enforce JWT auth; production browser calls need an authenticated gateway or equivalent protection even though local CORS is enabled for testing.
+5. `AI/national_id_detector/` now exposes a prototype `/verify` Flask route on port `5001`; add auth/rate limiting and account-service persistence before treating it as a production verification authority.
 6. `PATCH /api/v1/role/update?role_id={id}` currently checks `role_id` but still calls `get_object()` without a URL `pk`, so role updates may fail until the view is corrected.
 7. `UserRole`, `RolePermission`, and `Permission` now have list/detail or update/delete routes, but destructive delete routes have the caveats documented above and should not be wired to front-end delete buttons yet.
 8. Username-only anonymous password reset is implemented at `/api/v1/users/password/reset`; older `/password/reset/username` aliases should normalize to that route.

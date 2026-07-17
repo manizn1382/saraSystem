@@ -20,7 +20,7 @@
 | Service | Base URL | Description |
 |---------|----------|-------------|
 | Face Recognition Service | `http://<host>:5000` | Face registration, verification, and deletion. |
-| ID Verification Service | `http://<host>:5000` | ID card detection and ID number verification using OCR. |
+| ID Verification Service | `http://<host>:5001` | ID card detection and ID number verification using OCR. |
 
 ---
 

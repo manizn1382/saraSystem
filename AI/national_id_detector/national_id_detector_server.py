@@ -1,9 +1,11 @@
 from flask import Flask, request
+from flask_cors import CORS
 import os
 from predict import *
 from text_extract import *
 
 app = Flask(__name__)
+CORS(app)
 
 @app.post("/verify")
 def register():
@@ -39,4 +41,5 @@ def register():
             "log" : log}
 
 
-app.run(host="0.0.0.0", port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("NATIONAL_ID_SERVICE_PORT", "5001")))

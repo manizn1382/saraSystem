@@ -1306,10 +1306,13 @@
             retryOnUnauthorized: false,
             redirectOnExpired: false
           });
-          const succeeded = response?.success !== false;
+          const result = window.SaraAPI.aiResult(response, {
+            success: 'کارت ملی تأیید شد.',
+            failure: 'کد ملی با تصویر کارت تطبیق ندارد.'
+          });
           this.showNationalIdReviewStatus(
-            succeeded ? 'success' : 'warning',
-            response?.log || response?.message || (succeeded ? 'کارت ملی تأیید شد.' : 'کد ملی با تصویر کارت تطبیق ندارد.')
+            result.succeeded ? 'success' : 'warning',
+            result.message
           );
         } catch (error) {
           this.showNationalIdReviewStatus('danger', error.message || 'ارتباط با سرویس تأیید کارت ملی برقرار نشد.');

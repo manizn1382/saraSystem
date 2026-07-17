@@ -144,9 +144,11 @@ function accountPage() {
               retryOnUnauthorized: false,
               redirectOnExpired: false
             });
-            const succeeded = response?.success !== false;
-            const message = response?.log || response?.message || (succeeded ? 'درخواست با موفقیت انجام شد.' : 'درخواست توسط سرویس رد شد.');
-            this.showIdentityStatus(succeeded ? 'success' : 'warning', message);
+            const result = window.SaraAPI.aiResult(response, {
+              success: 'درخواست با موفقیت انجام شد.',
+              failure: 'درخواست توسط سرویس رد شد.'
+            });
+            this.showIdentityStatus(result.succeeded ? 'success' : 'warning', result.message);
           } catch (error) {
             this.showIdentityStatus('danger', error.message || 'ارتباط با سرویس هوش مصنوعی برقرار نشد.');
           } finally {
@@ -212,10 +214,13 @@ function accountPage() {
               retryOnUnauthorized: false,
               redirectOnExpired: false
             });
-            const succeeded = response?.success !== false;
+            const result = window.SaraAPI.aiResult(response, {
+              success: 'کارت ملی تأیید شد.',
+              failure: 'کد ملی با تصویر کارت تطبیق ندارد.'
+            });
             this.showNationalIdStatus(
-              succeeded ? 'success' : 'warning',
-              response?.log || response?.message || (succeeded ? 'کارت ملی تأیید شد.' : 'کد ملی با تصویر کارت تطبیق ندارد.')
+              result.succeeded ? 'success' : 'warning',
+              result.message
             );
           } catch (error) {
             this.showNationalIdStatus('danger', error.message || 'ارتباط با سرویس تأیید کارت ملی برقرار نشد.');
