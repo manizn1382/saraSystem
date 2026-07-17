@@ -13,7 +13,7 @@ class Accommodation(models.Model):
     )
 
     user_id = models.IntegerField()
-    requested_dorm = models.OneToOneField(Dormitory, on_delete=models.CASCADE)
+    requested_dorm = models.ForeignKey(Dormitory, on_delete=models.CASCADE)
     preferred_room = models.CharField(max_length=40)
     semester = models.CharField(max_length=60)
     req_date = models.DateTimeField(auto_now_add=True)
