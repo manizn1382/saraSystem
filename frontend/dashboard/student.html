@@ -1430,10 +1430,11 @@
                     required
                     aria-describedby="maintenanceRoomError"
                     @change="syncMaintenanceLocationFromRoom()"
+                    :disabled="!roomOptions().length"
                   >
                     <option
                       value=""
-                      x-text="isResourceLoading('dormitories') ? 'در حال دریافت خوابگاه‌ها...' : (resourceError('dormitories') ? 'دریافت خوابگاه‌ها ناموفق بود' : (dormitories.length ? 'انتخاب کنید' : 'خوابگاهی برای انتخاب دریافت نشد'))"
+                      x-text="isResourceLoading('assignment') ? 'در حال دریافت تخصیص فعال...' : (resourceError('assignment') ? 'دریافت تخصیص فعال ناموفق بود' : (roomOptions().length ? 'اتاق تخصیص فعلی' : 'تخصیص فعالی برای ثبت تعمیرات پیدا نشد'))"
                     ></option>
                     <template x-for="room in roomOptions()" :key="room.id">
                       <option :value="room.id" x-text="roomOptionLabel(room)"></option>
@@ -1459,8 +1460,12 @@
                     required
                     aria-describedby="maintenanceBedError"
                     @change="syncMaintenanceLocationFromBed()"
+                    :disabled="!bedOptionsForMaintenance().length"
                   >
-                    <option value="">انتخاب کنید</option>
+                    <option
+                      value=""
+                      x-text="isResourceLoading('assignment') ? 'در حال دریافت تخت فعال...' : (resourceError('assignment') ? 'دریافت تخت فعال ناموفق بود' : (bedOptionsForMaintenance().length ? 'تخت تخصیص فعلی' : 'تخت فعالی برای ثبت تعمیرات پیدا نشد'))"
+                    ></option>
                     <template x-for="bed in bedOptionsForMaintenance()" :key="bed.id">
                       <option :value="bed.id" x-text="bedOptionLabel(bed)"></option>
                     </template>

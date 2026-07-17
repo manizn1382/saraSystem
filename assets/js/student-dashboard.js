@@ -395,7 +395,7 @@
             dormitories: "/api/dormitories/with-rooms/",
             rooms: "/api/rooms/",
             beds: "/api/beds/",
-            assignment: "/api/bed-assignments/",
+            assignment: "/api/bed-assignments/?status=active",
             payments: "/api/payments/",
             maintenanceRequests: "/api/maintenance-requests/",
             announcements: "/api/announcements/"
@@ -671,28 +671,36 @@
 
         ensureCurrentAssignmentOptions() {
           const assignment = this.assignment || {};
-          if (assignment.dormitory_id && !this.dormitories.some((item) => String(item.id) === String(assignment.dormitory_id))) {
+          const roomId = this.currentAssignmentRoomId();
+          const bedId = this.currentAssignmentBedId();
+          const dormitoryId = this.currentAssignmentDormitoryId(roomId);
+
+          if (roomId && !assignment.room_id) assignment.room_id = roomId;
+          if (bedId && !assignment.bed_id) assignment.bed_id = bedId;
+          if (dormitoryId && !assignment.dormitory_id) assignment.dormitory_id = dormitoryId;
+
+          if (dormitoryId && !this.dormitories.some((item) => String(item.id) === String(dormitoryId))) {
             this.dormitories.push({
-              id: String(assignment.dormitory_id),
-              name: assignment.dormitory || `خوابگاه ${this.toPersianNumber(assignment.dormitory_id)}`
+              id: String(dormitoryId),
+              name: assignment.dormitory || `خوابگاه ${this.toPersianNumber(dormitoryId)}`
             });
           }
 
-          if (assignment.room_id && !this.rooms.some((item) => String(item.id) === String(assignment.room_id))) {
+          if (roomId && !this.rooms.some((item) => String(item.id) === String(roomId))) {
             this.rooms.push({
-              id: String(assignment.room_id),
-              dormitory_id: String(assignment.dormitory_id || ""),
+              id: String(roomId),
+              dormitory_id: String(dormitoryId || ""),
               dormitory_name: assignment.dormitory || this.selectedDormitoryName(assignment.dormitory_id, ""),
-              room_number: assignment.room || assignment.room_id,
+              room_number: assignment.room || roomId,
               status: "active"
             });
           }
 
-          if (assignment.bed_id && !this.beds.some((item) => String(item.id) === String(assignment.bed_id))) {
+          if (bedId && !this.beds.some((item) => String(item.id) === String(bedId))) {
             this.beds.push({
-              id: String(assignment.bed_id),
-              room_id: String(assignment.room_id || ""),
-              bed_number: assignment.bed || assignment.bed_id,
+              id: String(bedId),
+              room_id: String(roomId || ""),
+              bed_number: assignment.bed || bedId,
               status: "assigned"
             });
           }
@@ -825,7 +833,26 @@
           }
 
           if (resource === "assignment") {
-            const assignment = Array.isArray(list) ? list[0] : data;
+            const assignmentList = [];
+            const looksLikeAssignment = (item) => item && typeof item === "object" && ["bed", "bed_id", "room", "room_id", "user_id", "status", "request"].some((key) => item[key] !== undefined);
+            const addAssignmentCandidate = (item) => {
+              if (!item) return;
+              if (Array.isArray(item)) {
+                item.forEach(addAssignmentCandidate);
+                return;
+              }
+              if (!looksLikeAssignment(item) && item.data) {
+                addAssignmentCandidate(item.data);
+                return;
+              }
+              if (looksLikeAssignment(item)) assignmentList.push(item);
+            };
+            addAssignmentCandidate(data?.data);
+            addAssignmentCandidate(data?.results);
+            addAssignmentCandidate(data?.items);
+            addAssignmentCandidate(data?.assignments || data?.bed_assignments || data?.bedAssignments);
+            addAssignmentCandidate(list);
+            const assignment = assignmentList.find((item) => String(item?.status || "").toLowerCase() === "active") || assignmentList[0] || null;
             if (assignment) {
               const room = assignment.room || assignment.bed?.room || {};
               const bed = assignment.bed || {};
@@ -1406,16 +1433,45 @@
 
         roomOptions() {
           this.ensureCurrentAssignmentOptions();
-          return [...this.rooms].sort((a, b) => this.roomOptionLabel(a).localeCompare(this.roomOptionLabel(b), "fa", { numeric: true, sensitivity: "base" }));
+          const roomId = this.currentAssignmentRoomId();
+          if (!roomId) return [];
+          return this.rooms
+            .filter((room) => String(room.id) === String(roomId))
+            .sort((a, b) => this.roomOptionLabel(a).localeCompare(this.roomOptionLabel(b), "fa", { numeric: true, sensitivity: "base" }));
         },
 
         bedOptionsForMaintenance() {
           this.ensureCurrentAssignmentOptions();
-          const roomId = this.forms.maintenance.data.room_id;
-          const beds = roomId
-            ? this.beds.filter((bed) => String(bed.room_id) === String(roomId))
-            : this.beds;
+          const bedId = this.currentAssignmentBedId();
+          const beds = bedId ? this.beds.filter((bed) => String(bed.id) === String(bedId)) : [];
           return [...beds].sort((a, b) => this.bedOptionLabel(a).localeCompare(this.bedOptionLabel(b), "fa", { numeric: true, sensitivity: "base" }));
+        },
+
+        currentAssignmentBedId() {
+          const assignment = this.assignment || {};
+          const bed = assignment.bed && typeof assignment.bed === "object" ? assignment.bed : {};
+          const direct = assignment.bed_id || bed.id;
+          return direct ? String(direct) : "";
+        },
+
+        currentAssignmentRoomId() {
+          const assignment = this.assignment || {};
+          const room = assignment.room && typeof assignment.room === "object" ? assignment.room : {};
+          const direct = assignment.room_id || room.id;
+          if (direct) return String(direct);
+          const bedId = this.currentAssignmentBedId();
+          const bed = this.beds.find((item) => String(item.id) === String(bedId));
+          return bed?.room_id ? String(bed.room_id) : "";
+        },
+
+        currentAssignmentDormitoryId(roomId = "") {
+          const assignment = this.assignment || {};
+          const dormitory = assignment.dormitory && typeof assignment.dormitory === "object" ? assignment.dormitory : {};
+          const direct = assignment.dormitory_id || assignment.dorm_id || dormitory.id;
+          if (direct) return String(direct);
+          const resolvedRoomId = roomId || this.currentAssignmentRoomId();
+          const room = this.rooms.find((item) => String(item.id) === String(resolvedRoomId));
+          return room?.dormitory_id ? String(room.dormitory_id) : "";
         },
 
         roomOptionLabel(room = {}) {
@@ -1433,6 +1489,8 @@
 
         syncMaintenanceLocationFromRoom() {
           const data = this.forms.maintenance.data;
+          const assignedRoomId = this.currentAssignmentRoomId();
+          if (assignedRoomId && String(data.room_id) !== String(assignedRoomId)) data.room_id = assignedRoomId;
           const room = this.rooms.find((item) => String(item.id) === String(data.room_id));
           if (room?.dormitory_id) data.dorm_id = room.dormitory_id;
           if (data.bed_id && !this.bedOptionsForMaintenance().some((bed) => String(bed.id) === String(data.bed_id))) {
@@ -1442,6 +1500,8 @@
 
         syncMaintenanceLocationFromBed() {
           const data = this.forms.maintenance.data;
+          const assignedBedId = this.currentAssignmentBedId();
+          if (assignedBedId && String(data.bed_id) !== String(assignedBedId)) data.bed_id = assignedBedId;
           const bed = this.beds.find((item) => String(item.id) === String(data.bed_id));
           if (bed?.room_id) data.room_id = bed.room_id;
           this.syncMaintenanceLocationFromRoom();
