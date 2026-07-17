@@ -1,103 +1,139 @@
-from pathlib import Path
-
 import cv2
 import numpy as np
+import os
 
-
-def order_points(points):
+def order_points(pts):
+    """Order points as: top-left, top-right, bottom-right, bottom-left"""
     rect = np.zeros((4, 2), dtype="float32")
 
-    coordinate_sum = points.sum(axis=1)
-    rect[0] = points[np.argmin(coordinate_sum)]
-    rect[2] = points[np.argmax(coordinate_sum)]
+    s = pts.sum(axis=1)
+    rect[0] = pts[np.argmin(s)]      # Top-left
+    rect[2] = pts[np.argmax(s)]      # Bottom-right
 
-    coordinate_diff = np.diff(points, axis=1)
-    rect[1] = points[np.argmin(coordinate_diff)]
-    rect[3] = points[np.argmax(coordinate_diff)]
+    diff = np.diff(pts, axis=1)
+    rect[1] = pts[np.argmin(diff)]   # Top-right
+    rect[3] = pts[np.argmax(diff)]   # Bottom-left
 
     return rect
 
 
-def four_point_transform(image, points):
-    rect = order_points(points)
-    top_left, top_right, bottom_right, bottom_left = rect
+def four_point_transform(image, pts):
+    rect = order_points(pts)
+    (tl, tr, br, bl) = rect
 
-    width_a = np.linalg.norm(bottom_right - bottom_left)
-    width_b = np.linalg.norm(top_right - top_left)
-    max_width = max(int(width_a), int(width_b))
+    widthA = np.linalg.norm(br - bl)
+    widthB = np.linalg.norm(tr - tl)
+    maxWidth = max(int(widthA), int(widthB))
 
-    height_a = np.linalg.norm(top_right - bottom_right)
-    height_b = np.linalg.norm(top_left - bottom_left)
-    max_height = max(int(height_a), int(height_b))
+    heightA = np.linalg.norm(tr - br)
+    heightB = np.linalg.norm(tl - bl)
+    maxHeight = max(int(heightA), int(heightB))
 
-    destination = np.array([
+    dst = np.array([
         [0, 0],
-        [max_width - 1, 0],
-        [max_width - 1, max_height - 1],
-        [0, max_height - 1]
+        [maxWidth - 1, 0],
+        [maxWidth - 1, maxHeight - 1],
+        [0, maxHeight - 1]
     ], dtype="float32")
 
-    matrix = cv2.getPerspectiveTransform(rect, destination)
-    return cv2.warpPerspective(image, matrix, (max_width, max_height))
+    M = cv2.getPerspectiveTransform(rect, dst)
+    warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
+
+    return warped
 
 
-def crop_id_card(image_path, output_path):
-    image = cv2.imread(str(image_path))
-    if image is None:
-        raise ValueError("Could not read image.")
+def crop_id_card(img_path):
 
-    original = image.copy()
+    # -----------------------------
+    # Read image
+    # -----------------------------
+    image = cv2.imread(img_path)
+    orig = image.copy()
+
+    # Resize for faster processing
     ratio = image.shape[0] / 800.0
     image = cv2.resize(image, (int(image.shape[1] / ratio), 800))
 
+    # Convert to grayscale
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gray = cv2.GaussianBlur(gray, (5, 5), 0)
-    edges = cv2.Canny(gray, 50, 150)
-    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
 
+    # Blur
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # Edge detection
+    edges = cv2.Canny(gray, 50, 150)
+
+    # Morphological closing
+    kernel = np.ones((5, 5), np.uint8)
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+
+    # Find contours
     contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
 
     card = None
-    for contour in contours:
-        perimeter = cv2.arcLength(contour, True)
-        approx = cv2.approxPolyDP(contour, 0.02 * perimeter, True)
+
+    for cnt in contours:
+        peri = cv2.arcLength(cnt, True)
+        approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
+
         if len(approx) == 4:
             card = approx
             break
 
     if card is None:
-        raise ValueError("No ID card detected.")
+        raise Exception("No ID card detected.")
 
-    warped = four_point_transform(original, card.reshape(4, 2) * ratio)
-    output = Path(output_path)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(output), warped)
-    return output
+    # Scale contour back to original size
+    card = card.reshape(4, 2) * ratio
 
+    # Perspective transform
+    warped = four_point_transform(orig, card)
+
+    # Save result
+    cv2.imwrite("cropped_id_card.jpg", warped)
+
+    print("Saved: cropped_id_card.jpg")
+
+import cv2
 
 def crop_id_part(
     image_path,
-    output_path,
-    x=1000,
-    y=250,
-    w=600,
-    h=90,
-    pad_x=25,
-    pad_y=30
+    output_path="cropped_id_part.jpg",
+    x_ratio=0.50,
+    y_ratio=0.22,
+    w_ratio=0.31,
+    h_ratio=0.10,
+    pad_x_ratio=0.015,
+    pad_y_ratio=0.02,
 ):
-    image = cv2.imread(str(image_path))
-    if image is None:
+    img = cv2.imread(image_path)
+    if img is None:
         raise ValueError("Could not read image.")
 
-    height, width = image.shape[:2]
+    H, W = img.shape[:2]
+
+    # Convert ratios to pixels
+    x = int(W * x_ratio)
+    y = int(H * y_ratio)
+    w = int(W * w_ratio)
+    h = int(H * h_ratio)
+
+    pad_x = int(W * pad_x_ratio)
+    pad_y = int(H * pad_y_ratio)
+
     x1 = max(0, x - pad_x)
     y1 = max(0, y - pad_y)
-    x2 = min(width, x + w + pad_x)
-    y2 = min(height, y + h + pad_y)
+    x2 = min(W, x + w + pad_x)
+    y2 = min(H, y + h + pad_y)
 
-    cropped = image[y1:y2, x1:x2]
-    output = Path(output_path)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    cv2.imwrite(str(output), cropped)
-    return output
+    cropped = img[y1:y2, x1:x2]
+    cv2.imwrite(output_path, cropped)
+
+    return cropped
+
+
+crop_id_card("3.jpg")
+crop_id_part("cropped_id_card.jpg")
+
