@@ -1,0 +1,89 @@
+services:
+  account-service:
+    build:
+      context: ./account_service
+      dockerfile: Dockerfile.production
+    image: sara-account-service:production
+    container_name: sara-account-service
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DJANGO_SECRET_KEY: ${ACCOUNT_SECRET_KEY}
+      DJANGO_DEBUG: "false"
+      DB_NAME: ${ACCOUNT_DB_NAME}
+      DB_USER: ${ACCOUNT_DB_USER}
+      DB_PASSWORD: ${ACCOUNT_DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      MEDIA_ROOT: /data/media
+      MEDIA_URL: /media/account/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - /opt/apps/saraSystem-data/account-media:/data/media
+    networks:
+      - sara-network
+    mem_limit: 512m
+    cpus: 0.75
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import socket; s=socket.create_connection(('127.0.0.1',8000),2); s.close()"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  dormitory-service:
+    build:
+      context: ./dormitory_service
+      dockerfile: Dockerfile.production
+    image: sara-dormitory-service:production
+    container_name: sara-dormitory-service
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    environment:
+      DJANGO_SECRET_KEY: ${DORMITORY_SECRET_KEY}
+      DJANGO_DEBUG: "false"
+      DB_NAME: ${DORMITORY_DB_NAME}
+      DB_USER: ${DORMITORY_DB_USER}
+      DB_PASSWORD: ${DORMITORY_DB_PASSWORD}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      MEDIA_ROOT: /data/media
+      MEDIA_URL: /media/dormitory/
+      ACCOUNT_SERVICE_BASE_URL: http://account-service:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - /opt/apps/saraSystem-data/dormitory-media:/data/media
+    networks:
+      - sara-network
+    depends_on:
+      account-service:
+        condition: service_healthy
+    mem_limit: 512m
+    cpus: 0.75
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - python -c "import socket; s=socket.create_connection(('127.0.0.1',8000),2); s.close()"
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+networks:
+  sara-network:
+    external: true
+    name: sara-network

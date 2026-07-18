@@ -14,3 +14,12 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
+.env
+*.pem
+face-database/
+weights/
+models/
+__pycache__/
+*.pyc
+.env.*
+!.env.example
